@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using Unisave;
 
 /*
  * The only pieces of code that actually describe data persistence are:
@@ -12,7 +13,7 @@ using UnityEngine.UI;
 // Stores the leaderboard data
 // Updates the data after a game has finished
 // Updates the leaderboard UI
-public class Leaderboard : MonoBehaviour
+public class Leaderboard : UnisaveLocalBehavior
 {
 	// max number of records
 	public const int BOARD_SIZE = 5;
@@ -27,7 +28,8 @@ public class Leaderboard : MonoBehaviour
 	// the leaderboard data
 	// stored under the key "leaderboard"
 	// default (initial) value is an empty list
-	//[SavedAs("leaderboard")]
+	[SavedAs("leaderboard")]
+	[NonNull]
 	public List<Record> records = new List<Record>();
 
 	public Text leaderboardText;
