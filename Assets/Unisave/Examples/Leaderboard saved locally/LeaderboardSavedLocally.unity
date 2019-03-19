@@ -779,6 +779,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 041c695d16f8f4c679ec50ed2fc9c9ce, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  records: []
   leaderboardText: {fileID: 1196112573}
 --- !u!1 &1222613833
 GameObject:

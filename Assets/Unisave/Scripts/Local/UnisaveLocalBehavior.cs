@@ -12,12 +12,12 @@ namespace Unisave
 	{
 		protected virtual void Awake()
 		{
-			Debug.Log("Load stuff!");
+			UnisaveLocal.Load(this);
 		}
 		
 		protected virtual void OnDestroy()
 		{
-			Debug.Log("Save stuff!");
+			UnisaveLocal.Save(this);
 		}
 	}
 }

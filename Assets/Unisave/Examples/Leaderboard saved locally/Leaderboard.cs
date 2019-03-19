@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
@@ -19,6 +20,7 @@ public class Leaderboard : UnisaveLocalBehavior
 	public const int BOARD_SIZE = 5;
 
 	// represents a single leaderboard record
+	[Serializable]
 	public struct Record
 	{
 		public int score;
