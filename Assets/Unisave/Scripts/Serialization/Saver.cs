@@ -2,21 +2,13 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using LightJson;
+using LightJson.Serialization;
 
 namespace Unisave.Serialization
 {
-	public static class Serializer
+	public static class Saver
 	{
-		public static T Load<T>(string json)
-		{
-			return (T)Load(json, typeof(T));
-		}
-
-		public static object Load(string json, Type type)
-		{
-			return LoadSimpleType(json, type);
-		}
-
 		public static string Save(object obj)
 		{
 			if (obj == null)
@@ -30,18 +22,6 @@ namespace Unisave.Serialization
 		// Implementation details ==========================================
 
 		private struct StringWrapper { public string s; }
-
-		private static object LoadSimpleType(string json, Type type)
-		{
-			if (type == typeof(int))
-				return int.Parse(json);
-			if (type == typeof(float))
-				return float.Parse(json);
-			if (type == typeof(string))
-				return JsonUtility.FromJson<StringWrapper>("{\"s\":" + json + "}").s;
-
-			return JsonUtility.FromJson(json, type);
-		}
 
 		// not generic, nor array
 		private static string SaveSimpleType(object obj, Type type)

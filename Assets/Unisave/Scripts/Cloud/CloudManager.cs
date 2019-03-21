@@ -220,7 +220,7 @@ namespace Unisave
 			sb.Append("{");
 			foreach (KeyValuePair<string, string> pair in playerData)
 			{
-				sb.Append(Serializer.Save(pair.Key));
+				sb.Append(Saver.Save(pair.Key));
 				sb.Append(":");
 				sb.Append(pair.Value);
 				sb.Append(",");

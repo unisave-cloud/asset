@@ -34,7 +34,7 @@ public static class UnisaveLocal
 				continue;
 			
 			string json = PlayerPrefs.GetString(key);
-			object val = Serializer.Load(json, fieldInfo.FieldType);
+			object val = Loader.Load(json, fieldInfo.FieldType);
 			fieldInfo.SetValue(behaviour, val);
 		}
 	}
@@ -55,7 +55,7 @@ public static class UnisaveLocal
 			SavedAsAttribute savedAs = (SavedAsAttribute)attributes[0];
 
 			string key = PLAYER_PREFS_KEY_PREFIX + savedAs.Key;
-			string json = Serializer.Save(fieldInfo.GetValue(behaviour));
+			string json = Saver.Save(fieldInfo.GetValue(behaviour));
 			PlayerPrefs.SetString(key, json);
 		}
 
