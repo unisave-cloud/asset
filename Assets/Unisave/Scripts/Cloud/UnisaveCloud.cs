@@ -1,91 +1,51 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.SceneManagement;
-using UnityEngine.Networking;
-using Unisave;
 
-public static class UnisaveCloud
+namespace Unisave
 {
-	private static SaverComponent saver;
-
-	private static string foo = "";
-
-	[RuntimeInitializeOnLoadMethod(RuntimeInitializeLoadType.BeforeSceneLoad)]
-	public static void Foo()
+	/// <summary>
+	/// Static API for controlling cloud part of Unisave
+	/// For more advanced usage see CloudManager class
+	/// </summary>
+	public static class UnisaveCloud
 	{
-		var objectName = "UnisavePreferencesInstance"; // without ".asset" extension
+		/// <summary>
+		/// Underlying cloud manager instance
+		/// </summary>
+		private static CloudManager manager;
 
-		var preferences = Resources.Load<UnisavePreferences>(objectName);
-
-		Debug.Log(preferences.foo);
-
-		foo = preferences.foo;
-
-		// TESTING: instantiation of GO with script
-
-		GameObject go = new GameObject("UnisaveSaver");
-		saver = go.AddComponent<SaverComponent>();
-	}
-
-	public static void Login(ILoginController controller, string email, string password)
-	{
-		controller.StartCoroutine(LoginCoroutine(controller, email, password));
-	}
-
-	private static IEnumerator LoginCoroutine(ILoginController controller, string email, string password)
-	{
-		Dictionary<string, string> fields = new Dictionary<string, string>() {
-			{"email", email},
-			{"password", password},
-			{"foo", foo}
-		};
-
-		UnityWebRequest request = UnityWebRequest.Post("https://ptsv2.com/t/o9ukl-1553114563/post", fields);
-		
-		yield return request.SendWebRequest();
-
-		if (request.isNetworkError || request.isHttpError)
+		static UnisaveCloud()
 		{
-            Debug.Log(request.error);
-			controller.LoginFailed(request.error);
+			manager = new CloudManager();
 		}
-        else
-		{
-			Debug.Log("Request done!");
 
-			Debug.Log(request.downloadHandler.text);
-            
-			controller.LoginSucceeded();
+		/// <summary>
+		/// Starts the login coroutine
+		/// </summary>
+		/// <param name="callback">Calls methods here after coroutine finishes</param>
+		/// <param name="email">Player email address</param>
+		/// <param name="password">Player password</param>
+		public static void Login(ILoginCallback callback, string email, string password)
+		{
+			manager.Login(callback, email, password);
 		}
-	}
 
-	public static void Logout(MonoBehaviour controller)
-	{
-		//controller.StartCoroutine(LogoutCoroutine(controller));
-
-		saver.StartCoroutine(LogoutCoroutine());
-	}
-
-	private static IEnumerator LogoutCoroutine()
-	{
-		Dictionary<string, string> fields = new Dictionary<string, string>() {
-			{"lorem", "ipsum"},
-			{"data", "is saved here"},
-		};
-
-		UnityWebRequest request = UnityWebRequest.Post("https://ptsv2.com/t/o9ukl-1553114563/post", fields);
-		
-		yield return request.SendWebRequest();
-
-		if (request.isNetworkError || request.isHttpError)
+		/// <summary>
+		/// Starts the logout coroutine
+		/// </summary>
+		public static void Logout()
 		{
-            Debug.Log(request.error);
+			manager.Logout();
 		}
-        else
+
+		/// <summary>
+		/// Distributes cloud data from cache to a given behavior instance,
+		/// or registers the behaviour as to-be-distributed after login occurs
+		/// </summary>
+		public static void Load(MonoBehaviour behaviour)
 		{
-			Debug.Log("Request done!");
-			Debug.Log(request.downloadHandler.text);
+			manager.Load(behaviour);
 		}
 	}
 }

@@ -4,6 +4,10 @@ using UnityEngine;
 
 namespace Unisave
 {
+	/// <summary>
+	/// Runs the continual saving coroutines
+	/// (or rather will run once implemented)
+	/// </summary>
 	public class SaverComponent : MonoBehaviour
 	{
 		void Awake()

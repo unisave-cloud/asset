@@ -6,6 +6,8 @@ namespace Unisave
 {
 	public class UnisavePreferences : ScriptableObject
 	{
-		public string foo;
+		public string serverApiUrl = "https://unisave.cloud/api/1.0/";
+
+		public string gameToken;
 	}
 }

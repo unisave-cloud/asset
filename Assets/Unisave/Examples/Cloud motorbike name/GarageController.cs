@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Unisave;
 
 public class GarageController : MonoBehaviour
 {
@@ -20,7 +21,7 @@ public class GarageController : MonoBehaviour
 
 	public void OnLogoutButtonClick()
 	{
-		UnisaveCloud.Logout(this);
+		UnisaveCloud.Logout();
 
 		SceneManager.LoadSceneAsync("Unisave/Examples/Cloud motorbike name/LoginScene", LoadSceneMode.Single);
 	}

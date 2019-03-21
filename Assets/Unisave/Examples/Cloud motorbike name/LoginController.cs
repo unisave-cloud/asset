@@ -5,7 +5,7 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Unisave;
 
-public class LoginController : MonoBehaviour, ILoginController
+public class LoginController : MonoBehaviour, ILoginCallback
 {
 	public InputField email;
 	public InputField password;
@@ -20,7 +20,7 @@ public class LoginController : MonoBehaviour, ILoginController
 		SceneManager.LoadSceneAsync("Unisave/Examples/Cloud motorbike name/GarageScene", LoadSceneMode.Single);
 	}
 
-	public void LoginFailed(string message)
+	public void LoginFailed(LoginFailure failure)
 	{
 		Debug.LogError("Login returned a failure.");
 	}

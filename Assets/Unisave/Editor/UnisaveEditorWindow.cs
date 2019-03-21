@@ -9,7 +9,8 @@ namespace Unisave
 	{
 		private UnisavePreferences preferences;
 
-		private string foo;
+		private string serverApiUrl;
+		private string gameToken;
 
 		[MenuItem("Window/Unisave")]
 		public static void ShowWidnow()
@@ -26,7 +27,8 @@ namespace Unisave
 		void OnGUI()
 		{
 			GUILayout.Label("Cool label", EditorStyles.boldLabel);
-			foo = EditorGUILayout.TextField("Foo", foo);
+			serverApiUrl = EditorGUILayout.TextField("Server API URL", serverApiUrl);
+			gameToken = EditorGUILayout.TextField("Game token", gameToken);
 		}
 
 		void OnLostFocus()
@@ -61,7 +63,8 @@ namespace Unisave
 				return;
 			}
 
-			foo = preferences.foo;
+			serverApiUrl = preferences.serverApiUrl;
+			gameToken = preferences.gameToken;
 		}
 
 		void WritePreferences()
@@ -72,7 +75,8 @@ namespace Unisave
 				return;
 			}
 
-			preferences.foo = foo;
+			preferences.serverApiUrl = serverApiUrl;
+			preferences.gameToken = gameToken;
 
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
