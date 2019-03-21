@@ -9,5 +9,6 @@ namespace Unisave
 	internal class LoginResponse
 	{
 		public string accessToken;
+		public string playerData;
 	}
 }

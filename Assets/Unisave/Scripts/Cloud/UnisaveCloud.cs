@@ -32,7 +32,7 @@ namespace Unisave
 		}
 
 		/// <summary>
-		/// Starts the logout coroutine
+		/// Starts the logout coroutine or does nothing if already logged out
 		/// </summary>
 		public static void Logout()
 		{
@@ -40,8 +40,16 @@ namespace Unisave
 		}
 
 		/// <summary>
-		/// Distributes cloud data from cache to a given behavior instance,
-		/// or registers the behaviour as to-be-distributed after login occurs
+		/// Registers the behaviour to be loaded after login succeeds
+		/// Or loads it now, if user already logged in
+		/// </summary>
+		public static void LoadAfterLogin(MonoBehaviour behaviour)
+		{
+			manager.LoadAfterLogin(behaviour);
+		}
+
+		/// <summary>
+		/// Distributes cloud data from cache to a given behavior instance
 		/// </summary>
 		public static void Load(MonoBehaviour behaviour)
 		{
