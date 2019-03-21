@@ -4,6 +4,7 @@ using UnityEngine.TestTools;
 using NUnit.Framework;
 using System.Collections;
 using Unisave;
+using Unisave.Serialization;
 
 public class SerializerTest
 {

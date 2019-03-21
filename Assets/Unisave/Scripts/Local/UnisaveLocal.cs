@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unisave;
+using Unisave.Serialization;
 
 public static class UnisaveLocal
 {

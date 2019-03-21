@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace Unisave
+namespace Unisave.Serialization
 {
 	public static class Serializer
 	{
