@@ -69,7 +69,7 @@ namespace Unisave.Serialization
 			if (type.IsArray)
 			{
 				//type.GetElementType();
-				throw new UnisaveException("Arrays cannot be deserialized yet. Planned feature.");
+				throw new UnisaveException("Arrays cannot be loaded yet. Planned feature.");
 			}
 
 			if (type.IsGenericType)
@@ -145,10 +145,10 @@ namespace Unisave.Serialization
 
 			object instance = ci.Invoke(new object[] {});
 
-			// set public fields
+			// set public non-static fields
 			foreach (FieldInfo fi in type.GetFields())
 			{
-				if (fi.IsPublic)
+				if (fi.IsPublic && !fi.IsStatic)
 				{
 					fi.SetValue(instance, Load(jsonObject[fi.Name], fi.FieldType));
 				}
