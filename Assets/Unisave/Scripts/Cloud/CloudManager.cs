@@ -7,6 +7,8 @@ using System.Text;
 using UnityEngine;
 using UnityEngine.Networking;
 using Unisave.Serialization;
+using LightJson;
+using LightJson.Serialization;
 
 namespace Unisave
 {
@@ -20,6 +22,11 @@ namespace Unisave
 		/// Fake access token for the local debug player to fake saving and logout
 		/// </summary>
 		private const string LOCAL_DEBUG_PLAYER_ACCESS_TOKEN = "local debug player access token";
+
+		/// <summary>
+		/// Key in PlayerPrefs for the local debug player storage
+		/// </summary>
+		private const string LOCAL_DEBUG_PLAYER_PREFS_KEY = "unisave.localDebugPlayer";
 
 		/// <summary>
 		/// Name of the preferences asset inside a Resources folder (without extension)
@@ -41,7 +48,7 @@ namespace Unisave
 		/// <summary>
 		/// Email address of the logged in player
 		/// </summary>
-		private string playerEmail = null;
+		public string PlayerEmail { get; private set; }
 
 		/// <summary>
 		/// If true, we have an authorized player session and we can make requests
@@ -64,7 +71,7 @@ namespace Unisave
 		/// Why not deserialized json? Because I don't know the
 		/// type into which to deserialize it.
 		/// </summary>
-		private Dictionary<string, string> playerData;
+		private Dictionary<string, JsonValue> playerData;
 
 		/// <summary>
 		/// List of MonoBehaviours to which distribute the data after login
@@ -154,15 +161,24 @@ namespace Unisave
 			}
 			else
 			{
-				LoginResponse response = JsonUtility.FromJson<LoginResponse>(request.downloadHandler.text);
+				JsonValue responseValue = JsonReader.Parse(request.downloadHandler.text);
+				JsonObject response = responseValue.AsJsonObject;
 
-				accessToken = response.accessToken;
-				playerEmail = email;
-
-				// TODO: figure out the HTTP API
-				DeserializePlayerData(response.playerData);
-				
-				callback.LoginSucceeded();
+				if (response == null)
+				{
+					callback.LoginFailed(new LoginFailure() {
+						type = LoginFailure.FailureType.ServerNotReachable,
+						message = "Server responded strangely."
+					});
+				}
+				else
+				{
+					accessToken = response["accessToken"];
+					PlayerEmail = email;
+					DeserializePlayerData(response["playerData"]);
+					
+					callback.LoginSucceeded();
+				}
 			}
 
 			loginCoroutineRunning = false;
@@ -194,10 +210,13 @@ namespace Unisave
 			if (LoggedIn)
 				throw new UnisaveException("Trying to login local debug player, but someone is already logged in.");
 
-			// TODO: do the login
-			//DeserializePlayerData(PlayerPrefs.GetString("", "{}"));
+			DeserializePlayerData(
+				JsonReader.Parse(
+					PlayerPrefs.GetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, "{}")
+				)
+			);
 			accessToken = LOCAL_DEBUG_PLAYER_ACCESS_TOKEN;
-			playerEmail = "local@debug.com";
+			PlayerEmail = "local@debug.com";
 
 			Debug.LogWarning("Local debug player has been logged in.");
 		}
@@ -205,9 +224,20 @@ namespace Unisave
 		/// <summary>
 		/// Load player data from the downloaded json string
 		/// </summary>
-		private void DeserializePlayerData(string playerDataJson)
+		private void DeserializePlayerData(JsonValue json)
 		{
-			// TODO: deserialize this
+			playerData = new Dictionary<string, JsonValue>();
+
+			if (!json.IsJsonObject)
+			{
+				Debug.LogError("Player data for deserialization is not a JSON object: " + json.ToString());
+				return;
+			}
+
+			JsonObject jsonObject = json.AsJsonObject;
+
+			foreach (KeyValuePair<string, JsonValue> pair in jsonObject)
+				playerData.Add(pair.Key, pair.Value);
 		}
 
 		/// <summary>
@@ -215,18 +245,12 @@ namespace Unisave
 		/// </summary>
 		private string SerializePlayerData()
 		{
-			StringBuilder sb = new StringBuilder();
+			JsonObject jsonObject = new JsonObject();
 
-			sb.Append("{");
-			foreach (KeyValuePair<string, string> pair in playerData)
-			{
-				sb.Append(Saver.Save(pair.Key).ToString());
-				sb.Append(":");
-				sb.Append(pair.Value);
-				sb.Append(",");
-			}
+			foreach (KeyValuePair<string, JsonValue> pair in playerData)
+				jsonObject.Add(pair.Key, pair.Value);
 
-			return sb.ToString();
+			return jsonObject.ToString();
 		}
 
 		/// <summary>
@@ -286,14 +310,15 @@ namespace Unisave
 		/// </summary>
 		private IEnumerator LogoutCoroutine()
 		{
-			Dictionary<string, string> fields = new Dictionary<string, string>() {
-				{"accessToken", accessToken}
-			};
+			string payload = new JsonObject()
+				.Add("accessToken", accessToken)
+				.Add("playerData", SerializePlayerData())
+				.ToString();
 
-			UnityWebRequest request = UnityWebRequest.Post(GetApiUrl("logout"), fields);
+			UnityWebRequest request = UnityWebRequest.Post(GetApiUrl("logout"), payload);
 
 			accessToken = null;
-			playerEmail = null;
+			PlayerEmail = null;
 			
 			yield return request.SendWebRequest();
 
@@ -313,9 +338,11 @@ namespace Unisave
 		/// </summary>
 		private void LogoutLocalDebugPlayer()
 		{
-			// TODO: save data
+			PlayerPrefs.SetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, SerializePlayerData());
+			PlayerPrefs.Save();
+
 			accessToken = null;
-			playerEmail = null;
+			PlayerEmail = null;
 		}
 	}
 }
