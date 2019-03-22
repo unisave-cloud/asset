@@ -9,5 +9,7 @@ namespace Unisave
 		public string serverApiUrl = "https://unisave.cloud/api/1.0/";
 
 		public string gameToken;
+
+		public string localDebugPlayerEmail = "local.debug@unirest.cloud";
 	}
 }

@@ -17,7 +17,7 @@ namespace Unisave
 
 		static UnisaveCloud()
 		{
-			manager = new CloudManager();
+			manager = CloudManager.CreateDefaultInstance();
 		}
 
 		/// <summary>

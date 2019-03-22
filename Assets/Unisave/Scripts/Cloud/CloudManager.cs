@@ -4,6 +4,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
+using System.Reflection;
 using UnityEngine;
 using UnityEngine.Networking;
 using Unisave.Serialization;
@@ -26,7 +27,7 @@ namespace Unisave
 		/// <summary>
 		/// Key in PlayerPrefs for the local debug player storage
 		/// </summary>
-		private const string LOCAL_DEBUG_PLAYER_PREFS_KEY = "unisave.localDebugPlayer";
+		public const string LOCAL_DEBUG_PLAYER_PREFS_KEY = "unisave.localDebugPlayer";
 
 		/// <summary>
 		/// Name of the preferences asset inside a Resources folder (without extension)
@@ -62,6 +63,8 @@ namespace Unisave
 		}
 
 		private bool loginCoroutineRunning = false;
+		private bool savingCoroutineRunning = false;
+		private bool logoutCoroutineRunning = false;
 
 		/// <summary>
 		/// Holds all the player-related cloud data in a key->json manner
@@ -77,6 +80,12 @@ namespace Unisave
 		/// List of MonoBehaviours to which distribute the data after login
 		/// </summary>
 		private List<WeakReference> distributeAfterLogin = new List<WeakReference>();
+
+		/// <summary>
+		/// List of places, where the values have been distributed and from which
+		/// to collect values before saving
+		/// </summary>
+		private List<DistributedValue> distributedValues = new List<DistributedValue>();
 
 		/// <summary>
 		/// A DontDestroyOnLoad component, that performs continual saving
@@ -95,15 +104,22 @@ namespace Unisave
 			}
 		}
 
-		public CloudManager()
+		public static CloudManager CreateDefaultInstance()
 		{
-			preferences = Resources.Load<UnisavePreferences>(PREFERENCES_RESOURCE_NAME);
+			var preferences = Resources.Load<UnisavePreferences>(PREFERENCES_RESOURCE_NAME);
 
 			if (preferences == null)
 			{
-				preferences = new UnisavePreferences();
+				preferences = ScriptableObject.CreateInstance<UnisavePreferences>();
 				Debug.LogWarning("Unisave preferences not found. Server connection will not work.");
 			}
+
+			return new CloudManager(preferences);
+		}
+
+		public CloudManager(UnisavePreferences preferences)
+		{
+			this.preferences = preferences;
 
 			GameObject go = new GameObject("UnisaveSaver");
 			saver = go.AddComponent<SaverComponent>();
@@ -126,6 +142,16 @@ namespace Unisave
 			if (LoggedIn)
 			{
 				Debug.LogWarning("Trying to login while already logged in.");
+				return;
+			}
+
+			if (Application.isEditor && email == preferences.localDebugPlayerEmail)
+			{
+				LoginLocalDebugPlayer();
+				
+				if (callback != null)
+					callback.LoginSucceeded();
+
 				return;
 			}
 
@@ -154,10 +180,11 @@ namespace Unisave
 
 			if (request.isNetworkError || request.isHttpError)
 			{
-				callback.LoginFailed(new LoginFailure() {
-					type = LoginFailure.FailureType.ServerNotReachable,
-					message = request.error
-				});
+				if (callback != null)
+					callback.LoginFailed(new LoginFailure() {
+						type = LoginFailure.FailureType.ServerNotReachable,
+						message = request.error
+					});
 			}
 			else
 			{
@@ -166,10 +193,11 @@ namespace Unisave
 
 				if (response == null)
 				{
-					callback.LoginFailed(new LoginFailure() {
-						type = LoginFailure.FailureType.ServerNotReachable,
-						message = "Server responded strangely."
-					});
+					if (callback != null)
+						callback.LoginFailed(new LoginFailure() {
+							type = LoginFailure.FailureType.ServerNotReachable,
+							message = "Server responded strangely."
+						});
 				}
 				else
 				{
@@ -216,7 +244,7 @@ namespace Unisave
 				)
 			);
 			accessToken = LOCAL_DEBUG_PLAYER_ACCESS_TOKEN;
-			PlayerEmail = "local@debug.com";
+			PlayerEmail = preferences.localDebugPlayerEmail;
 
 			Debug.LogWarning("Local debug player has been logged in.");
 		}
@@ -270,6 +298,9 @@ namespace Unisave
 		/// </summary>
 		public void Load(MonoBehaviour behaviour)
 		{
+			if (behaviour == null)
+				throw new ArgumentNullException("behaviour");
+
 			/*
 				When you program a scene, that expects a player to be logged in,
 				and you start it from the editor, we don't want to kill the game.
@@ -283,9 +314,100 @@ namespace Unisave
 				return;
 			}
 
-			// foreach field and property (test if private can be accessed as well)
-			// set the field value
-			// keep field reference for data collection
+			Type type = behaviour.GetType();
+
+			foreach (FieldInfo fi in type.GetFields())
+			{
+				if (fi.IsPublic && !fi.IsStatic)
+				{
+					object[] attrs = fi.GetCustomAttributes(typeof(SavedAsAttribute), false);
+					if (attrs.Length > 0)
+					{
+						string key = ((SavedAsAttribute)attrs[0]).Key;
+						if (playerData.ContainsKey(key))
+						{
+							fi.SetValue(behaviour, Loader.Load(playerData[key], fi.FieldType));
+
+							distributedValues.Add(new DistributedValue() {
+								behaviour = new WeakReference(behaviour),
+								fieldInfo = fi,
+								key = key
+							});
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Saves all changes to the server by starting a saving coroutine
+		/// </summary>
+		public void Save()
+		{
+			if (!LoggedIn)
+			{
+				Debug.LogWarning("Cannot save data while not beign logged in.");
+				return;
+			}
+
+			if (savingCoroutineRunning)
+			{
+				Debug.LogWarning("Save called while already saving. Ignoring.");
+				return;
+			}
+
+			if (Application.isEditor && PlayerEmail == preferences.localDebugPlayerEmail)
+			{
+				SaveLocalDebugPlayer();
+				return;
+			}
+
+			coroutineRunner.StartCoroutine(SaveCoroutine());
+		}
+
+		private IEnumerator SaveCoroutine()
+		{
+			savingCoroutineRunning = true;
+
+			CollectData();
+
+			// TODO: save request
+			yield return null;
+
+			savingCoroutineRunning = false;
+		}
+
+		private void SaveLocalDebugPlayer()
+		{
+			CollectData();
+
+			PlayerPrefs.SetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, SerializePlayerData());
+			PlayerPrefs.Save();
+		}
+
+		/// <summary>
+		/// Collect all data distributed into mono behaviours back into the cache
+		/// </summary>
+		private void CollectData()
+		{
+			List<DistributedValue> itemsToRemove = new List<DistributedValue>();
+
+			foreach (DistributedValue item in distributedValues)
+			{
+				MonoBehaviour behaviour = item.behaviour.Target as MonoBehaviour;
+
+				if (behaviour == null)
+				{
+					itemsToRemove.Add(item);
+					continue;
+				}
+
+				JsonValue newValue = Saver.Save(item.fieldInfo.GetValue(behaviour));
+				playerData[item.key] = newValue;
+			}
+
+			foreach (DistributedValue item in itemsToRemove)
+				distributedValues.Remove(item);
 		}
 
 		/// <summary>
@@ -294,6 +416,9 @@ namespace Unisave
 		public void Logout()
 		{
 			if (!LoggedIn)
+				return;
+
+			if (logoutCoroutineRunning)
 				return;
 
 			if (accessToken == LOCAL_DEBUG_PLAYER_ACCESS_TOKEN)
@@ -310,6 +435,10 @@ namespace Unisave
 		/// </summary>
 		private IEnumerator LogoutCoroutine()
 		{
+			logoutCoroutineRunning = true;
+
+			CollectData();
+
 			string payload = new JsonObject()
 				.Add("accessToken", accessToken)
 				.Add("playerData", SerializePlayerData())
@@ -331,6 +460,8 @@ namespace Unisave
 				Debug.Log("Request done!");
 				Debug.Log(request.downloadHandler.text);
 			}
+
+			logoutCoroutineRunning = false;
 		}
 
 		/// <summary>
@@ -338,8 +469,7 @@ namespace Unisave
 		/// </summary>
 		private void LogoutLocalDebugPlayer()
 		{
-			PlayerPrefs.SetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, SerializePlayerData());
-			PlayerPrefs.Save();
+			SaveLocalDebugPlayer();
 
 			accessToken = null;
 			PlayerEmail = null;
