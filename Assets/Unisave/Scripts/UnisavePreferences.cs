@@ -4,6 +4,9 @@ using UnityEngine;
 
 namespace Unisave
 {
+	/// <summary>
+	/// Holds all preferences of Unisave
+	/// </summary>
 	public class UnisavePreferences : ScriptableObject
 	{
 		public string serverApiUrl = "https://unisave.cloud/api/1.0/";

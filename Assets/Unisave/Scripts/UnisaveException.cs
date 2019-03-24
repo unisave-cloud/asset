@@ -3,7 +3,7 @@
 namespace Unisave
 {
 	/// <summary>
-	/// Parent call for all Unisave exceptions
+	/// Parent class for all Unisave exceptions
 	/// </summary>
 	[Serializable]
 	public class UnisaveException : Exception
