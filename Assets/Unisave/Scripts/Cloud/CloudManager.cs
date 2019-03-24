@@ -135,13 +135,13 @@ namespace Unisave
 		{
 			if (loginCoroutineRunning)
 			{
-				Debug.LogWarning("Trying to login while already logging in.");
+				Debug.LogWarning("Unisave: Trying to login while already logging in.");
 				return;
 			}
 
 			if (LoggedIn)
 			{
-				Debug.LogWarning("Trying to login while already logged in.");
+				Debug.LogWarning("Unisave: Trying to login while already logged in.");
 				return;
 			}
 
@@ -246,7 +246,7 @@ namespace Unisave
 			accessToken = LOCAL_DEBUG_PLAYER_ACCESS_TOKEN;
 			PlayerEmail = preferences.localDebugPlayerEmail;
 
-			Debug.LogWarning("Local debug player has been logged in.");
+			Debug.LogWarning("Unisave: Local debug player has been logged in.");
 		}
 
 		/// <summary>
@@ -346,13 +346,13 @@ namespace Unisave
 		{
 			if (!LoggedIn)
 			{
-				Debug.LogWarning("Cannot save data while not beign logged in.");
+				Debug.LogWarning("Unisave: Cannot save data while not beign logged in.");
 				return;
 			}
 
 			if (savingCoroutineRunning)
 			{
-				Debug.LogWarning("Save called while already saving. Ignoring.");
+				Debug.LogWarning("Unisave: Save called while already saving. Ignoring.");
 				return;
 			}
 

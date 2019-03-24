@@ -408,7 +408,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 633870077}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -520.5, y: 288, z: 0}
+  m_LocalPosition: {x: -520, y: 288, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1483830389}
@@ -454,7 +454,7 @@ MonoBehaviour:
   m_Text: '<b>Leaderboard saved locally</b>
 
 
-    You start the game and then have 5s to click the red button as many times as possible.
+    You start the game and then have 5s to click the big button as many times as possible.
 
 
     Don''t forget to enter your name to be forever remembered on the leaderboard.
@@ -711,7 +711,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1196112571}
   m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
-  m_LocalPosition: {x: 520.5, y: 288, z: 0}
+  m_LocalPosition: {x: 520, y: 288, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children: []
   m_Father: {fileID: 1483830389}
@@ -1071,7 +1071,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 1483830385}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 540.5, y: 308, z: 0}
+  m_LocalPosition: {x: 540, y: 308, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 633870078}

@@ -50,9 +50,17 @@ namespace Unisave
 		{
 			foreach (var pair in IterateMarkedFields(behaviour))
 			{
+				JsonValue value = Saver.Save(pair.Value.GetValue(behaviour));
+
+				if (value.IsNull && IsNonNull(pair.Value))
+					Debug.LogWarning(
+						"Unisave: Reading null value from a [NonNull] field ("
+						+ pair.Value + ") on " + behaviour
+					);
+
 				yield return new KeyValuePair<string, JsonValue>(
 					pair.Key,
-					Saver.Save(pair.Value.GetValue(behaviour))
+					value
 				);
 			}
 		}
@@ -72,6 +80,11 @@ namespace Unisave
 				action(
 					pair.Key,
 					(value) => { // set callback
+						
+						// loading null into NonNull leaves default
+						if (value.IsNull && IsNonNull(pair.Value))
+							return;
+
 						pair.Value.SetValue(
 							behaviour,
 							Loader.Load(value, pair.Value.FieldType)
@@ -79,6 +92,14 @@ namespace Unisave
 					}
 				);
 			}
+		}
+
+		/// <summary>
+		/// Is the given field marked as NonNull?
+		/// </summary>
+		private static bool IsNonNull(FieldInfo fieldInfo)
+		{
+			return fieldInfo.GetCustomAttributes(typeof(NonNullAttribute), false).Length > 0;
 		}
 	}
 }

@@ -4,6 +4,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unisave.Serialization;
+using LightJson.Serialization;
 
 namespace Unisave
 {
@@ -15,7 +16,7 @@ namespace Unisave
 		/// <summary>
 		/// Prefix for keys in PlayerPrefs
 		/// </summary>
-		private const string PLAYER_PREFS_KEY_PREFIX = "unisave:";
+		public const string PLAYER_PREFS_KEY_PREFIX = "unisave:";
 
 		/// <summary>
 		/// Loads marked fields from local storage
@@ -25,7 +26,9 @@ namespace Unisave
 		{
 			ReflectionHelper.WriteFields(behaviour, (key, set) => {
 				if (PlayerPrefs.HasKey(PLAYER_PREFS_KEY_PREFIX + key))
-					set(PlayerPrefs.GetString(PLAYER_PREFS_KEY_PREFIX + key));
+					set(
+						JsonReader.Parse(PlayerPrefs.GetString(PLAYER_PREFS_KEY_PREFIX + key))
+					);
 			});
 		}
 
@@ -39,7 +42,7 @@ namespace Unisave
 			{
 				PlayerPrefs.SetString(
 					PLAYER_PREFS_KEY_PREFIX + pair.Key,
-					pair.Value
+					pair.Value.ToString()
 				);
 			}
 
