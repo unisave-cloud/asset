@@ -21,7 +21,7 @@ public class Leaderboard : UnisaveLocalBehavior
 
 	// represents a single leaderboard record
 	[Serializable]
-	public struct Record
+	public class Record
 	{
 		public int score;
 		public string playerName;

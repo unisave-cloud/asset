@@ -138,7 +138,7 @@ namespace Unisave.Serialization
 			ConstructorInfo ci = type.GetConstructor(new Type[] {});
 			if (ci == null)
 			{
-				Debug.LogWarning("Loading as null, since the type "
+				Debug.LogError("Unisave: Loading as null, since the type "
 					+ type.ToString() + " is missing a public parameterless constructor.");
 				return null;
 			}
