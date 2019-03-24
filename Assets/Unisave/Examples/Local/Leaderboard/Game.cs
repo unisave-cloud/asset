@@ -93,4 +93,9 @@ public class Game : MonoBehaviour
 
 		leaderboard.GameHasFinished(playerName.text, score);
 	}
+
+	public void OpenExampleDocumentation()
+	{
+		Application.OpenURL("https://github.com/Jirka-Mayer/UnisaveDocs/blob/master/leaderboard.md");
+	}
 }
