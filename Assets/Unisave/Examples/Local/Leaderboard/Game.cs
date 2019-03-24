@@ -3,99 +3,102 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-// Handles the game logic
-// After the game finishes, we tell the leaderboard to update itself
-public class Game : MonoBehaviour
+namespace Unisave.Examples.Local.Leaderboard
 {
-	public const float GAME_TIME = 5f; // seconds
+	// Handles the game logic
+	// After the game finishes, we tell the leaderboard to update itself
+	public class Game : MonoBehaviour
+	{
+		public const float GAME_TIME = 5f; // seconds
 
-	// score of the currently played game (click count)
-	private int score;
+		// score of the currently played game (click count)
+		private int score;
 
-	// how many seconds remain until the game ends
-	private float gameTimeRemaining;
+		// how many seconds remain until the game ends
+		private float gameTimeRemaining;
 
-	// is a game currently running?
-	private bool gameRunning = false;
+		// is a game currently running?
+		private bool gameRunning = false;
 
-	
-	#region "Component references"
-
-		public GameObject startGameButton;
 		
-		public GameObject clickMeButton;
+		#region "Component references"
 
-		public InputField playerName;
+			public GameObject startGameButton;
+			
+			public GameObject clickMeButton;
 
-		public Text statusText;
+			public InputField playerName;
 
-		public Leaderboard leaderboard;
+			public Text statusText;
 
-	#endregion
+			public Leaderboard leaderboard;
 
-	void Start()
-	{
-		statusText.text = "";
-		clickMeButton.SetActive(false);
-	}
-	
-	void Update()
-	{
-		if (gameRunning)
+		#endregion
+
+		void Start()
 		{
-			gameTimeRemaining -= Time.deltaTime;
-
-			if (gameTimeRemaining <= 0f)
-				GameIsOver();
-
-			// update UI
-			statusText.text = "Score: " + score
-				+ "\nTime: " + (int)Mathf.Ceil(gameTimeRemaining) + "s";
+			statusText.text = "";
+			clickMeButton.SetActive(false);
 		}
-	}
-
-	// Start button was clicked
-	public void StartTheGame()
-	{
-		if (gameRunning)
-			return;
-
-		gameRunning = true;
-		score = 0;
-		gameTimeRemaining = GAME_TIME;
-
-		startGameButton.SetActive(false);
-		clickMeButton.SetActive(true);
-
-		Debug.Log("Game has started!");
-	}
-
-	// ClickMe button was clicked
-	public void ClickMeClicked()
-	{
-		if (!gameRunning)
-			return;
 		
-		score++;
-	}
+		void Update()
+		{
+			if (gameRunning)
+			{
+				gameTimeRemaining -= Time.deltaTime;
 
-	// called when the time runs out
-	public void GameIsOver()
-	{
-		gameRunning = false;
+				if (gameTimeRemaining <= 0f)
+					GameIsOver();
 
-		statusText.text = "";
-		startGameButton.SetActive(true);
-		clickMeButton.SetActive(false);
+				// update UI
+				statusText.text = "Score: " + score
+					+ "\nTime: " + (int)Mathf.Ceil(gameTimeRemaining) + "s";
+			}
+		}
 
-		Debug.Log("Player '" + playerName.text
-			+ "' has finished the game with score: " + score + " clicks");
+		// Start button was clicked
+		public void StartTheGame()
+		{
+			if (gameRunning)
+				return;
 
-		leaderboard.GameHasFinished(playerName.text, score);
-	}
+			gameRunning = true;
+			score = 0;
+			gameTimeRemaining = GAME_TIME;
 
-	public void OpenExampleDocumentation()
-	{
-		Application.OpenURL("https://github.com/Jirka-Mayer/UnisaveDocs/blob/master/leaderboard.md");
+			startGameButton.SetActive(false);
+			clickMeButton.SetActive(true);
+
+			Debug.Log("Game has started!");
+		}
+
+		// ClickMe button was clicked
+		public void ClickMeClicked()
+		{
+			if (!gameRunning)
+				return;
+			
+			score++;
+		}
+
+		// called when the time runs out
+		public void GameIsOver()
+		{
+			gameRunning = false;
+
+			statusText.text = "";
+			startGameButton.SetActive(true);
+			clickMeButton.SetActive(false);
+
+			Debug.Log("Player '" + playerName.text
+				+ "' has finished the game with score: " + score + " clicks");
+
+			leaderboard.GameHasFinished(playerName.text, score);
+		}
+
+		public void OpenExampleDocumentation()
+		{
+			Application.OpenURL("https://github.com/Jirka-Mayer/UnisaveDocs/blob/master/leaderboard.md");
+		}
 	}
 }
