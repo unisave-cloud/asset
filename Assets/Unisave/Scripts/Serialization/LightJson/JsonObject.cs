@@ -257,8 +257,12 @@ namespace LightJson
 			[DebuggerDisplay("{value.ToString(),nq}", Name = "{key}", Type = "JsonValue({Type})")]
 			public class KeyValuePair
 			{
+				// I know, supressing a warning in this case is probbably not a good idea,
+				// but I don't want to change the LightJson library too much
+				#pragma warning disable 0414
 				[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 				private string key;
+				#pragma warning restore 0414
 
 				[DebuggerBrowsable(DebuggerBrowsableState.Never)]
 				private JsonValue value;
