@@ -53,3 +53,8 @@ sysinfo.txt
 
 # Crashlytics generated file
 crashlytics-build.properties
+
+# Asset store tools needn't be tracked
+[Aa]ssets/AssetStoreTools*
+
+# Assets to be exported
