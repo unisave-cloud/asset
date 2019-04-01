@@ -26,7 +26,12 @@ public class DistributorTest
 		}
 		private string barPropBacking = "default";
 
-		// TODO: baz, private field
+		[SavedAs("baz-field")]
+		private string bazPrivate;
+		public string bazAccess {
+			get { return bazPrivate; }
+			set { bazPrivate = value; }
+		}
 	}
 
 	private IDataRepository repo;
@@ -46,7 +51,7 @@ public class DistributorTest
 	{
 		Assert.IsNull(target.fooField);
 		Assert.IsNull(target.fooField);
-		
+
 		Assert.AreEqual("default", target.barField);
 		Assert.AreEqual("default", target.barProp);
 
@@ -64,11 +69,13 @@ public class DistributorTest
 	{
 		repo.Set("bar-field", JsonValue.Null);
 		repo.Set("bar-prop", JsonValue.Null);
+		repo.Set("baz-field", JsonValue.Null);
 
 		distributor.Distribute(target);
 
 		Assert.IsNull(target.barField);
 		Assert.IsNull(target.barField);
+		Assert.IsNull(target.bazAccess);
 	}
 
 	[Test]
@@ -76,11 +83,13 @@ public class DistributorTest
 	{
 		repo.Set("foo-field", "hello field");
 		repo.Set("bar-field", "hello field 2");
+		repo.Set("baz-field", "hello field 3");
 		
 		distributor.Distribute(target);
 
 		Assert.AreEqual("hello field", target.fooField);
 		Assert.AreEqual("hello field 2", target.barField);
+		Assert.AreEqual("hello field 3", target.bazAccess);
 	}
 
 	[Test]
@@ -93,5 +102,36 @@ public class DistributorTest
 
 		Assert.AreEqual("hello prop", target.fooProp);
 		Assert.AreEqual("hello prop 2", target.barProp);
+	}
+
+	[Test]
+	public void ItCollectsDataWhenDistributionDidntWriteAnything()
+	{
+		distributor.Distribute(target);
+
+		target.fooField = "lorem";
+		target.barProp = "ipsum";
+
+		distributor.Collect();
+
+		Assert.AreEqual("lorem", (string)repo.Get("foo-field"));
+		Assert.AreEqual("ipsum", (string)repo.Get("bar-prop"));
+	}
+
+	[Test]
+	public void ItCollectsDataThatHasBeenPreviouslyDistributed()
+	{
+		repo.Set("foo-field", "hello prop");
+		repo.Set("bar-prop", "hello prop 2");
+
+		distributor.Distribute(target);
+
+		target.fooField = "lorem";
+		target.barProp = "ipsum";
+
+		distributor.Collect();
+
+		Assert.AreEqual("lorem", (string)repo.Get("foo-field"));
+		Assert.AreEqual("ipsum", (string)repo.Get("bar-prop"));
 	}
 }

@@ -28,12 +28,24 @@ namespace Unisave
 			/// <summary>
 			/// Fields on the target that were distributed
 			/// </summary>
-			public List<FieldInfo> fields = new List<FieldInfo>();
+			public List<DistribField> fields = new List<DistribField>();
 
 			/// <summary>
 			/// Properties on the target that were distributed
 			/// </summary>
-			public List<PropertyInfo> properties = new List<PropertyInfo>();
+			public List<DistribProperty> properties = new List<DistribProperty>();
+		}
+
+		private class DistribField
+		{
+			public FieldInfo field;
+			public string key;
+		}
+
+		private class DistribProperty
+		{
+			public PropertyInfo property;
+			public string key;
 		}
 
 		/// <summary>
@@ -61,15 +73,16 @@ namespace Unisave
 			records[target] = record;
 		}
 
-		private IEnumerable<FieldInfo> DistributeFields(object target)
+		private IEnumerable<DistribField> DistributeFields(object target)
 		{
-			foreach (FieldInfo fieldInfo in target.GetType().GetFields())
+			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+			foreach (FieldInfo fieldInfo in target.GetType().GetFields(flags))
 			{
 				SavedAsAttribute savedAs;
 				if (!IsFieldDistributable(fieldInfo, out savedAs))
 					continue;
 
-				yield return fieldInfo;
+				yield return new DistribField { field = fieldInfo, key = savedAs.Key };
 
 				// missing key leaves default value
 				if (!repository.Has(savedAs.Key))
@@ -88,15 +101,16 @@ namespace Unisave
 			}
 		}
 
-		private IEnumerable<PropertyInfo> DistributeProperties(object target)
+		private IEnumerable<DistribProperty> DistributeProperties(object target)
 		{
-			foreach (PropertyInfo propertyInfo in target.GetType().GetProperties())
+			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+			foreach (PropertyInfo propertyInfo in target.GetType().GetProperties(flags))
 			{
 				SavedAsAttribute savedAs;
 				if (!IsPropertyDistributable(propertyInfo, out savedAs))
 					continue;
 
-				yield return propertyInfo;
+				yield return new DistribProperty { property = propertyInfo, key = savedAs.Key };
 
 				// missing key leaves default value
 				if (!repository.Has(savedAs.Key))
@@ -199,7 +213,28 @@ namespace Unisave
 					+ " because there was no distribution in the first place."
 				);
 
-			// collect
+			CollectFields(target, record.fields);
+			CollectProperties(target, record.properties);
+		}
+
+		private void CollectFields(object target, List<DistribField> fields)
+		{
+			foreach (DistribField field in fields)
+			{
+				JsonValue collectedValue = Saver.Save(field.field.GetValue(target));
+				repository.Set(field.key, collectedValue);
+			}
+		}
+
+		private void CollectProperties(object target, List<DistribProperty> properties)
+		{
+			foreach (DistribProperty property in properties)
+			{
+				JsonValue collectedValue = Saver.Save(
+					property.property.GetGetMethod().Invoke(target, new object[] {})
+				);
+				repository.Set(property.key, collectedValue);
+			}
 		}
 
 		/// <summary>
