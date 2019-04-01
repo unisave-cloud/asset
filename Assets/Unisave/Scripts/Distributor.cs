@@ -61,20 +61,24 @@ namespace Unisave
 		}
 
 		/// <summary>
-		/// Distributes data into the target instance and remembers references for collection
+		/// Returns or creates distribution record for a given target
+		/// (DistributionRecord is used to enumerate all distributed/collected fields and properties)
 		/// </summary>
-		public void Distribute(object target)
+		private DistributionRecord GetDistributionRecord(object target)
 		{
-			DistributionRecord record = new DistributionRecord();
+			// From cache //
 
-			record.fields.AddRange(DistributeFields(target));
-			record.properties.AddRange(DistributeProperties(target));
+			DistributionRecord record;
+			
+			if (records.TryGetValue(target, out record))
+				return record;
 
-			records[target] = record;
-		}
+			// Create new //
 
-		private IEnumerable<DistribField> DistributeFields(object target)
-		{
+			record = new DistributionRecord();
+			
+			// Fields //
+
 			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 			foreach (FieldInfo fieldInfo in target.GetType().GetFields(flags))
 			{
@@ -82,50 +86,83 @@ namespace Unisave
 				if (!IsFieldDistributable(fieldInfo, out savedAs))
 					continue;
 
-				yield return new DistribField { field = fieldInfo, key = savedAs.Key };
-
-				// missing key leaves default value
-				if (!repository.Has(savedAs.Key))
-					continue;
-
-				JsonValue distributedValue = repository.Get(savedAs.Key);
-
-				// loading null into NonNull leaves default
-				if (distributedValue.IsNull && IsNonNull(fieldInfo))
-					continue;
-
-				fieldInfo.SetValue(
-					target,
-					Loader.Load(distributedValue, fieldInfo.FieldType) // json -> c#
-				);
+				record.fields.Add(new DistribField {
+					field = fieldInfo,
+					key = savedAs.Key
+				});
 			}
-		}
 
-		private IEnumerable<DistribProperty> DistributeProperties(object target)
-		{
-			BindingFlags flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+			// Properties //
+
+			flags = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 			foreach (PropertyInfo propertyInfo in target.GetType().GetProperties(flags))
 			{
 				SavedAsAttribute savedAs;
 				if (!IsPropertyDistributable(propertyInfo, out savedAs))
 					continue;
 
-				yield return new DistribProperty { property = propertyInfo, key = savedAs.Key };
+				record.properties.Add(new DistribProperty {
+					property = propertyInfo,
+					key = savedAs.Key
+				});
+			}
 
+			// Store and return //
+
+			records[target] = record;
+			return record;
+		}
+
+		/// <summary>
+		/// Distributes data into the target instance and remembers references for collection
+		/// </summary>
+		public void Distribute(object target)
+		{
+			DistributionRecord record = GetDistributionRecord(target);
+
+			DistributeFields(target, record.fields);
+			DistributeProperties(target, record.properties);
+		}
+
+		private void DistributeFields(object target, List<DistribField> fields)
+		{
+			foreach (DistribField field in fields)
+			{
 				// missing key leaves default value
-				if (!repository.Has(savedAs.Key))
+				if (!repository.Has(field.key))
 					continue;
 
-				JsonValue distributedValue = repository.Get(savedAs.Key);
+				JsonValue distributedValue = repository.Get(field.key);
 
 				// loading null into NonNull leaves default
-				if (distributedValue.IsNull && IsNonNull(propertyInfo))
+				if (distributedValue.IsNull && IsNonNull(field.field))
 					continue;
 
-				propertyInfo.GetSetMethod().Invoke(
+				field.field.SetValue(
+					target,
+					Loader.Load(distributedValue, field.field.FieldType) // json -> c#
+				);
+			}
+		}
+
+		private void DistributeProperties(object target, List<DistribProperty> properties)
+		{
+			foreach (DistribProperty property in properties)
+			{
+				// missing key leaves default value
+				if (!repository.Has(property.key))
+					continue;
+
+				JsonValue distributedValue = repository.Get(property.key);
+
+				// loading null into NonNull leaves default
+				if (distributedValue.IsNull && IsNonNull(property.property))
+					continue;
+
+				property.property.GetSetMethod().Invoke(
 					target,
 					new object[] {
-						Loader.Load(distributedValue, propertyInfo.PropertyType) // json -> c#
+						Loader.Load(distributedValue, property.property.PropertyType) // json -> c#
 					}
 				);
 			}
@@ -205,13 +242,7 @@ namespace Unisave
 		/// </summary>
 		public void Collect(object target)
 		{
-			DistributionRecord record;
-			
-			if (!records.TryGetValue(target, out record))
-				throw new ArgumentException(
-					"Cannot collect data from instance " + target
-					+ " because there was no distribution in the first place."
-				);
+			DistributionRecord record = GetDistributionRecord(target);
 
 			CollectFields(target, record.fields);
 			CollectProperties(target, record.properties);

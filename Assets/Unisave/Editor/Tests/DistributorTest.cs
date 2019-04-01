@@ -107,12 +107,10 @@ public class DistributorTest
 	[Test]
 	public void ItCollectsDataWhenDistributionDidntWriteAnything()
 	{
-		distributor.Distribute(target);
-
 		target.fooField = "lorem";
 		target.barProp = "ipsum";
 
-		distributor.Collect();
+		distributor.Collect(target);
 
 		Assert.AreEqual("lorem", (string)repo.Get("foo-field"));
 		Assert.AreEqual("ipsum", (string)repo.Get("bar-prop"));
