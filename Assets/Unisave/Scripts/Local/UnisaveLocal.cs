@@ -16,7 +16,7 @@ namespace Unisave
 		/// <summary>
 		/// Prefix for keys in PlayerPrefs
 		/// </summary>
-		public const string PLAYER_PREFS_KEY_PREFIX = "unisave:";
+		public const string PlayerPrefsKeyPrefix = "unisave:";
 
 		/// <summary>
 		/// Loads marked fields from local storage
@@ -25,9 +25,9 @@ namespace Unisave
 		public static void Load(MonoBehaviour behaviour)
 		{
 			ReflectionHelper.WriteFields(behaviour, (key, set) => {
-				if (PlayerPrefs.HasKey(PLAYER_PREFS_KEY_PREFIX + key))
+				if (PlayerPrefs.HasKey(PlayerPrefsKeyPrefix + key))
 					set(
-						JsonReader.Parse(PlayerPrefs.GetString(PLAYER_PREFS_KEY_PREFIX + key))
+						JsonReader.Parse(PlayerPrefs.GetString(PlayerPrefsKeyPrefix + key))
 					);
 			});
 		}
@@ -41,7 +41,7 @@ namespace Unisave
 			foreach (var pair in ReflectionHelper.ReadFields(behaviour))
 			{
 				PlayerPrefs.SetString(
-					PLAYER_PREFS_KEY_PREFIX + pair.Key,
+					PlayerPrefsKeyPrefix + pair.Key,
 					pair.Value.ToString()
 				);
 			}

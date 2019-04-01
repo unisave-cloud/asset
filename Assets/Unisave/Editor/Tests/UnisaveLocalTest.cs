@@ -43,7 +43,7 @@ public class UnisaveLocalTest
 	[Test]
 	public void ItLoadsNullValue()
 	{
-		PlayerPrefs.SetString(UnisaveLocal.PLAYER_PREFS_KEY_PREFIX + "foo", "null");
+		PlayerPrefs.SetString(UnisaveLocal.PlayerPrefsKeyPrefix + "foo", "null");
 		PlayerPrefs.Save();
 
 		behaviour.foo = "not-null";
@@ -56,8 +56,8 @@ public class UnisaveLocalTest
 	[Test]
 	public void ItLoadsSavedValues()
 	{
-		PlayerPrefs.SetString(UnisaveLocal.PLAYER_PREFS_KEY_PREFIX + "foo", "\"foo-val\"");
-		PlayerPrefs.SetString(UnisaveLocal.PLAYER_PREFS_KEY_PREFIX + "bar", "\"bar-val\"");
+		PlayerPrefs.SetString(UnisaveLocal.PlayerPrefsKeyPrefix + "foo", "\"foo-val\"");
+		PlayerPrefs.SetString(UnisaveLocal.PlayerPrefsKeyPrefix + "bar", "\"bar-val\"");
 		PlayerPrefs.Save();
 
 		UnisaveLocal.Load(behaviour);
@@ -76,18 +76,18 @@ public class UnisaveLocalTest
 
 		Assert.AreEqual(
 			"\"foo-val\"",
-			PlayerPrefs.GetString(UnisaveLocal.PLAYER_PREFS_KEY_PREFIX + "foo")
+			PlayerPrefs.GetString(UnisaveLocal.PlayerPrefsKeyPrefix + "foo")
 		);
 		Assert.AreEqual(
 			"\"bar-val\"",
-			PlayerPrefs.GetString(UnisaveLocal.PLAYER_PREFS_KEY_PREFIX + "bar")
+			PlayerPrefs.GetString(UnisaveLocal.PlayerPrefsKeyPrefix + "bar")
 		);
 	}
 
 	[Test]
 	public void LoadingNullIntoNonNullKeepsDefaultInstead()
 	{
-		PlayerPrefs.SetString(UnisaveLocal.PLAYER_PREFS_KEY_PREFIX + "bar", "null");
+		PlayerPrefs.SetString(UnisaveLocal.PlayerPrefsKeyPrefix + "bar", "null");
 		PlayerPrefs.Save();
 
 		UnisaveLocal.Load(behaviour);
@@ -104,7 +104,7 @@ public class UnisaveLocalTest
 
 		Assert.AreEqual(
 			"null",
-			PlayerPrefs.GetString(UnisaveLocal.PLAYER_PREFS_KEY_PREFIX + "bar")
+			PlayerPrefs.GetString(UnisaveLocal.PlayerPrefsKeyPrefix + "bar")
 		);
 	}
 }
