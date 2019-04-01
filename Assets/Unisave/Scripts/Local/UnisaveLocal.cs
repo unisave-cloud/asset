@@ -14,39 +14,34 @@ namespace Unisave
 	public static class UnisaveLocal
 	{
 		/// <summary>
-		/// Prefix for keys in PlayerPrefs
+		/// The underlying manager instance
 		/// </summary>
-		public const string PlayerPrefsKeyPrefix = "unisave:";
+		private static LocalManager manager = LocalManager.CreateDefaultInstance();
 
 		/// <summary>
 		/// Loads marked fields from local storage
 		/// </summary>
-		/// <param name="behaviour">Your script, containing marked fields</param>
-		public static void Load(MonoBehaviour behaviour)
+		/// <param name="target">Your script, containing marked fields</param>
+		public static void Load(object target)
 		{
-			ReflectionHelper.WriteFields(behaviour, (key, set) => {
-				if (PlayerPrefs.HasKey(PlayerPrefsKeyPrefix + key))
-					set(
-						JsonReader.Parse(PlayerPrefs.GetString(PlayerPrefsKeyPrefix + key))
-					);
-			});
+			manager.Load(target);
 		}
 
 		/// <summary>
 		/// Saves marked fields to local storage
 		/// </summary>
-		/// <param name="behaviour">Your script, containing marked fields</param>
-		public static void Save(MonoBehaviour behaviour)
+		/// <param name="target">Your script, containing marked fields</param>
+		public static void Save(object target)
 		{
-			foreach (var pair in ReflectionHelper.ReadFields(behaviour))
-			{
-				PlayerPrefs.SetString(
-					PlayerPrefsKeyPrefix + pair.Key,
-					pair.Value.ToString()
-				);
-			}
+			manager.Save(target);
+		}
 
-			PlayerPrefs.Save();
+		/// <summary>
+		/// Saves all data in all scripts that have been loaded at some point
+		/// </summary>
+		public static void Save()
+		{
+			manager.Save();
 		}
 	}
 }

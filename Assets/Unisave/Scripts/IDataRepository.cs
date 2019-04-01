@@ -30,5 +30,11 @@ namespace Unisave
 		/// Returns true if the repository contains given key
 		/// </summary>
 		bool Has(string key);
+
+		/// <summary>
+		/// If the repository does some expensive queries, it can cache them
+		/// and then they are explicitly saved by calling this
+		/// </summary>
+		void Save();
 	}
 }

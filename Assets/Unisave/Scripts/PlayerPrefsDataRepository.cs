@@ -43,14 +43,6 @@ namespace Unisave
 				PlayerPrefs.Save();
 		}
 
-		/// <summary>
-		/// Explicitly save player prefs now
-		/// </summary>
-		public void SavePrefs()
-		{
-			PlayerPrefs.Save();
-		}
-
 		public void Remove(string key)
 		{
 			PlayerPrefs.DeleteKey(Prefix + key);
@@ -59,6 +51,11 @@ namespace Unisave
 		public bool Has(string key)
 		{
 			return PlayerPrefs.HasKey(Prefix + key);
+		}
+
+		public void Save()
+		{
+			PlayerPrefs.Save();
 		}
 	}
 }

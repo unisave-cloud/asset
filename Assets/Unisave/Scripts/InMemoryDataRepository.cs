@@ -33,5 +33,10 @@ namespace Unisave
 		{
 			return data.ContainsKey(key);
 		}
+
+		public void Save()
+		{
+			// no saving needed
+		}
 	}
 }
