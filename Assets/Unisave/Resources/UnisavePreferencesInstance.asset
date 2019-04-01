@@ -12,5 +12,5 @@ MonoBehaviour:
   m_Name: UnisavePreferencesInstance
   m_EditorClassIdentifier: 
   serverApiUrl: http://localhost:8000/api/game/v1.0/
-  gameToken: 
+  gameToken: twrMyFf3mYjgp8kZQX1S
   localDebugPlayerEmail: local
