@@ -26,6 +26,11 @@ namespace Unisave
 		private class DistributionRecord
 		{
 			/// <summary>
+			/// Target instance
+			/// </summary>
+			public WeakReference target;
+
+			/// <summary>
 			/// Fields on the target that were distributed
 			/// </summary>
 			public List<DistribField> fields = new List<DistribField>();
@@ -53,7 +58,7 @@ namespace Unisave
 		/// </summary>
 		/// <typeparam name="object">The instance to which we distributed</typeparam>
 		/// <typeparam name="DistributionRecord">List of distributed fields and properties</typeparam>
-		private Dictionary<object, DistributionRecord> records = new Dictionary<object, DistributionRecord>();
+		private List<DistributionRecord> records = new List<DistributionRecord>();
 
 		public Distributor(IDataRepository repository)
 		{
@@ -66,16 +71,33 @@ namespace Unisave
 		/// </summary>
 		private DistributionRecord GetDistributionRecord(object target)
 		{
+			if (target == null)
+				throw new ArgumentNullException();
+
 			// From cache //
 
 			DistributionRecord record;
-			
-			if (records.TryGetValue(target, out record))
-				return record;
+		
+			for (int i = 0; i < records.Count; i++)
+			{
+				object t = records[i].target.Target;
+
+				if (t == null)
+				{
+					records.RemoveAt(i);
+					i--;
+					continue;
+				}
+
+				if (t == target)
+					return records[i];
+			}
 
 			// Create new //
 
-			record = new DistributionRecord();
+			record = new DistributionRecord() {
+				target = new WeakReference(target)
+			};
 			
 			// Fields //
 
@@ -109,7 +131,7 @@ namespace Unisave
 
 			// Store and return //
 
-			records[target] = record;
+			records.Add(record);
 			return record;
 		}
 
@@ -273,8 +295,19 @@ namespace Unisave
 		/// </summary>
 		public void Collect()
 		{
-			foreach (KeyValuePair<object, DistributionRecord> pair in records)
-				Collect(pair.Key);
+			for (int i = 0; i < records.Count; i++)
+			{
+				object t = records[i].target.Target;
+
+				if (t == null)
+				{
+					records.RemoveAt(i);
+					i--;
+					continue;
+				}
+
+				Collect(t);
+			}
 		}
 	}
 }
