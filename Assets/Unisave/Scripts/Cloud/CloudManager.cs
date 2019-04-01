@@ -1,6 +1,4 @@
-﻿#define DUMP_TRAFFIC_TO_PTSV
-
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text;
@@ -214,10 +212,6 @@ namespace Unisave
 
 		private string GetApiUrl(string subPath)
 		{
-			#if DUMP_TRAFFIC_TO_PTSV
-			return "http://ptsv2.com/t/unisave/post";
-			#endif
-
 			if (preferences.serverApiUrl == null || preferences.serverApiUrl.Length == 0)
 				throw new UnisaveException("Unisave server API URL not set.");
 
@@ -324,16 +318,15 @@ namespace Unisave
 					if (attrs.Length > 0)
 					{
 						string key = ((SavedAsAttribute)attrs[0]).Key;
+						
 						if (playerData.ContainsKey(key))
-						{
 							fi.SetValue(behaviour, Loader.Load(playerData[key], fi.FieldType));
 
-							distributedValues.Add(new DistributedValue() {
-								behaviour = new WeakReference(behaviour),
-								fieldInfo = fi,
-								key = key
-							});
-						}
+						distributedValues.Add(new DistributedValue() {
+							behaviour = new WeakReference(behaviour),
+							fieldInfo = fi,
+							key = key
+						});
 					}
 				}
 			}

@@ -194,7 +194,7 @@ RectTransform:
   m_PrefabInternal: {fileID: 0}
   m_GameObject: {fileID: 163003733}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 540, y: 308, z: 0}
+  m_LocalPosition: {x: 507.5, y: 308, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_Children:
   - {fileID: 1581356869}
@@ -793,7 +793,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91bc24c6a54604666aa6cc2e099bebcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  motorbikeName: {fileID: 1581356870}
+  motorbikeNameField: {fileID: 1581356870}
+  motorbikeName: 
 --- !u!4 &1598601115
 Transform:
   m_ObjectHideFlags: 0

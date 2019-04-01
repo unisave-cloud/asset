@@ -9,10 +9,10 @@ namespace Unisave
 	/// </summary>
 	public class UnisavePreferences : ScriptableObject
 	{
-		public string serverApiUrl = "https://unisave.cloud/api/1.0/";
+		public string serverApiUrl = "https://unisave.cloud/api/game/v1.0/";
 
 		public string gameToken;
 
-		public string localDebugPlayerEmail = "local.debug@unirest.cloud";
+		public string localDebugPlayerEmail = "local";
 	}
 }

@@ -7,22 +7,27 @@ using Unisave;
 
 public class GarageController : MonoBehaviour
 {
-	public InputField motorbikeName;
+	public InputField motorbikeNameField;
+
+	[SavedAs("motorbike.name")]
+	public string motorbikeName;
 
 	void Awake()
 	{
-		
+		UnisaveCloud.Load(this);
+
+		motorbikeNameField.text = motorbikeName;
 	}
-	
-	void OnDestroy()
+
+	void Update()
 	{
-		
+		motorbikeName = motorbikeNameField.text;
 	}
 
 	public void OnLogoutButtonClick()
 	{
 		UnisaveCloud.Logout();
 
-		SceneManager.LoadSceneAsync("Unisave/Examples/Cloud motorbike name/LoginScene", LoadSceneMode.Single);
+		SceneManager.LoadSceneAsync("Unisave/Examples/Cloud/Cloud motorbike name/LoginScene", LoadSceneMode.Single);
 	}
 }

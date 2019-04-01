@@ -11,4 +11,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11ecc04d0d1da41b1bae51c06a4f3bd2, type: 3}
   m_Name: UnisavePreferencesInstance
   m_EditorClassIdentifier: 
-  foo: Lorem ipsum
+  serverApiUrl: http://localhost:8000/api/game/v1.0/
+  gameToken: 
+  localDebugPlayerEmail: local

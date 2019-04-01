@@ -17,7 +17,7 @@ public class LoginController : MonoBehaviour, ILoginCallback
 
 	public void LoginSucceeded()
 	{
-		SceneManager.LoadSceneAsync("Unisave/Examples/Cloud motorbike name/GarageScene", LoadSceneMode.Single);
+		SceneManager.LoadSceneAsync("Unisave/Examples/Cloud/Cloud motorbike name/GarageScene", LoadSceneMode.Single);
 	}
 
 	public void LoginFailed(LoginFailure failure)
