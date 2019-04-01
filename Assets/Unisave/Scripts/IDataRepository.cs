@@ -8,7 +8,7 @@ namespace Unisave
 	/// <summary>
 	/// Represents a place, where key --> JsonValue data can be stored
 	/// </summary>
-	internal interface IDataRepository
+	public interface IDataRepository
 	{
 		/// <summary>
 		/// Returns the value under a given key or null if no such key exists

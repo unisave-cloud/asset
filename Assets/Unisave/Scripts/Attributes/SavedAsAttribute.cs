@@ -8,7 +8,7 @@ namespace Unisave
 	/// Marked public field becomes persisted on a storage under the provided key.
 	/// Marked field participates both in loading and saving.
 	/// </summary>
-	[AttributeUsage(AttributeTargets.Field)]
+	[AttributeUsage(AttributeTargets.Field | AttributeTargets.Property)]
 	public class SavedAsAttribute : Attribute
 	{
 		public string Key { get; private set; }
