@@ -209,7 +209,7 @@ namespace Unisave
 
 			// put because post does not work with json for some reason
 			// https://forum.unity.com/threads/posting-json-through-unitywebrequest.476254/
-			UnityWebRequest request = UnityWebRequest.Put(Url("logout"), payload);
+			UnityWebRequest request = UnityWebRequest.Put(Url("save"), payload);
 			request.SetRequestHeader("Content-Type", "application/json");
 			request.SetRequestHeader("Accept", "application/json");
 			
@@ -269,6 +269,99 @@ namespace Unisave
 				default:
 					callback.Invoke(new SaveResult {
 						type = SaveResultType.OtherError,
+						message = "Server response had invalid format."
+					});
+					break;
+			}
+		}
+
+		////////////
+		// Logout //
+		////////////
+		
+		public class LogoutResult
+		{
+			public LogoutResultType type;
+			public string message;
+		}
+
+		public enum LogoutResultType
+		{
+			OK,
+			NetworkError,
+			NotLoggedIn,
+			OtherError
+		}
+
+		public IEnumerator Logout(Action<LogoutResult> callback, string accessToken, JsonObject playerData)
+		{
+			string payload = new JsonObject()
+				.Add("accessToken", accessToken)
+				.Add("playerData", playerData)
+				.ToString();
+
+			// put because post does not work with json for some reason
+			// https://forum.unity.com/threads/posting-json-through-unitywebrequest.476254/
+			UnityWebRequest request = UnityWebRequest.Put(Url("logout"), payload);
+			request.SetRequestHeader("Content-Type", "application/json");
+			request.SetRequestHeader("Accept", "application/json");
+			
+			yield return request.SendWebRequest();
+
+			if (request.isNetworkError)
+			{
+				callback.Invoke(new LogoutResult {
+					type = LogoutResultType.NetworkError,
+					message = request.error
+				});
+				yield break;
+			}
+
+			if (request.responseCode == 401)
+			{
+				callback.Invoke(new LogoutResult {
+					type = LogoutResultType.NotLoggedIn,
+					message = "Provided access token was not accepted."
+				});
+				yield break;
+			}
+
+			JsonObject response;
+			string code;
+			try
+			{
+				JsonValue responseValue = JsonReader.Parse(request.downloadHandler.text);
+				
+				if (!responseValue.IsJsonObject)
+					throw new JsonParseException();
+				
+				response = responseValue.AsJsonObject;
+
+				if (!response.ContainsKey("code"))
+					throw new JsonParseException();
+
+				code = response["code"].AsString;
+			}
+			catch (JsonParseException)
+			{
+				callback.Invoke(new LogoutResult {
+					type = LogoutResultType.OtherError,
+					message = "Server response had invalid format."
+				});
+				yield break;
+			}
+
+			switch (code)
+			{
+				case "ok":
+					callback.Invoke(new LogoutResult {
+						type = LogoutResultType.OK
+					});
+					break;
+
+				default:
+					callback.Invoke(new LogoutResult {
+						type = LogoutResultType.OtherError,
 						message = "Server response had invalid format."
 					});
 					break;
