@@ -12,7 +12,7 @@ namespace Unisave
 	/// Encapsulates communication with the unisave server
 	/// It's stateless, it accepts only parameters in the constructor
 	/// </summary>
-	public class ServerApi
+	public class ServerApi : IServerApi
 	{
 		/// <summary>
 		/// URL to root of the server api

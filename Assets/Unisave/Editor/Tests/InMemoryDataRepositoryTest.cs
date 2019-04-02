@@ -3,6 +3,7 @@ using UnityEditor;
 using UnityEngine.TestTools;
 using NUnit.Framework;
 using System.Collections;
+using System.Linq;
 using Unisave;
 using LightJson;
 
@@ -48,5 +49,15 @@ public class InMemoryDataRepositoryTest
 	{
 		repo.Remove("foo");
 		Assert.IsFalse(repo.Has("foo"));
+	}
+
+	[Test]
+	public void ItCanListKeys()
+	{
+		repo.Set("bar", 42);
+		string[] a = repo.AllKeys().ToArray();
+
+		Assert.Contains("foo", a);
+		Assert.Contains("bar", a);
 	}
 }

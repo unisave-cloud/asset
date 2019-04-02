@@ -38,5 +38,10 @@ namespace Unisave
 		{
 			// no saving needed
 		}
+
+		public IEnumerable<string> AllKeys()
+		{
+			return data.Keys;
+		}
 	}
 }

@@ -36,5 +36,10 @@ namespace Unisave
 		/// and then they are explicitly saved by calling this
 		/// </summary>
 		void Save();
+
+		/// <summary>
+		/// Returns a collection of all keys inside the repository
+		/// </summary>
+		IEnumerable<string> AllKeys();
 	}
 }

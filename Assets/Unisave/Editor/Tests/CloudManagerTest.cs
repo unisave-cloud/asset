@@ -1,4 +1,5 @@
-﻿using UnityEngine;
+﻿using System;
+using UnityEngine;
 using UnityEditor;
 using UnityEngine.TestTools;
 using NUnit.Framework;
@@ -15,7 +16,130 @@ public class CloudManagerTest
 		public string foo;
 	}
 
+	private class FakeServerApi : IServerApi
+	{
+		public ServerApi.LoginResult loginResult;
+		public ServerApi.SaveResult saveResult;
+		public ServerApi.LogoutResult logoutResult;
+
+		public IEnumerator Login(Action<ServerApi.LoginResult> callback, string email, string password)
+		{
+			callback.Invoke(loginResult);
+			yield break;
+		}
+
+		public IEnumerator Save(Action<ServerApi.SaveResult> callback, string accessToken, JsonObject playerData)
+		{
+			callback.Invoke(saveResult);
+			yield break;
+		}
+
+		public IEnumerator Logout(Action<ServerApi.LogoutResult> callback, string accessToken, JsonObject playerData)
+		{
+			callback.Invoke(logoutResult);
+			yield break;
+		}
+	}
+
+	private FakeBehaviour behaviour;
+
+	private IDataRepository repo;
+
+	private FakeServerApi api;
+
+	private CloudManager manager;
+
+	[SetUp]
+	public void SetUp()
+	{
+		repo = new InMemoryDataRepository();
+		api = new FakeServerApi();
+		manager = new CloudManager(api, repo);
+
+		GameObject go = new GameObject("FakeGameObject");
+		FakeBehaviour behaviour = go.AddComponent<FakeBehaviour>();
+	}
+	
+	///////////
+	// Login //
+	///////////
+
 	[Test]
+	public void ItCanObtainAccessTokenByLoggingIn()
+	{
+		api.loginResult = new ServerApi.LoginResult {
+			type = ServerApi.LoginResultType.OK,
+			accessToken = "foo"
+		};
+
+		manager.Login(null, "email", "password");
+
+		Assert.AreEqual("foo", manager.AccessToken);
+	}
+
+	[Test]
+	public void ItWillDistributeDataAfterLogin()
+	{
+		api.loginResult = new ServerApi.LoginResult {
+			type = ServerApi.LoginResultType.OK,
+			playerData = new JsonObject()
+				.Add("foo", "foo-value")
+		};
+
+		manager.Login(null, "email", "password");
+
+		manager.Load(behaviour);
+
+		Assert.AreEqual("foo-value", behaviour.foo);
+	}
+
+	[Test]
+	public void ItWillDistributeDataRegisteredBeforeLogin()
+	{
+		api.loginResult = new ServerApi.LoginResult {
+			type = ServerApi.LoginResultType.OK,
+			playerData = new JsonObject()
+				.Add("foo", "foo-value")
+		};
+
+		manager.LoadAfterLogin(behaviour);
+
+		manager.Login(null, "email", "password");
+
+		Assert.AreEqual("foo-value", behaviour.foo);
+	}
+
+	[Test]
+	public void ItWillPutPlayerDataIntoCacheAfterLogin()
+	{
+		api.loginResult = new ServerApi.LoginResult {
+			type = ServerApi.LoginResultType.OK,
+			playerData = new JsonObject()
+				.Add("foo", "foo-value")
+				.Add("bar", 42)
+		};
+
+		manager.Login(null, "email", "password");
+
+		Assert.AreEqual("foo-value", repo.Get("foo"));
+		Assert.AreEqual(42, repo.Get("bar"));
+	}
+
+	[Test]
+	public void ItIgnoresLoginCallWhenLoggedIn()
+	{
+		api.loginResult = new ServerApi.LoginResult {
+			type = ServerApi.LoginResultType.OK,
+			playerData = new JsonObject()
+		};
+
+		Assert.IsFalse(manager.LoggedIn);
+		Assert.IsTrue(manager.Login(null, "email", "password"));
+		Assert.IsTrue(manager.LoggedIn);
+		Assert.IsFalse(manager.Login(null, "email", "password"));
+	}
+
+	/*[Test]
 	public void ItCanLoadDistributeCollectAndSave()
 	{
 		PlayerPrefs.SetString(CloudManager.LOCAL_DEBUG_PLAYER_PREFS_KEY, new JsonObject()
@@ -54,5 +178,5 @@ public class CloudManagerTest
 			PlayerPrefs.GetString(CloudManager.LOCAL_DEBUG_PLAYER_PREFS_KEY, "{}"
 		)).AsJsonObject;
 		Assert.AreEqual("changed again", (string)o["foo"]);
-	}
+	}*/
 }

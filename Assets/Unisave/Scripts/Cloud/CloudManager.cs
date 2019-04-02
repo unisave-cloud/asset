@@ -33,21 +33,10 @@ namespace Unisave
 		private const string PREFERENCES_RESOURCE_NAME = "UnisavePreferencesInstance";
 
 		/// <summary>
-		/// Preferences that contain crutial login information
-		/// </summary>
-		private UnisavePreferences preferences;
-
-		/// <summary>
-		/// Keeps the access token that represents the player session
-		/// Needed for further request authentication
+		/// Token for request authentication after login
 		/// If null, no player is logged in
 		/// </summary>
-		private string accessToken = null;
-
-		/// <summary>
-		/// Email address of the logged in player
-		/// </summary>
-		public string PlayerEmail { get; private set; }
+		public string AccessToken { get; private set; }
 
 		/// <summary>
 		/// If true, we have an authorized player session and we can make requests
@@ -56,9 +45,21 @@ namespace Unisave
 		{
 			get
 			{
-				return accessToken != null;
+				return AccessToken != null;
 			}
 		}
+
+		/// <summary>
+		/// Email address of the logged in player
+		/// (private because the email address should not be used for identification;
+		/// use player id instead, it's not that sensitive piece of information)
+		/// </summary>
+		private string PlayerEmail { get; set; }
+
+		/// <summary>
+		/// API for server communication
+		/// </summary>
+		private IServerApi api;
 
 		private bool loginCoroutineRunning = false;
 		private bool savingCoroutineRunning = false;
@@ -80,10 +81,15 @@ namespace Unisave
 		private List<WeakReference> distributeAfterLogin = new List<WeakReference>();
 
 		/// <summary>
-		/// List of places, where the values have been distributed and from which
-		/// to collect values before saving
+		/// Caches player data between server api calls
+		/// For distribution and collection
 		/// </summary>
-		private List<DistributedValue> distributedValues = new List<DistributedValue>();
+		private IDataRepository repository;
+
+		/// <summary>
+		/// Distributes data from cache into scripts
+		/// </summary>
+		private Distributor distributor;
 
 		/// <summary>
 		/// A DontDestroyOnLoad component, that performs continual saving
@@ -102,6 +108,8 @@ namespace Unisave
 			}
 		}
 
+		private readonly string localDebugPlayerEmail;
+
 		public static CloudManager CreateDefaultInstance()
 		{
 			var preferences = Resources.Load<UnisavePreferences>(PREFERENCES_RESOURCE_NAME);
@@ -112,12 +120,15 @@ namespace Unisave
 				Debug.LogWarning("Unisave preferences not found. Server connection will not work.");
 			}
 
-			return new CloudManager(preferences);
+			//return new CloudManager(preferences);
+			return null;
 		}
 
-		public CloudManager(UnisavePreferences preferences)
+		public CloudManager(IServerApi api, IDataRepository repository)
 		{
-			this.preferences = preferences;
+			this.api = api;
+			this.repository = repository;
+			distributor = new Distributor(this.repository);
 
 			GameObject go = new GameObject("UnisaveSaver");
 			saver = go.AddComponent<SaverComponent>();
@@ -129,96 +140,73 @@ namespace Unisave
 		/// <param name="callback">Calls methods here after coroutine finishes</param>
 		/// <param name="email">Player email address</param>
 		/// <param name="password">Player password</param>
-		public void Login(ILoginCallback callback, string email, string password)
+		/// <returns>False if the login request was ignored for some reason</returns>
+		public bool Login(ILoginCallback callback, string email, string password)
+		{
+			Action success = null;
+			Action<LoginFailure> failure = null;
+			
+			if (callback != null)
+			{
+				success = callback.LoginSucceeded;
+				failure = callback.LoginFailed;
+			}
+
+			return Login(success, failure, email, password);
+		}
+
+		public bool Login(Action success, Action<LoginFailure> failure, string email, string password)
 		{
 			if (loginCoroutineRunning)
 			{
 				Debug.LogWarning("Unisave: Trying to login while already logging in.");
-				return;
+				return false;
 			}
 
 			if (LoggedIn)
 			{
 				Debug.LogWarning("Unisave: Trying to login while already logged in.");
-				return;
+				return false;
 			}
 
-			if (Application.isEditor && email == preferences.localDebugPlayerEmail)
+			if (Application.isEditor && email == localDebugPlayerEmail)
 			{
 				LoginLocalDebugPlayer();
 				
-				if (callback != null)
-					callback.LoginSucceeded();
+				if (success != null)
+					success.Invoke();
 
-				return;
+				return true;
 			}
 
-			coroutineRunner.StartCoroutine(LoginCoroutine(callback, email, password));
-		}
-
-		/// <summary>
-		/// The login coroutine that makes the HTTP request
-		/// - sends login information
-		/// - receives player data
-		/// - triggers after-login distribution
-		/// </summary>
-		private IEnumerator LoginCoroutine(ILoginCallback callback, string email, string password)
-		{
 			loginCoroutineRunning = true;
-
-			Dictionary<string, string> fields = new Dictionary<string, string>() {
-				{"email", email},
-				{"password", password},
-				{"gameToken", preferences.gameToken}
-			};
-
-			UnityWebRequest request = UnityWebRequest.Post(GetApiUrl("login"), fields);
 			
-			yield return request.SendWebRequest();
+			api.Login(result => {
 
-			if (request.isNetworkError || request.isHttpError)
-			{
-				if (callback != null)
-					callback.LoginFailed(new LoginFailure() {
-						type = LoginFailure.FailureType.ServerNotReachable,
-						message = request.error
-					});
-			}
-			else
-			{
-				JsonValue responseValue = JsonReader.Parse(request.downloadHandler.text);
-				JsonObject response = responseValue.AsJsonObject;
+				loginCoroutineRunning = false;
 
-				if (response == null)
+				if (result.type == ServerApi.LoginResultType.OK)
 				{
-					if (callback != null)
-						callback.LoginFailed(new LoginFailure() {
-							type = LoginFailure.FailureType.ServerNotReachable,
-							message = "Server responded strangely."
-						});
+					AccessToken = result.accessToken;
+					PlayerEmail = email;
+					DataRepositoryHelper.Clear(repository);
+					DataRepositoryHelper.InsertJsonObject(repository, result.playerData);
+
+					if (success != null)
+						success.Invoke();
 				}
 				else
 				{
-					accessToken = response["accessToken"];
-					PlayerEmail = email;
-					DeserializePlayerData(response["playerData"]);
-					
-					callback.LoginSucceeded();
+					if (failure != null)
+						failure.Invoke(new LoginFailure {
+							type = LoginFailure.TypeFromApiResultType(result.type),
+							message = result.message
+						});
 				}
-			}
+				
+			}, email, password);
 
-			loginCoroutineRunning = false;
-		}
-
-		private string GetApiUrl(string subPath)
-		{
-			if (preferences.serverApiUrl == null || preferences.serverApiUrl.Length == 0)
-				throw new UnisaveException("Unisave server API URL not set.");
-
-			if (preferences.serverApiUrl.EndsWith("/"))
-				return preferences.serverApiUrl + subPath;
-			
-			return preferences.serverApiUrl + "/" + subPath;
+			return true;
 		}
 
 		/// <summary>
@@ -232,47 +220,15 @@ namespace Unisave
 			if (LoggedIn)
 				throw new UnisaveException("Trying to login local debug player, but someone is already logged in.");
 
-			DeserializePlayerData(
-				JsonReader.Parse(
-					PlayerPrefs.GetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, "{}")
-				)
+			JsonObject json = JsonReader.Parse(
+				PlayerPrefs.GetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, "{}")
 			);
-			accessToken = LOCAL_DEBUG_PLAYER_ACCESS_TOKEN;
-			PlayerEmail = preferences.localDebugPlayerEmail;
+			DataRepositoryHelper.Clear(repository);
+			DataRepositoryHelper.InsertJsonObject(repository, json);
+			AccessToken = LOCAL_DEBUG_PLAYER_ACCESS_TOKEN;
+			PlayerEmail = localDebugPlayerEmail;
 
 			Debug.LogWarning("Unisave: Local debug player has been logged in.");
-		}
-
-		/// <summary>
-		/// Load player data from the downloaded json string
-		/// </summary>
-		private void DeserializePlayerData(JsonValue json)
-		{
-			playerData = new Dictionary<string, JsonValue>();
-
-			if (!json.IsJsonObject)
-			{
-				Debug.LogError("Player data for deserialization is not a JSON object: " + json.ToString());
-				return;
-			}
-
-			JsonObject jsonObject = json.AsJsonObject;
-
-			foreach (KeyValuePair<string, JsonValue> pair in jsonObject)
-				playerData.Add(pair.Key, pair.Value);
-		}
-
-		/// <summary>
-		/// Serialize player data into a json string for upload
-		/// </summary>
-		private string SerializePlayerData()
-		{
-			JsonObject jsonObject = new JsonObject();
-
-			foreach (KeyValuePair<string, JsonValue> pair in playerData)
-				jsonObject.Add(pair.Key, pair.Value);
-
-			return jsonObject.ToString();
 		}
 
 		/// <summary>
@@ -289,11 +245,12 @@ namespace Unisave
 
 		/// <summary>
 		/// Distributes cloud data from cache to a given behavior instance
+		/// Player needs to be logged in.false If not, local debug player is logged in if in editor
 		/// </summary>
-		public void Load(MonoBehaviour behaviour)
+		public void Load(object target)
 		{
-			if (behaviour == null)
-				throw new ArgumentNullException("behaviour");
+			if (target == null)
+				throw new ArgumentNullException("target");
 
 			/*
 				When you program a scene, that expects a player to be logged in,
@@ -308,119 +265,81 @@ namespace Unisave
 				return;
 			}
 
-			Type type = behaviour.GetType();
-
-			foreach (FieldInfo fi in type.GetFields())
-			{
-				if (fi.IsPublic && !fi.IsStatic)
-				{
-					object[] attrs = fi.GetCustomAttributes(typeof(SavedAsAttribute), false);
-					if (attrs.Length > 0)
-					{
-						string key = ((SavedAsAttribute)attrs[0]).Key;
-						
-						if (playerData.ContainsKey(key))
-							fi.SetValue(behaviour, Loader.Load(playerData[key], fi.FieldType));
-
-						distributedValues.Add(new DistributedValue() {
-							behaviour = new WeakReference(behaviour),
-							fieldInfo = fi,
-							key = key
-						});
-					}
-				}
-			}
+			distributor.Distribute(target);
 		}
 
 		/// <summary>
 		/// Saves all changes to the server by starting a saving coroutine
+		/// <returns>False if the save request was ignored for some reason</returns>
 		/// </summary>
-		public void Save()
+		public bool Save()
 		{
 			if (!LoggedIn)
 			{
 				Debug.LogWarning("Unisave: Cannot save data while not beign logged in.");
-				return;
+				return false;
 			}
 
 			if (savingCoroutineRunning)
 			{
 				Debug.LogWarning("Unisave: Save called while already saving. Ignoring.");
-				return;
+				return false;
 			}
 
-			if (Application.isEditor && PlayerEmail == preferences.localDebugPlayerEmail)
+			distributor.Collect();
+
+			if (Application.isEditor && PlayerEmail == localDebugPlayerEmail)
 			{
 				SaveLocalDebugPlayer();
-				return;
+				return true;
 			}
 
-			coroutineRunner.StartCoroutine(SaveCoroutine());
-		}
-
-		private IEnumerator SaveCoroutine()
-		{
 			savingCoroutineRunning = true;
 
-			CollectData();
+			IEnumerator coroutine = api.Save(result => {
 
-			// TODO: save request
-			yield return null;
+				savingCoroutineRunning = false;
 
-			savingCoroutineRunning = false;
+				// TODO: HANDLE RESULT
+
+			}, AccessToken, DataRepositoryHelper.ToJsonObject(repository));
+
+			coroutineRunner.StartCoroutine(coroutine);
+
+			return true;
 		}
 
 		private void SaveLocalDebugPlayer()
 		{
-			CollectData();
-
-			PlayerPrefs.SetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, SerializePlayerData());
+			PlayerPrefs.SetString(
+				LOCAL_DEBUG_PLAYER_PREFS_KEY,
+				DataRepositoryHelper.ToJsonObject(repository).ToString()
+			);
 			PlayerPrefs.Save();
-		}
-
-		/// <summary>
-		/// Collect all data distributed into mono behaviours back into the cache
-		/// </summary>
-		private void CollectData()
-		{
-			List<DistributedValue> itemsToRemove = new List<DistributedValue>();
-
-			foreach (DistributedValue item in distributedValues)
-			{
-				MonoBehaviour behaviour = item.behaviour.Target as MonoBehaviour;
-
-				if (behaviour == null)
-				{
-					itemsToRemove.Add(item);
-					continue;
-				}
-
-				JsonValue newValue = Saver.Save(item.fieldInfo.GetValue(behaviour));
-				playerData[item.key] = newValue;
-			}
-
-			foreach (DistributedValue item in itemsToRemove)
-				distributedValues.Remove(item);
 		}
 
 		/// <summary>
 		/// Starts the logout coroutine or does nothing if already logged out
 		/// </summary>
-		public void Logout()
+		public bool Logout()
 		{
 			if (!LoggedIn)
-				return;
+				return false;
 
 			if (logoutCoroutineRunning)
-				return;
+				return false;
 
-			if (accessToken == LOCAL_DEBUG_PLAYER_ACCESS_TOKEN)
+			distributor.Collect();
+
+			if (AccessToken == LOCAL_DEBUG_PLAYER_ACCESS_TOKEN)
 			{
 				LogoutLocalDebugPlayer();
-				return;
+				return true;
 			}
 
 			coroutineRunner.StartCoroutine(LogoutCoroutine());
+
+			return true;
 		}
 
 		/// <summary>
@@ -430,29 +349,7 @@ namespace Unisave
 		{
 			logoutCoroutineRunning = true;
 
-			CollectData();
-
-			string payload = new JsonObject()
-				.Add("accessToken", accessToken)
-				.Add("playerData", SerializePlayerData())
-				.ToString();
-
-			UnityWebRequest request = UnityWebRequest.Post(GetApiUrl("logout"), payload);
-
-			accessToken = null;
-			PlayerEmail = null;
-			
-			yield return request.SendWebRequest();
-
-			if (request.isNetworkError || request.isHttpError)
-			{
-				Debug.Log(request.error);
-			}
-			else
-			{
-				Debug.Log("Request done!");
-				Debug.Log(request.downloadHandler.text);
-			}
+			yield return null;
 
 			logoutCoroutineRunning = false;
 		}
@@ -464,7 +361,7 @@ namespace Unisave
 		{
 			SaveLocalDebugPlayer();
 
-			accessToken = null;
+			AccessToken = null;
 			PlayerEmail = null;
 		}
 	}

@@ -17,6 +17,12 @@ namespace Unisave
 			/// <summary>The player has been banned</summary>
 			PlayerBanned,
 
+			/// <summary>Server is down for maintenance reasons</summary>
+			ServerUnderMaintenance,
+
+			/// <summary>This game version is too old for the server</summary>
+			GameClientOutdated,
+
 			/// <summary>
 			/// Server wasn't reached. Either missing internet access,
 			/// or server down, or network problem.
@@ -33,5 +39,26 @@ namespace Unisave
 		/// A message for the player (currently english only)
 		/// </summary>
 		public string message;
+
+		public static FailureType TypeFromApiResultType(ServerApi.LoginResultType type)
+		{
+			switch (type)
+			{
+				case ServerApi.LoginResultType.InvalidCredentials:
+					return FailureType.BadCredentials;
+
+				case ServerApi.LoginResultType.PlayerBanned:
+					return FailureType.PlayerBanned;
+
+				case ServerApi.LoginResultType.ServerUnderMaintenance:
+					return FailureType.ServerUnderMaintenance;
+
+				case ServerApi.LoginResultType.GameClientOutdated:
+					return FailureType.GameClientOutdated;
+
+				default:
+					return FailureType.ServerNotReachable;
+			}
+		}
 	}
 }

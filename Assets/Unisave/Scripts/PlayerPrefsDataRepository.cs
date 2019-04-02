@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using LightJson;
@@ -56,6 +57,13 @@ namespace Unisave
 		public void Save()
 		{
 			PlayerPrefs.Save();
+		}
+
+		public IEnumerable<string> AllKeys()
+		{
+			throw new InvalidOperationException(
+				"PlayerPrefs implementation of data repository does not provide this method."
+			);
 		}
 	}
 }
