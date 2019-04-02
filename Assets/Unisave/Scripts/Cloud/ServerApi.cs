@@ -48,6 +48,10 @@ namespace Unisave
 			return apiUrl + tail;
 		}
 
+		///////////
+		// Login //
+		///////////
+
 		public class LoginResult
 		{
 			public LoginResultType type;
@@ -76,13 +80,17 @@ namespace Unisave
 		/// <param name="password">Player password</param>
 		public IEnumerator Login(Action<LoginResult> callback, string email, string password)
 		{
-			Dictionary<string, string> fields = new Dictionary<string, string>() {
-				{"email", email},
-				{"password", password},
-				{"gameToken", gameToken}
-			};
+			string payload = new JsonObject()
+				.Add("email", email)
+				.Add("password", password)
+				.Add("gameToken", gameToken)
+				.ToString();
 
-			UnityWebRequest request = UnityWebRequest.Post(Url("login"), fields);
+			// put because post does not work with json for some reason
+			// https://forum.unity.com/threads/posting-json-through-unitywebrequest.476254/
+			UnityWebRequest request = UnityWebRequest.Put(Url("login"), payload);
+			request.SetRequestHeader("Content-Type", "application/json");
+			request.SetRequestHeader("Accept", "application/json");
 			
 			yield return request.SendWebRequest();
 
@@ -161,6 +169,106 @@ namespace Unisave
 				default:
 					callback.Invoke(new LoginResult {
 						type = LoginResultType.OtherError,
+						message = "Server response had invalid format."
+					});
+					break;
+			}
+		}
+
+		//////////
+		// Save //
+		//////////
+
+		public class SaveResult
+		{
+			public SaveResultType type;
+			public string message;
+		}
+
+		public enum SaveResultType
+		{
+			OK,
+			NetworkError,
+			NotLoggedIn,
+			OtherError
+		}
+	
+		/// <summary>
+		/// Sends the save request to the server
+		/// </summary>
+		/// <param name="callback">Called when the request finishes</param>
+		/// <param name="accessToken">Access token obtained during login</param>
+		/// <param name="playerData">Updated player data that needs to be saved</param>
+		/// <returns></returns>
+		public IEnumerator Save(Action<SaveResult> callback, string accessToken, JsonObject playerData)
+		{
+			string payload = new JsonObject()
+				.Add("accessToken", accessToken)
+				.Add("playerData", playerData)
+				.ToString();
+
+			// put because post does not work with json for some reason
+			// https://forum.unity.com/threads/posting-json-through-unitywebrequest.476254/
+			UnityWebRequest request = UnityWebRequest.Put(Url("logout"), payload);
+			request.SetRequestHeader("Content-Type", "application/json");
+			request.SetRequestHeader("Accept", "application/json");
+			
+			yield return request.SendWebRequest();
+
+			if (request.isNetworkError)
+			{
+				callback.Invoke(new SaveResult {
+					type = SaveResultType.NetworkError,
+					message = request.error
+				});
+				yield break;
+			}
+
+			if (request.responseCode == 401)
+			{
+				callback.Invoke(new SaveResult {
+					type = SaveResultType.NotLoggedIn,
+					message = "Provided access token was not accepted."
+				});
+				yield break;
+			}
+
+			JsonObject response;
+			string code;
+			try
+			{
+				JsonValue responseValue = JsonReader.Parse(request.downloadHandler.text);
+				
+				if (!responseValue.IsJsonObject)
+					throw new JsonParseException();
+				
+				response = responseValue.AsJsonObject;
+
+				if (!response.ContainsKey("code"))
+					throw new JsonParseException();
+
+				code = response["code"].AsString;
+			}
+			catch (JsonParseException)
+			{
+				callback.Invoke(new SaveResult {
+					type = SaveResultType.OtherError,
+					message = "Server response had invalid format."
+				});
+				yield break;
+			}
+
+			switch (code)
+			{
+				case "ok":
+					callback.Invoke(new SaveResult {
+						type = SaveResultType.OK
+					});
+					break;
+
+				default:
+					callback.Invoke(new SaveResult {
+						type = SaveResultType.OtherError,
 						message = "Server response had invalid format."
 					});
 					break;
