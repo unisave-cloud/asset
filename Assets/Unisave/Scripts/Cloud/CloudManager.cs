@@ -20,17 +20,17 @@ namespace Unisave
 		/// <summary>
 		/// Fake access token for the local debug player to fake saving and logout
 		/// </summary>
-		private const string LOCAL_DEBUG_PLAYER_ACCESS_TOKEN = "local debug player access token";
+		private const string LocalDebugPlayerAccessToken = "<local-debug-player>";
 
 		/// <summary>
 		/// Key in PlayerPrefs for the local debug player storage
 		/// </summary>
-		public const string LOCAL_DEBUG_PLAYER_PREFS_KEY = "unisave.localDebugPlayer";
+		public const string LocalDebugPlayerPrefsKey = "unisave.localDebugPlayer";
 
 		/// <summary>
 		/// Name of the preferences asset inside a Resources folder (without extension)
 		/// </summary>
-		private const string PREFERENCES_RESOURCE_NAME = "UnisavePreferencesInstance";
+		private const string PreferencesResourceName = "UnisavePreferencesInstance";
 
 		/// <summary>
 		/// Token for request authentication after login
@@ -53,6 +53,8 @@ namespace Unisave
 		/// Email address of the logged in player
 		/// (private because the email address should not be used for identification;
 		/// use player id instead, it's not that sensitive piece of information)
+		/// 
+		/// TODO: replace with some PlayerInformation class
 		/// </summary>
 		private string PlayerEmail { get; set; }
 
@@ -60,25 +62,6 @@ namespace Unisave
 		/// API for server communication
 		/// </summary>
 		private IServerApi api;
-
-		private bool loginCoroutineRunning = false;
-		private bool savingCoroutineRunning = false;
-		private bool logoutCoroutineRunning = false;
-
-		/// <summary>
-		/// Holds all the player-related cloud data in a key->json manner
-		/// (this is the ground truth for the data, when logged in)
-		/// (this is also called the "cache")
-		/// 
-		/// Why not deserialized json? Because I don't know the
-		/// type into which to deserialize it.
-		/// </summary>
-		private Dictionary<string, JsonValue> playerData;
-
-		/// <summary>
-		/// List of MonoBehaviours to which distribute the data after login
-		/// </summary>
-		private List<WeakReference> distributeAfterLogin = new List<WeakReference>();
 
 		/// <summary>
 		/// Caches player data between server api calls
@@ -108,11 +91,23 @@ namespace Unisave
 			}
 		}
 
+		/// <summary>
+		/// List of MonoBehaviours to which distribute the data after login
+		/// </summary>
+		private List<WeakReference> distributeAfterLogin = new List<WeakReference>();
+
+		/// <summary>
+		/// Email value to use for detecting the local debug player
+		/// </summary>
 		private readonly string localDebugPlayerEmail;
+
+		private bool loginCoroutineRunning = false;
+		private bool savingCoroutineRunning = false;
+		private bool logoutCoroutineRunning = false;
 
 		public static CloudManager CreateDefaultInstance()
 		{
-			var preferences = Resources.Load<UnisavePreferences>(PREFERENCES_RESOURCE_NAME);
+			var preferences = Resources.Load<UnisavePreferences>(PreferencesResourceName);
 
 			if (preferences == null)
 			{
@@ -124,11 +119,16 @@ namespace Unisave
 			return null;
 		}
 
-		public CloudManager(IServerApi api, IDataRepository repository)
+		public CloudManager(IServerApi api, IDataRepository repository, string localDebugPlayerEmail)
 		{
 			this.api = api;
 			this.repository = repository;
 			distributor = new Distributor(this.repository);
+			this.localDebugPlayerEmail = localDebugPlayerEmail;
+
+			// TODO: extract coroutine runner
+			// TODO: extract saver
+			// TODO: extract properties
 
 			GameObject go = new GameObject("UnisaveSaver");
 			saver = go.AddComponent<SaverComponent>();
@@ -181,7 +181,7 @@ namespace Unisave
 
 			loginCoroutineRunning = true;
 			
-			api.Login(result => {
+			IEnumerator coroutine = api.Login(result => {
 
 				loginCoroutineRunning = false;
 
@@ -189,8 +189,11 @@ namespace Unisave
 				{
 					AccessToken = result.accessToken;
 					PlayerEmail = email;
+
 					DataRepositoryHelper.Clear(repository);
 					DataRepositoryHelper.InsertJsonObject(repository, result.playerData);
+
+					PerformAfterLoginDistribution();
 
 					if (success != null)
 						success.Invoke();
@@ -206,6 +209,8 @@ namespace Unisave
 				
 			}, email, password);
 
+			coroutineRunner.StartCoroutine(coroutine);
+
 			return true;
 		}
 
@@ -220,13 +225,16 @@ namespace Unisave
 			if (LoggedIn)
 				throw new UnisaveException("Trying to login local debug player, but someone is already logged in.");
 
+			AccessToken = LocalDebugPlayerAccessToken;
+			PlayerEmail = localDebugPlayerEmail;
+
 			JsonObject json = JsonReader.Parse(
-				PlayerPrefs.GetString(LOCAL_DEBUG_PLAYER_PREFS_KEY, "{}")
+				PlayerPrefs.GetString(LocalDebugPlayerPrefsKey, "{}")
 			);
 			DataRepositoryHelper.Clear(repository);
 			DataRepositoryHelper.InsertJsonObject(repository, json);
-			AccessToken = LOCAL_DEBUG_PLAYER_ACCESS_TOKEN;
-			PlayerEmail = localDebugPlayerEmail;
+			
+			PerformAfterLoginDistribution();
 
 			Debug.LogWarning("Unisave: Local debug player has been logged in.");
 		}
@@ -241,6 +249,19 @@ namespace Unisave
 				Load(behaviour);
 			else
 				distributeAfterLogin.Add(new WeakReference(behaviour));
+		}
+
+		private void PerformAfterLoginDistribution()
+		{
+			foreach (WeakReference reference in distributeAfterLogin)
+			{
+				object target = reference.Target;
+
+				if (target != null)
+					distributor.Distribute(target);
+			}
+
+			distributeAfterLogin.Clear();
 		}
 
 		/// <summary>
@@ -288,7 +309,7 @@ namespace Unisave
 
 			distributor.Collect();
 
-			if (Application.isEditor && PlayerEmail == localDebugPlayerEmail)
+			if (Application.isEditor && AccessToken == LocalDebugPlayerAccessToken)
 			{
 				SaveLocalDebugPlayer();
 				return true;
@@ -300,7 +321,20 @@ namespace Unisave
 
 				savingCoroutineRunning = false;
 
-				// TODO: HANDLE RESULT
+				switch (result.type)
+				{
+					case ServerApi.SaveResultType.OK:
+						// nothing, it's all fine
+						break;
+
+					case ServerApi.SaveResultType.NotLoggedIn:
+						HandleUnexpectedLogout(true);
+						break;
+
+					default:
+						Debug.LogWarning("Unisave: Saving error: " + result.message);
+						break;
+				}
 
 			}, AccessToken, DataRepositoryHelper.ToJsonObject(repository));
 
@@ -312,10 +346,25 @@ namespace Unisave
 		private void SaveLocalDebugPlayer()
 		{
 			PlayerPrefs.SetString(
-				LOCAL_DEBUG_PLAYER_PREFS_KEY,
+				LocalDebugPlayerPrefsKey,
 				DataRepositoryHelper.ToJsonObject(repository).ToString()
 			);
 			PlayerPrefs.Save();
+		}
+
+		/// <summary>
+		/// Called when a request is made, but the server says we are not logged in anymore.
+		/// That might be due to session expiration, server-side logout or some error.
+		/// </summary>
+		private void HandleUnexpectedLogout(bool callUserCallbacks)
+		{
+			Debug.LogWarning("Unisave: Unexpected logout occured!");
+
+			AccessToken = null;
+			PlayerEmail = null;
+
+			// if (callUserCallbacks)
+			// TODO: call user-defined handlers to actually "log the player out"
 		}
 
 		/// <summary>
@@ -331,27 +380,40 @@ namespace Unisave
 
 			distributor.Collect();
 
-			if (AccessToken == LOCAL_DEBUG_PLAYER_ACCESS_TOKEN)
+			if (Application.isEditor && AccessToken == LocalDebugPlayerAccessToken)
 			{
 				LogoutLocalDebugPlayer();
 				return true;
 			}
 
-			coroutineRunner.StartCoroutine(LogoutCoroutine());
-
-			return true;
-		}
-
-		/// <summary>
-		/// Logout coroutine that makes the final save and the logout HTTP request
-		/// </summary>
-		private IEnumerator LogoutCoroutine()
-		{
 			logoutCoroutineRunning = true;
 
-			yield return null;
+			IEnumerator coroutine = api.Logout(result => {
 
-			logoutCoroutineRunning = false;
+				logoutCoroutineRunning = false;
+
+				switch (result.type)
+				{
+					case ServerApi.LogoutResultType.OK:
+						AccessToken = null;
+						PlayerEmail = null;
+						DataRepositoryHelper.Clear(repository);
+						break;
+
+					case ServerApi.LogoutResultType.NotLoggedIn:
+						HandleUnexpectedLogout(false);
+						break;
+
+					default:
+						Debug.LogWarning("Unisave: Saving error: " + result.message);
+						break;
+				}
+
+			}, AccessToken, DataRepositoryHelper.ToJsonObject(repository));
+
+			coroutineRunner.StartCoroutine(coroutine);
+
+			return true;
 		}
 
 		/// <summary>
@@ -363,6 +425,8 @@ namespace Unisave
 
 			AccessToken = null;
 			PlayerEmail = null;
+			
+			DataRepositoryHelper.Clear(repository);
 		}
 	}
 }

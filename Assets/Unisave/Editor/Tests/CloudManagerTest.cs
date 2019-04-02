@@ -54,10 +54,10 @@ public class CloudManagerTest
 	{
 		repo = new InMemoryDataRepository();
 		api = new FakeServerApi();
-		manager = new CloudManager(api, repo);
+		manager = new CloudManager(api, repo, "local");
 
 		GameObject go = new GameObject("FakeGameObject");
-		FakeBehaviour behaviour = go.AddComponent<FakeBehaviour>();
+		behaviour = go.AddComponent<FakeBehaviour>();
 	}
 	
 	///////////
@@ -82,6 +82,7 @@ public class CloudManagerTest
 	{
 		api.loginResult = new ServerApi.LoginResult {
 			type = ServerApi.LoginResultType.OK,
+			accessToken = "<access-token>",
 			playerData = new JsonObject()
 				.Add("foo", "foo-value")
 		};
@@ -98,6 +99,7 @@ public class CloudManagerTest
 	{
 		api.loginResult = new ServerApi.LoginResult {
 			type = ServerApi.LoginResultType.OK,
+			accessToken = "<access-token>",
 			playerData = new JsonObject()
 				.Add("foo", "foo-value")
 		};
@@ -121,8 +123,8 @@ public class CloudManagerTest
 
 		manager.Login(null, "email", "password");
 
-		Assert.AreEqual("foo-value", repo.Get("foo"));
-		Assert.AreEqual(42, repo.Get("bar"));
+		Assert.AreEqual("foo-value", (string)repo.Get("foo"));
+		Assert.AreEqual(42, (int)repo.Get("bar"));
 	}
 
 	[Test]
@@ -130,6 +132,7 @@ public class CloudManagerTest
 	{
 		api.loginResult = new ServerApi.LoginResult {
 			type = ServerApi.LoginResultType.OK,
+			accessToken = "<access-token>",
 			playerData = new JsonObject()
 		};
 
