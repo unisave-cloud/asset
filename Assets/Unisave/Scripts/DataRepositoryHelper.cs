@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System.Linq;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using LightJson;
@@ -40,7 +41,8 @@ namespace Unisave
 		/// </summary>
 		public static void Clear(IDataRepository repository)
 		{
-			foreach (string key in repository.AllKeys())
+			// ToArray() to prevent modification while iterating (to cache keys here)
+			foreach (string key in repository.AllKeys().ToArray())
 				repository.Remove(key);
 		}
 	}
