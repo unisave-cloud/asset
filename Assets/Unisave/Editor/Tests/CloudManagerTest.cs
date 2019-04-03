@@ -210,9 +210,33 @@ public class CloudManagerTest
 		Assert.AreEqual(42, (int)repo.Get("bar"));
 	}
 
+	[Test]
+	public void LocalDebugPlayerCanLoginImplicitly()
+	{
+		PlayerPrefs.SetString(
+			CloudManager.LocalDebugPlayerPrefsKey,
+			new JsonObject()
+				.Add("foo", "hello world")
+				.Add("bar", 42)
+				.ToString()
+		);
+		PlayerPrefs.Save();
+
+		manager.Load(behaviour);
+
+		Assert.AreEqual("hello world", behaviour.foo);
+		Assert.AreEqual(42, (int)repo.Get("bar"));
+	}
+
 	//////////
 	// Save //
 	//////////
+	
+	[Test]
+	public void CannotSaveWhileNotLoggedIn()
+	{
+		Assert.False(manager.Save());
+	}
 	
 	[Test]
 	public void SavingCollectsDataAndSendsThemToServer()
@@ -240,7 +264,7 @@ public class CloudManagerTest
 			Assert.AreEqual(DataRepositoryHelper.ToJsonObject(repo).ToString(), playerData.ToString());
 		};
 
-		manager.Save();
+		Assert.True(manager.Save());
 
 		Assert.True(saveApiCalled);
 	}
@@ -258,7 +282,7 @@ public class CloudManagerTest
 
 		api.onSave = (_, __) => Assert.Fail("Save api method was called when shouldn't.");
 
-		manager.Save();
+		Assert.True(manager.Save());
 
 		var json = LightJson.Serialization.JsonReader.Parse(
 			PlayerPrefs.GetString(CloudManager.LocalDebugPlayerPrefsKey, "{}")
@@ -297,6 +321,12 @@ public class CloudManagerTest
 	////////////
 
 	[Test]
+	public void CannotLogoutWhileNotLoggedIn()
+	{
+		Assert.False(manager.Logout());
+	}
+
+	[Test]
 	public void LogoutCollectsDataAndSendsThemToServer()
 	{
 		api.loginResult = new ServerApi.LoginResult {
@@ -322,7 +352,7 @@ public class CloudManagerTest
 			Assert.AreEqual(DataRepositoryHelper.ToJsonObject(repo).ToString(), playerData.ToString());
 		};
 
-		manager.Logout();
+		Assert.True(manager.Logout());
 
 		Assert.True(logoutApiCalled);
 	}
@@ -340,7 +370,7 @@ public class CloudManagerTest
 
 		api.onLogout = (_, __) => Assert.Fail("Logout api method was called when shouldn't.");
 
-		manager.Logout();
+		Assert.True(manager.Logout());
 
 		var json = LightJson.Serialization.JsonReader.Parse(
 			PlayerPrefs.GetString(CloudManager.LocalDebugPlayerPrefsKey, "{}")

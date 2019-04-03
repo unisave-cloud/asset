@@ -283,7 +283,6 @@ namespace Unisave
 			{
 				// throws exception on build target
 				LoginLocalDebugPlayer();
-				return;
 			}
 
 			distributor.Distribute(target);
@@ -369,7 +368,8 @@ namespace Unisave
 
 		/// <summary>
 		/// Starts the logout coroutine or does nothing if already logged out
-		/// </summary>
+		/// <returns>False if the logout request was ignored for some reason</returns>
+		/// </summary>s
 		public bool Logout()
 		{
 			if (!LoggedIn)
