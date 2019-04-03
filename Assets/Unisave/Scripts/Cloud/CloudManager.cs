@@ -28,11 +28,6 @@ namespace Unisave
 		public const string LocalDebugPlayerPrefsKey = "unisave.localDebugPlayer";
 
 		/// <summary>
-		/// Name of the preferences asset inside a Resources folder (without extension)
-		/// </summary>
-		private const string PreferencesResourceName = "UnisavePreferencesInstance";
-
-		/// <summary>
 		/// Token for request authentication after login
 		/// If null, no player is logged in
 		/// </summary>
@@ -93,16 +88,12 @@ namespace Unisave
 		private bool savingCoroutineRunning = false;
 		private bool logoutCoroutineRunning = false;
 
+		/// <summary>
+		/// Creates the instance that is used via the UnisaveCloud facade
+		/// </summary>
 		public static CloudManager CreateDefaultInstance()
 		{
-			// TODO: extract preferences
-			var preferences = Resources.Load<UnisavePreferences>(PreferencesResourceName);
-
-			if (preferences == null)
-			{
-				preferences = ScriptableObject.CreateInstance<UnisavePreferences>();
-				Debug.LogWarning("Unisave preferences not found. Server connection will not work.");
-			}
+			var preferences = UnisavePreferences.LoadPreferences();
 
 			// make sure a continuous saver exists and is running
 			SaverComponent.GetInstance();

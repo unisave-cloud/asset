@@ -25,6 +25,9 @@ namespace Unisave
 		/// </summary>
 		private Distributor distributor;
 
+		/// <summary>
+		/// Creates the instance that is used via the UnisaveLocal facade
+		/// </summary>
 		public static LocalManager CreateDefaultInstance()
 		{
 			var repo = new PlayerPrefsDataRepository(PlayerPrefsKeyPrefix);

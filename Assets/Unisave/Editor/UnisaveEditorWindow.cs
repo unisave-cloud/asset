@@ -7,7 +7,10 @@ namespace Unisave
 {
 	public class UnisaveEditorWindow : EditorWindow
 	{
-		private UnisavePreferences preferences;
+		/// <summary>
+		/// Reference to the preferences file
+		/// </summary>
+		private UnisavePreferences prefs;
 
 		private string serverApiUrl;
 		private string gameToken;
@@ -18,66 +21,46 @@ namespace Unisave
 			EditorWindow.GetWindow(typeof(UnisaveEditorWindow));
 		}
 
-		void Awake()
-		{
-			GetPreferences();
-			ReadPreferences();
-		}
-
 		void OnGUI()
 		{
+			if (prefs == null)
+				PreparePreferencesFile();
+
 			GUILayout.Label("Cool label", EditorStyles.boldLabel);
-			serverApiUrl = EditorGUILayout.TextField("Server API URL", serverApiUrl);
-			gameToken = EditorGUILayout.TextField("Game token", gameToken);
+			prefs.serverApiUrl = EditorGUILayout.TextField("Server API URL", prefs.serverApiUrl);
+			prefs.gameToken = EditorGUILayout.TextField("Game token", prefs.gameToken);
 		}
 
 		void OnLostFocus()
 		{
-			WritePreferences();
+			SaveChanges();
 		}
 
+		/////////////////
 		// Preferences //
+		/////////////////
 
-		void GetPreferences()
+		/// <summary>
+		/// Checks for existance and, if needed, creates the preferences file
+		/// </summary>
+		void PreparePreferencesFile()
 		{
-			var path = "Assets/Unisave/Resources/";
-			var objectName = "UnisavePreferencesInstance.asset";
+			var path = "Assets/Unisave/Resources/" + UnisavePreferences.ResourceFileName + ".asset";
 	
-			preferences = AssetDatabase.LoadAssetAtPath<UnisavePreferences>(path + objectName);
+			prefs = AssetDatabase.LoadAssetAtPath<UnisavePreferences>(path);
 	
-			if (preferences == null)
+			if (prefs == null)
 			{
 				Debug.Log("Couldn't find unisave preferences. Creating...");
-				preferences = CreateInstance<UnisavePreferences>();
-				AssetDatabase.CreateAsset(preferences, path + objectName);
+				prefs = CreateInstance<UnisavePreferences>();
+				AssetDatabase.CreateAsset(prefs, path);
 				AssetDatabase.SaveAssets();
 				AssetDatabase.Refresh();
 			}
 		}
 
-		void ReadPreferences()
+		void SaveChanges()
 		{
-			if (preferences == null)
-			{
-				Debug.LogWarning("Reading from unisave preferences, but the reference is null.");
-				return;
-			}
-
-			serverApiUrl = preferences.serverApiUrl;
-			gameToken = preferences.gameToken;
-		}
-
-		void WritePreferences()
-		{
-			if (preferences == null)
-			{
-				Debug.LogWarning("Writing to unisave preferences, but the reference is null.");
-				return;
-			}
-
-			preferences.serverApiUrl = serverApiUrl;
-			preferences.gameToken = gameToken;
-
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 		}
