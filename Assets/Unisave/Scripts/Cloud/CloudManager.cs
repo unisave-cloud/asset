@@ -75,24 +75,12 @@ namespace Unisave
 		private Distributor distributor;
 
 		/// <summary>
-		/// A DontDestroyOnLoad component, that performs continual saving
-		/// </summary>
-		private SaverComponent saver;
-
-		/// <summary>
 		/// A DontDestroyOnLoad component, that runs all unisave coroutines
-		/// (spoiler: it's the saver component)
 		/// </summary>
-		private MonoBehaviour coroutineRunner
-		{
-			get
-			{
-				return saver;
-			}
-		}
+		private CoroutineRunnerComponent coroutineRunner;
 
 		/// <summary>
-		/// List of MonoBehaviours to which distribute the data after login
+		/// List of player scripts to which distribute the data after login
 		/// </summary>
 		private List<WeakReference> distributeAfterLogin = new List<WeakReference>();
 
@@ -107,6 +95,7 @@ namespace Unisave
 
 		public static CloudManager CreateDefaultInstance()
 		{
+			// TODO: extract preferences
 			var preferences = Resources.Load<UnisavePreferences>(PreferencesResourceName);
 
 			if (preferences == null)
@@ -115,23 +104,29 @@ namespace Unisave
 				Debug.LogWarning("Unisave preferences not found. Server connection will not work.");
 			}
 
-			//return new CloudManager(preferences);
-			return null;
+			// make sure a continuous saver exists and is running
+			SaverComponent.GetInstance();
+
+			return new CloudManager(
+				CoroutineRunnerComponent.GetInstance(),
+				new ServerApi(preferences.serverApiUrl, preferences.gameToken),
+				new InMemoryDataRepository(),
+				preferences.localDebugPlayerEmail
+			);
 		}
 
-		public CloudManager(IServerApi api, IDataRepository repository, string localDebugPlayerEmail)
+		public CloudManager(
+			CoroutineRunnerComponent coroutineRunner,
+			IServerApi api,
+			IDataRepository repository,
+			string localDebugPlayerEmail
+		)
 		{
+			this.coroutineRunner = coroutineRunner;
 			this.api = api;
 			this.repository = repository;
-			distributor = new Distributor(this.repository);
+			this.distributor = new Distributor(this.repository);
 			this.localDebugPlayerEmail = localDebugPlayerEmail;
-
-			// TODO: extract coroutine runner
-			// TODO: extract saver
-			// TODO: extract properties
-
-			GameObject go = new GameObject("UnisaveSaver");
-			saver = go.AddComponent<SaverComponent>();
 		}
 
 		/// <summary>
@@ -243,12 +238,12 @@ namespace Unisave
 		/// Registers the behaviour to be loaded after login succeeds
 		/// Or loads it now, if user already logged in
 		/// </summary>
-		public void LoadAfterLogin(MonoBehaviour behaviour)
+		public void LoadAfterLogin(object target)
 		{
 			if (LoggedIn)
-				Load(behaviour);
+				Load(target);
 			else
-				distributeAfterLogin.Add(new WeakReference(behaviour));
+				distributeAfterLogin.Add(new WeakReference(target));
 		}
 
 		private void PerformAfterLoginDistribution()
@@ -265,8 +260,8 @@ namespace Unisave
 		}
 
 		/// <summary>
-		/// Distributes cloud data from cache to a given behavior instance
-		/// Player needs to be logged in.false If not, local debug player is logged in if in editor
+		/// Distributes cloud data from cache to a given script instance
+		/// Player needs to be logged in. Local debug player is logged in if in editor
 		/// </summary>
 		public void Load(object target)
 		{
@@ -303,6 +298,12 @@ namespace Unisave
 			if (savingCoroutineRunning)
 			{
 				Debug.LogWarning("Unisave: Save called while already saving. Ignoring.");
+				return false;
+			}
+
+			if (loginCoroutineRunning || logoutCoroutineRunning)
+			{
+				Debug.LogWarning("Unisave: Cannot save, other coroutine already running. Ignoring.");
 				return false;
 			}
 
@@ -369,7 +370,7 @@ namespace Unisave
 		/// <summary>
 		/// Starts the logout coroutine or does nothing if already logged out
 		/// <returns>False if the logout request was ignored for some reason</returns>
-		/// </summary>s
+		/// </summary>
 		public bool Logout()
 		{
 			if (!LoggedIn)

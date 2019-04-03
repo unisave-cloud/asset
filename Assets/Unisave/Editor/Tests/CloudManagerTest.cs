@@ -59,7 +59,7 @@ public class CloudManagerTest
 	{
 		repo = new InMemoryDataRepository();
 		api = new FakeServerApi();
-		manager = new CloudManager(api, repo, "local");
+		manager = new CloudManager(CoroutineRunnerComponent.GetInstance(), api, repo, "local");
 
 		GameObject go = new GameObject("FakeGameObject");
 		behaviour = go.AddComponent<FakeBehaviour>();

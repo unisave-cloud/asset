@@ -13,11 +13,17 @@ namespace Unisave
 		/// <summary>
 		/// Underlying cloud manager instance
 		/// </summary>
-		private static CloudManager manager;
+		private static CloudManager manager = CloudManager.CreateDefaultInstance();
 
-		static UnisaveCloud()
+		/// <summary>
+		/// If true, we have an authorized player session and we can make requests
+		/// </summary>
+		public static bool LoggedIn
 		{
-			manager = CloudManager.CreateDefaultInstance();
+			get
+			{
+				return manager.LoggedIn;
+			}
 		}
 
 		/// <summary>
@@ -26,34 +32,46 @@ namespace Unisave
 		/// <param name="callback">Calls methods here after coroutine finishes</param>
 		/// <param name="email">Player email address</param>
 		/// <param name="password">Player password</param>
-		public static void Login(ILoginCallback callback, string email, string password)
+		/// <returns>False if the login request was ignored for some reason</returns>
+		public static bool Login(ILoginCallback callback, string email, string password)
 		{
-			manager.Login(callback, email, password);
+			return manager.Login(callback, email, password);
 		}
 
 		/// <summary>
 		/// Starts the logout coroutine or does nothing if already logged out
+		/// <returns>False if the logout request was ignored for some reason</returns>
 		/// </summary>
-		public static void Logout()
+		public static bool Logout()
 		{
-			manager.Logout();
+			return manager.Logout();
 		}
 
 		/// <summary>
-		/// Registers the behaviour to be loaded after login succeeds
+		/// Registers the script to be loaded after login succeeds
 		/// Or loads it now, if user already logged in
 		/// </summary>
-		public static void LoadAfterLogin(MonoBehaviour behaviour)
+		public static void LoadAfterLogin(object target)
 		{
-			manager.LoadAfterLogin(behaviour);
+			manager.LoadAfterLogin(target);
 		}
 
 		/// <summary>
-		/// Distributes cloud data from cache to a given behavior instance
+		/// Distributes cloud data from cache to a given script instance
+		/// Player needs to be logged in. Local debug player is logged in if in editor
 		/// </summary>
-		public static void Load(MonoBehaviour behaviour)
+		public static void Load(object target)
 		{
-			manager.Load(behaviour);
+			manager.Load(target);
+		}
+
+		/// <summary>
+		/// Saves all changes to the server by starting a saving coroutine
+		/// <returns>False if the save request was ignored for some reason</returns>
+		/// </summary>
+		public static bool Save()
+		{
+			return manager.Save();
 		}
 	}
 }
