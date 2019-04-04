@@ -12,8 +12,7 @@ namespace Unisave
 		/// </summary>
 		private UnisavePreferences prefs;
 
-		private string serverApiUrl;
-		private string gameToken;
+		private string editorKey;
 
 		[MenuItem("Window/Unisave")]
 		public static void ShowWidnow()
@@ -28,12 +27,16 @@ namespace Unisave
 		void OnGUI()
 		{
 			if (prefs == null)
+			{
 				PreparePreferencesFile();
+
+				editorKey = EditorPrefs.GetString("unisave.editorKey", null);
+			}
 
 			GUILayout.Label("Server connection parameters", EditorStyles.boldLabel);
 			prefs.serverApiUrl = EditorGUILayout.TextField("Server API URL", prefs.serverApiUrl);
 			prefs.gameToken = EditorGUILayout.TextField("Game token", prefs.gameToken);
-			prefs.editorKey = EditorGUILayout.TextField("Editor key", prefs.editorKey);
+			editorKey = EditorGUILayout.TextField("Editor key", editorKey);
 
 			/*GUILayout.Label("Interesting player data", EditorStyles.boldLabel);
 			EditorGUILayout.TextField("Username Key", "");
@@ -70,6 +73,8 @@ namespace Unisave
 
 		void SaveChanges()
 		{
+			EditorPrefs.SetString("unisave.editorKey", editorKey);
+
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 		}

@@ -102,12 +102,17 @@ namespace Unisave
 			// make sure a continuous saver exists and is running
 			SaverComponent.GetInstance();
 
+			string editorKey = null;
+			#if UNITY_EDITOR
+				editorKey = UnityEditor.EditorPrefs.GetString("unisave.editorKey", null);
+			#endif
+
 			return new CloudManager(
 				CoroutineRunnerComponent.GetInstance(),
 				new ServerApi(
 					preferences.serverApiUrl,
 					preferences.gameToken,
-					preferences.editorKey
+					editorKey
 				),
 				new InMemoryDataRepository(),
 				preferences.localDebugPlayerEmail
