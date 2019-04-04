@@ -24,7 +24,12 @@ namespace Unisave
 		/// </summary>
 		private string gameToken;
 
-		public ServerApi(string apiUrl, string gameToken)
+		/// <summary>
+		/// Key that the editor uses to authenticate itself
+		/// </summary>
+		private string editorKey;
+
+		public ServerApi(string apiUrl, string gameToken, string editorKey)
 		{
 			if (apiUrl == null)
 				throw new ArgumentNullException("apiUrl");
@@ -34,6 +39,7 @@ namespace Unisave
 
 			this.apiUrl = apiUrl;
 			this.gameToken = gameToken;
+			this.editorKey = editorKey;
 
 			if (!this.apiUrl.EndsWith("/"))
 				this.apiUrl += "/";
@@ -58,6 +64,7 @@ namespace Unisave
 			public string message;
 			public string accessToken;
 			public JsonObject playerData;
+			public PlayerInformation playerInfo;
 		}
 
 		public enum LoginResultType
@@ -84,6 +91,9 @@ namespace Unisave
 				.Add("email", email)
 				.Add("password", password)
 				.Add("gameToken", gameToken)
+				.Add("buildGUID", Application.buildGUID)
+				.Add("version", Application.version)
+				.Add("editorKey", editorKey)
 				.ToString();
 
 			// put because post does not work with json for some reason
@@ -135,6 +145,9 @@ namespace Unisave
 						type = LoginResultType.OK,
 						accessToken = response["accessToken"].AsString,
 						playerData = response["playerData"].AsJsonObject,
+						playerInfo = PlayerInformation.FromJsonObject(
+							response["player"].AsJsonObject
+						)
 					});
 					break;
 

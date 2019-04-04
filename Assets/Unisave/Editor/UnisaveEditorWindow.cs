@@ -18,7 +18,11 @@ namespace Unisave
 		[MenuItem("Window/Unisave")]
 		public static void ShowWidnow()
 		{
-			EditorWindow.GetWindow(typeof(UnisaveEditorWindow));
+			EditorWindow.GetWindow(
+				typeof(UnisaveEditorWindow),
+				false,
+				"Unisave"
+			);
 		}
 
 		void OnGUI()
@@ -26,9 +30,14 @@ namespace Unisave
 			if (prefs == null)
 				PreparePreferencesFile();
 
-			GUILayout.Label("Cool label", EditorStyles.boldLabel);
+			GUILayout.Label("Server connection parameters", EditorStyles.boldLabel);
 			prefs.serverApiUrl = EditorGUILayout.TextField("Server API URL", prefs.serverApiUrl);
 			prefs.gameToken = EditorGUILayout.TextField("Game token", prefs.gameToken);
+			prefs.editorKey = EditorGUILayout.TextField("Editor key", prefs.editorKey);
+
+			/*GUILayout.Label("Interesting player data", EditorStyles.boldLabel);
+			EditorGUILayout.TextField("Username Key", "");
+			GUILayout.Label("Maybe generalize to hell?");*/
 		}
 
 		void OnLostFocus()

@@ -39,6 +39,8 @@ namespace Unisave
 
 		public string gameToken;
 
+		public string editorKey;
+
 		public string localDebugPlayerEmail = "local";
 	}
 }

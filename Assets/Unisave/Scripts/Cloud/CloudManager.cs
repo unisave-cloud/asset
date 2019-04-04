@@ -48,10 +48,14 @@ namespace Unisave
 		/// Email address of the logged in player
 		/// (private because the email address should not be used for identification;
 		/// use player id instead, it's not that sensitive piece of information)
-		/// 
-		/// TODO: replace with some PlayerInformation class
 		/// </summary>
 		private string PlayerEmail { get; set; }
+
+		/// <summary>
+		/// Information about the logged-in player
+		/// Null if no player logged in
+		/// </summary>
+		public PlayerInformation PlayerInfo { get; private set; }
 
 		/// <summary>
 		/// API for server communication
@@ -100,7 +104,11 @@ namespace Unisave
 
 			return new CloudManager(
 				CoroutineRunnerComponent.GetInstance(),
-				new ServerApi(preferences.serverApiUrl, preferences.gameToken),
+				new ServerApi(
+					preferences.serverApiUrl,
+					preferences.gameToken,
+					preferences.editorKey
+				),
 				new InMemoryDataRepository(),
 				preferences.localDebugPlayerEmail
 			);
@@ -175,6 +183,7 @@ namespace Unisave
 				{
 					AccessToken = result.accessToken;
 					PlayerEmail = email;
+					PlayerInfo = result.playerInfo;
 
 					DataRepositoryHelper.Clear(repository);
 					DataRepositoryHelper.InsertJsonObject(repository, result.playerData);
@@ -213,6 +222,7 @@ namespace Unisave
 
 			AccessToken = LocalDebugPlayerAccessToken;
 			PlayerEmail = localDebugPlayerEmail;
+			PlayerInfo = new PlayerInformation("<local-debug-player-id>");
 
 			JsonObject json = JsonReader.Parse(
 				PlayerPrefs.GetString(LocalDebugPlayerPrefsKey, "{}")
@@ -389,6 +399,7 @@ namespace Unisave
 					case ServerApi.LogoutResultType.OK:
 						AccessToken = null;
 						PlayerEmail = null;
+						PlayerInfo = null;
 						DataRepositoryHelper.Clear(repository);
 						break;
 
@@ -417,6 +428,7 @@ namespace Unisave
 
 			AccessToken = null;
 			PlayerEmail = null;
+			PlayerInfo = null;
 			
 			DataRepositoryHelper.Clear(repository);
 		}

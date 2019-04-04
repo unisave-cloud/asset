@@ -70,16 +70,18 @@ public class CloudManagerTest
 	///////////
 
 	[Test]
-	public void ItCanObtainAccessTokenByLoggingIn()
+	public void ItCanObtainAccessTokenAndPlayerInfoByLoggingIn()
 	{
 		api.loginResult = new ServerApi.LoginResult {
 			type = ServerApi.LoginResultType.OK,
-			accessToken = "foo"
+			accessToken = "foo",
+			playerInfo = new PlayerInformation("id")
 		};
 
 		manager.Login(null, "email", "password");
 
 		Assert.AreEqual("foo", manager.AccessToken);
+		Assert.AreEqual("id", manager.PlayerInfo.Id);
 	}
 
 	[Test]
