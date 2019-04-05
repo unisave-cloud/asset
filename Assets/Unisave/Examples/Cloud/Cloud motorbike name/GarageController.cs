@@ -5,23 +5,22 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Unisave;
 
-public class GarageController : MonoBehaviour
+public class GarageController : UnisaveCloudBehaviour
 {
 	public InputField motorbikeNameField;
 
 	[SavedAs("motorbike.name")]
-	public string motorbikeName;
-
-	void Awake()
+	public string motorbikeName
 	{
-		UnisaveCloud.Load(this);
+		get
+		{
+			return motorbikeNameField.text;
+		}
 
-		motorbikeNameField.text = motorbikeName;
-	}
-
-	void Update()
-	{
-		motorbikeName = motorbikeNameField.text;
+		set
+		{
+			motorbikeNameField.text = value;
+		}
 	}
 
 	public void OnLogoutButtonClick()
