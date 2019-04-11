@@ -75,6 +75,7 @@ namespace Unisave
 		{
 			EditorPrefs.SetString("unisave.editorKey", editorKey);
 
+			EditorUtility.SetDirty(prefs);
 			AssetDatabase.SaveAssets();
 			AssetDatabase.Refresh();
 		}
