@@ -9,7 +9,7 @@ public class GarageController : UnisaveCloudBehaviour
 {
 	public InputField motorbikeNameField;
 
-	[SavedAs("motorbike.name")]
+	[SavedAs("motorbike-name")]
 	public string motorbikeName
 	{
 		get

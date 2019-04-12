@@ -23,5 +23,6 @@ public class LoginController : MonoBehaviour, ILoginCallback
 	public void LoginFailed(LoginFailure failure)
 	{
 		Debug.LogError("Login returned a failure.");
+		Debug.LogError(failure.message);
 	}
 }
