@@ -91,6 +91,7 @@ namespace Unisave
 		private bool loginCoroutineRunning = false;
 		private bool savingCoroutineRunning = false;
 		private bool logoutCoroutineRunning = false;
+		private bool registrationCoroutineRunning = false;
 
 		/// <summary>
 		/// Creates the instance that is used via the UnisaveCloud facade
@@ -436,6 +437,62 @@ namespace Unisave
 			PlayerInfo = null;
 			
 			DataRepositoryHelper.Clear(repository);
+		}
+
+		/// <summary>
+		/// Starts the player registration coroutine
+		/// </summary>
+		/// <param name="callback">Calls methods here after coroutine finishes</param>
+		/// <param name="email">Player email address</param>
+		/// <param name="password">Player password</param>
+		/// <returns>False if the registration request was ignored for some reason</returns>
+		public bool Register(IRegistrationCallback callback, string email, string password)
+		{
+			Action success = null;
+			Action<RegistrationFailure> failure = null;
+			
+			if (callback != null)
+			{
+				success = callback.RegistrationSucceeded;
+				failure = callback.RegistrationFailed;
+			}
+
+			return Register(success, failure, email, password);
+		}
+
+		public bool Register(Action success, Action<RegistrationFailure> failure, string email, string password)
+		{
+			if (registrationCoroutineRunning)
+			{
+				Debug.LogWarning("Unisave: Trying to register while already registering.");
+				return false;
+			}
+
+			registrationCoroutineRunning = true;
+			
+			IEnumerator coroutine = api.Register(result => {
+
+				registrationCoroutineRunning = false;
+
+				if (result.type == ServerApi.RegistrationResultType.OK)
+				{
+					if (success != null)
+						success.Invoke();
+				}
+				else
+				{
+					if (failure != null)
+						failure.Invoke(new RegistrationFailure {
+							type = RegistrationFailure.TypeFromApiResultType(result.type),
+							message = result.message
+						});
+				}
+				
+			}, email, password);
+
+			coroutineRunner.StartCoroutine(coroutine);
+
+			return true;
 		}
 	}
 }

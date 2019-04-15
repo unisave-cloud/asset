@@ -9,7 +9,7 @@ namespace Unisave
 	/// <summary>
 	/// Controls the default login / register form prefab
 	/// </summary>
-	public class LoginOrRegisterController : MonoBehaviour, ILoginCallback
+	public class LoginOrRegisterController : MonoBehaviour, ILoginCallback, IRegistrationCallback
 	{
 		public GameObject loginForm, registerForm;
 
@@ -60,8 +60,27 @@ namespace Unisave
 			messageText.text = "...";
 			messageText.gameObject.SetActive(true);
 
-			// TODO registration api calls
-			messageText.text = "TODO: registration...";
+			if (registerPasswordField.text != registerConfirmPasswordField.text)
+			{
+				messageText.text = "Password confirmation does not match the password.";
+				return;
+			}
+
+			UnisaveCloud.Register(this, registerEmailField.text, registerPasswordField.text);
+		}
+
+		public void RegistrationSucceeded()
+		{
+			loginEmailField.text = registerEmailField.text;
+			loginPasswordField.text = registerPasswordField.text;
+
+			OnGotoLogin();
+			OnLoginClicked();
+		}
+
+		public void RegistrationFailed(RegistrationFailure failure)
+		{
+			messageText.text = failure.message;
 			messageText.gameObject.SetActive(true);
 		}
 

@@ -14,5 +14,6 @@ namespace Unisave
 		IEnumerator Login(Action<ServerApi.LoginResult> callback, string email, string password);
 		IEnumerator Save(Action<ServerApi.SaveResult> callback, string accessToken, JsonObject playerData);
 		IEnumerator Logout(Action<ServerApi.LogoutResult> callback, string accessToken, JsonObject playerData);
+		IEnumerator Register(Action<ServerApi.RegistrationResult> callback, string email, string password);
 	}
 }

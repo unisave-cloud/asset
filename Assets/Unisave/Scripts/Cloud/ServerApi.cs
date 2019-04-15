@@ -381,5 +381,134 @@ namespace Unisave
 					break;
 			}
 		}
+
+		//////////////
+		// Register //
+		//////////////
+		
+		public class RegistrationResult
+		{
+			public RegistrationResultType type;
+			public string message;
+		}
+
+		public enum RegistrationResultType
+		{
+			OK,
+			NetworkError,
+			InvalidGameToken,
+			EmailAlreadyRegistered,
+			InvalidEmail,
+			InvalidPassword,
+			ServerUnderMaintenance,
+			OtherError
+		}
+
+		public IEnumerator Register(Action<RegistrationResult> callback, string email, string password)
+		{
+			string payload = new JsonObject()
+				.Add("email", email)
+				.Add("password", password)
+				.Add("gameToken", gameToken)
+				.Add("buildGUID", Application.buildGUID)
+				.Add("version", Application.version)
+				.Add("editorKey", editorKey)
+				.ToString();
+
+			// put because post does not work with json for some reason
+			// https://forum.unity.com/threads/posting-json-through-unitywebrequest.476254/
+			UnityWebRequest request = UnityWebRequest.Put(Url("register"), payload);
+			request.SetRequestHeader("Content-Type", "application/json");
+			request.SetRequestHeader("Accept", "application/json");
+			
+			yield return request.SendWebRequest();
+
+			if (request.isNetworkError)
+			{
+				callback.Invoke(new RegistrationResult {
+					type = RegistrationResultType.NetworkError,
+					message = request.error
+				});
+				yield break;
+			}
+
+			JsonObject response;
+			string code;
+			try
+			{
+				JsonValue responseValue = JsonReader.Parse(request.downloadHandler.text);
+				
+				if (!responseValue.IsJsonObject)
+					throw new JsonParseException();
+				
+				response = responseValue.AsJsonObject;
+
+				if (!response.ContainsKey("code"))
+					throw new JsonParseException();
+
+				code = response["code"].AsString;
+			}
+			catch (JsonParseException)
+			{
+				callback.Invoke(new RegistrationResult {
+					type = RegistrationResultType.OtherError,
+					message = "Server response had invalid format."
+				});
+				yield break;
+			}
+
+			switch (code)
+			{
+				case "ok":
+					callback.Invoke(new RegistrationResult {
+						type = RegistrationResultType.OK
+					});
+					break;
+
+				case "email-already-registered":
+					callback.Invoke(new RegistrationResult {
+						type = RegistrationResultType.EmailAlreadyRegistered,
+						message = response["message"].AsString
+					});
+					break;
+
+				case "maintenance-mode":
+					callback.Invoke(new RegistrationResult {
+						type = RegistrationResultType.ServerUnderMaintenance,
+						message = response["message"].AsString
+					});
+					break;
+
+				case "invalid-game-token":
+					callback.Invoke(new RegistrationResult {
+						type = RegistrationResultType.InvalidGameToken,
+						message = response["message"].AsString
+					});
+					break;
+
+				case "invalid-email":
+					callback.Invoke(new RegistrationResult {
+						type = RegistrationResultType.InvalidEmail,
+						message = response["message"].AsString
+					});
+					break;
+
+				case "invalid-password":
+					callback.Invoke(new RegistrationResult {
+						type = RegistrationResultType.InvalidPassword,
+						message = response["message"].AsString
+					});
+					break;
+
+				default:
+					callback.Invoke(new RegistrationResult {
+						type = RegistrationResultType.OtherError,
+						message = response.ContainsKey("message")
+							? response["message"].AsString
+							: "Server response had invalid format."
+					});
+					break;
+			}
+		}
 	}
 }

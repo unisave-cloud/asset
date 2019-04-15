@@ -44,6 +44,11 @@ public class CloudManagerTest
 			callback.Invoke(logoutResult);
 			yield break;
 		}
+
+		public IEnumerator Register(Action<ServerApi.RegistrationResult> callback, string email, string password)
+		{
+			yield break;
+		}
 	}
 
 	private FakeBehaviour behaviour;

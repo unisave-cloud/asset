@@ -12,7 +12,7 @@ namespace Unisave
 		void LoginSucceeded();
 
 		/// <summary>
-		/// Called, when the login failes
+		/// Called, when the login fails
 		/// </summary>
 		/// <param name="failure">The reason, why login failed</param>
 		void LoginFailed(LoginFailure failure);

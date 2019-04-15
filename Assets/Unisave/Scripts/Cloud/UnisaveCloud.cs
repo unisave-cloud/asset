@@ -73,5 +73,17 @@ namespace Unisave
 		{
 			return manager.Save();
 		}
+
+		/// <summary>
+		/// Starts the player registration coroutine
+		/// </summary>
+		/// <param name="callback">Calls methods here after coroutine finishes</param>
+		/// <param name="email">Player email address</param>
+		/// <param name="password">Player password</param>
+		/// <returns>False if the registration request was ignored for some reason</returns>
+		public static bool Register(IRegistrationCallback callback, string email, string password)
+		{
+			return manager.Register(callback, email, password);
+		}
 	}
 }
