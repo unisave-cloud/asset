@@ -34,8 +34,9 @@ namespace Unisave
 			if (apiUrl == null)
 				throw new ArgumentNullException("apiUrl");
 
+			// let the server tell the developer about missing game token on login
 			if (gameToken == null)
-				throw new ArgumentNullException("gameToken");
+				gameToken = "";
 
 			this.apiUrl = apiUrl;
 			this.gameToken = gameToken;
