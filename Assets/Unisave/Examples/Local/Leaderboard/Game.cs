@@ -98,7 +98,7 @@ namespace Unisave.Examples.Local.Leaderboard
 
 		public void OpenExampleDocumentation()
 		{
-			Application.OpenURL("https://github.com/Jirka-Mayer/UnisaveDocs/blob/master/leaderboard.md");
+			Application.OpenURL("https://unisave.cloud/docs/example-leaderboard");
 		}
 	}
 }
