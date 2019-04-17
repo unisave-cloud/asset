@@ -1,3 +1,15 @@
+#############################
+# My Custom gitignore rules #
+#############################
+
+# Unisave preferences needn't be stored
+[Aa]ssets/Unisave/Resources/UnisavePreferencesFile.asset
+
+
+#########################
+# Unity gitignore rules #
+#########################
+
 [Ll]ibrary/
 [Tt]emp/
 [Oo]bj/
@@ -58,3 +70,4 @@ crashlytics-build.properties
 [Aa]ssets/AssetStoreTools*
 
 # Assets to be exported
+
