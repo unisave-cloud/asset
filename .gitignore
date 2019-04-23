@@ -5,6 +5,9 @@
 # Unisave preferences needn't be stored
 [Aa]ssets/Unisave/Resources/UnisavePreferencesFile.asset
 
+# Testing folder
+[Aa]ssets/Foo/
+
 
 #########################
 # Unity gitignore rules #
