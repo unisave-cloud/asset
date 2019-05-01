@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using LightJson;
 
 namespace Unisave.Framework
 {
@@ -8,6 +11,15 @@ namespace Unisave.Framework
     /// </summary>
     public class Entity
     {
-        
+        public string ID { get; private set; }
+
+        public static T FromRawData<T>(string id, HashSet<string> playerIDs, JsonObject data) where T : Entity, new()
+        {
+            T entity = new T();
+
+            entity.ID = id;
+
+            return entity;
+        }
     }
 }

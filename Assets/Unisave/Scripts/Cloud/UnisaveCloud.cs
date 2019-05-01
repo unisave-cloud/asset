@@ -1,19 +1,48 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Unisave
 {
 	/// <summary>
-	/// Static API for controlling cloud part of Unisave
-	/// For more advanced usage see CloudManager class
+	/// Facade for controlling cloud part of Unisave
 	/// </summary>
 	public static class UnisaveCloud
 	{
 		/// <summary>
-		/// Underlying cloud manager instance
+		/// Underlying backend instance
 		/// </summary>
-		private static CloudManager manager = CloudManager.CreateDefaultInstance();
+		private static IBackend backend;
+
+		static UnisaveCloud()
+		{
+			var preferences = UnisavePreferences.LoadPreferences();
+
+			if (true) // if run against local backend
+			{
+				backend = new LocalBackend(new LocalDatabase());
+
+				// if login on start
+				if (true)
+				{
+					backend.Login(null, "local", "password");
+				}
+			}
+			else
+			{
+				throw new NotImplementedException();
+				// backend = new CloudBackend(...);
+			}
+		}
+
+		/// <summary>
+		/// Returns the underlying backend instance
+		/// </summary>
+		public static IBackend GetBackend()
+		{
+			return backend;
+		}
 
 		/// <summary>
 		/// If true, we have an authorized player session and we can make requests
@@ -22,20 +51,17 @@ namespace Unisave
 		{
 			get
 			{
-				return manager.LoggedIn;
+				return backend.LoggedIn;
 			}
 		}
 
 		/// <summary>
 		/// Starts the login coroutine
 		/// </summary>
-		/// <param name="callback">Calls methods here after coroutine finishes</param>
-		/// <param name="email">Player email address</param>
-		/// <param name="password">Player password</param>
 		/// <returns>False if the login request was ignored for some reason</returns>
 		public static bool Login(ILoginCallback callback, string email, string password)
 		{
-			return manager.Login(callback, email, password);
+			return backend.Login(callback, email, password);
 		}
 
 		/// <summary>
@@ -44,46 +70,34 @@ namespace Unisave
 		/// </summary>
 		public static bool Logout()
 		{
-			return manager.Logout();
-		}
-
-		/// <summary>
-		/// Registers the script to be loaded after login succeeds
-		/// Or loads it now, if user already logged in
-		/// </summary>
-		public static void LoadAfterLogin(object target)
-		{
-			manager.LoadAfterLogin(target);
-		}
-
-		/// <summary>
-		/// Distributes cloud data from cache to a given script instance
-		/// Player needs to be logged in. Local debug player is logged in if in editor
-		/// </summary>
-		public static void Load(object target)
-		{
-			manager.Load(target);
-		}
-
-		/// <summary>
-		/// Saves all changes to the server by starting a saving coroutine
-		/// <returns>False if the save request was ignored for some reason</returns>
-		/// </summary>
-		public static bool Save()
-		{
-			return manager.Save();
+			return backend.Logout();
 		}
 
 		/// <summary>
 		/// Starts the player registration coroutine
 		/// </summary>
-		/// <param name="callback">Calls methods here after coroutine finishes</param>
-		/// <param name="email">Player email address</param>
-		/// <param name="password">Player password</param>
 		/// <returns>False if the registration request was ignored for some reason</returns>
 		public static bool Register(IRegistrationCallback callback, string email, string password)
 		{
-			return manager.Register(callback, email, password);
+			return backend.Register(callback, email, password);
+		}
+
+
+
+		///////////
+		// Waste //
+		///////////
+
+		[Obsolete]
+		public static void Load(object target)
+		{
+			throw new NotImplementedException();
+		}
+
+		[Obsolete]
+		public static bool Save()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

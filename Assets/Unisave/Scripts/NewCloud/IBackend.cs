@@ -1,4 +1,7 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unisave.Framework;
 
 namespace Unisave
 {
@@ -37,7 +40,7 @@ namespace Unisave
         // Being added:
 
         void CallAction(string action, params object[] arguments);
-        void RequestEntity(/* ? */);
+        void RequestEntity<T>(EntityQuery query, Action<IEnumerable<T>> callback) where T : Entity, new();
     }
 
     /// <summary>

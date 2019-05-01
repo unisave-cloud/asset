@@ -4,12 +4,17 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Unisave;
+using Unisave.Framework;
 
-public class GarageController : UnisaveCloudBehaviour
+public class PDE : PlayerSingleton
+{
+
+}
+
+public class GarageController : MonoBehaviour
 {
 	public InputField motorbikeNameField;
 
-	[SavedAs("motorbike-name")]
 	public string motorbikeName
 	{
 		get
@@ -21,6 +26,22 @@ public class GarageController : UnisaveCloudBehaviour
 		{
 			motorbikeNameField.text = value;
 		}
+	}
+
+	void Start()
+	{
+		UnisaveCloud.GetBackend().RequestEntity<PDE>(
+			EntityQuery.WithPlayers(new string[] { "LOCAL_ID" }),
+			pdes => {
+				foreach (PDE p in pdes)
+				{
+					Debug.Log(p);
+					Debug.Log(p.ID);
+				}
+			}
+		);
+
+		//Entity.OfPlayer(Player.Me).Get<PDE>();
 	}
 
 	public void OnLogoutButtonClick()

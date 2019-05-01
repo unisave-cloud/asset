@@ -1,4 +1,8 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Linq;
+using Unisave.Framework;
 
 namespace Unisave
 {
@@ -10,8 +14,16 @@ namespace Unisave
     {
         public bool LoggedIn { get { return false; } }
 
+        private LocalDatabase database;
+
+        public LocalBackend(LocalDatabase database)
+        {
+            this.database = database;
+        }
+
         public bool Login(Action success, Action<LoginFailure> failure, string email, string password)
         {
+            UnityEngine.Debug.Log("Login called!");
             return false;
         }
 
@@ -30,9 +42,10 @@ namespace Unisave
 
         }
 
-        public void RequestEntity(/* ? */)
+        public void RequestEntity<T>(EntityQuery query, Action<IEnumerable<T>> callback) where T : Entity, new()
         {
-
+            IEnumerable<T> entities = database.RunEntityQuery<T>(query);
+            callback.Invoke(entities);
         }
     }
 }
