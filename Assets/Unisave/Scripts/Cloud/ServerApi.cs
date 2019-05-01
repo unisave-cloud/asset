@@ -510,5 +510,29 @@ namespace Unisave
 					break;
 			}
 		}
+
+		/////////////////
+		// Call action //
+		/////////////////
+
+		// just a sketch for now
+		public IEnumerator CallAction(string accessToken, string className, string actionName, JsonArray arguments)
+		{
+			string payload = new JsonObject()
+				.Add("className", className)
+				.Add("actionName", actionName)
+				.Add("accessToken", accessToken)
+				.ToString();
+
+			// put because post does not work with json for some reason
+			// https://forum.unity.com/threads/posting-json-through-unitywebrequest.476254/
+			UnityWebRequest request = UnityWebRequest.Put(Url("call-action"), payload);
+			request.SetRequestHeader("Content-Type", "application/json");
+			request.SetRequestHeader("Accept", "application/json");
+			
+			yield return request.SendWebRequest();
+
+			// TODO: handle the result somehow
+		}
 	}
 }
