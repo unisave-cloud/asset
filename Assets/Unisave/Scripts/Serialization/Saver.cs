@@ -43,7 +43,7 @@ namespace Unisave.Serialization
 			if (type.IsArray)
 			{
 				//type.GetElementType();
-				throw new UnisaveException("Arrays cannot be saved yet. Planned feature.");
+				throw new Exception("Arrays cannot be saved yet. Planned feature.");
 			}
 
 			if (type.IsGenericType)
@@ -78,7 +78,7 @@ namespace Unisave.Serialization
 			Type keyType = type.GetGenericArguments()[0];
 
 			if (keyType != typeof(string))
-				throw new UnisaveException("Non-string key dictionaries not supported yet.");
+				throw new Exception("Non-string key dictionaries not supported yet.");
 
 			JsonObject jsonObject = new JsonObject();
 

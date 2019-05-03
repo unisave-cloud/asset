@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using LightJson;
+using System.Linq;
 
 namespace Unisave.Framework
 {
@@ -19,7 +20,20 @@ namespace Unisave.Framework
 
             entity.ID = id;
 
+            // HACK
+            ((PDE)((Entity)entity)).MotorbikeName = data["MotorbikeName"];
+
             return entity;
+        }
+
+        public static EntityContext OfPlayers(IEnumerable<Player> players)
+        {
+            return new EntityContext(players);
+        }
+
+        public static EntityContext OfPlayer(Player player)
+        {
+            return new EntityContext(new Player[] { player });
         }
     }
 }

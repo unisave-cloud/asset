@@ -14,6 +14,8 @@ namespace Unisave
 
 		private string editorKey;
 
+		private string localDatabase = "";
+
 		[MenuItem("Window/Unisave")]
 		public static void ShowWidnow()
 		{
@@ -38,9 +40,31 @@ namespace Unisave
 			prefs.gameToken = EditorGUILayout.TextField("Game token", prefs.gameToken);
 			editorKey = EditorGUILayout.TextField("Editor key", editorKey);
 
-			/*GUILayout.Label("Interesting player data", EditorStyles.boldLabel);
-			EditorGUILayout.TextField("Username Key", "");
-			GUILayout.Label("Maybe generalize to hell?");*/
+			GUILayout.Label("Debugging", EditorStyles.boldLabel);
+			EditorGUILayout.HelpBox(
+				"Use this for development of scenes that require a logged-in player " +
+				"or whenever you don't want to make network calls to the Unisave servers.",
+				MessageType.Info
+			);
+			prefs.runAgainstLocalDatabase = EditorGUILayout.Toggle("Run against local database", prefs.runAgainstLocalDatabase);
+			if (prefs.runAgainstLocalDatabase)
+			{
+				prefs.loginOnStart = EditorGUILayout.Toggle("Auto-login", prefs.loginOnStart);
+				
+				if (prefs.loginOnStart)
+				{
+					prefs.loginOnStartEmail = EditorGUILayout.TextField("With email", prefs.loginOnStartEmail);
+				}
+			}
+
+			GUILayout.Label("Local database", EditorStyles.boldLabel);
+			EditorGUILayout.LabelField(localDatabase, GUILayout.ExpandHeight(true));
+		}
+
+		void OnFocus()
+		{
+			localDatabase = PlayerPrefs.GetString("unisave-local-database:" + prefs.localDatabaseName, "{}");
+			localDatabase = LightJson.Serialization.JsonReader.Parse(localDatabase).ToString(true);
 		}
 
 		void OnLostFocus()

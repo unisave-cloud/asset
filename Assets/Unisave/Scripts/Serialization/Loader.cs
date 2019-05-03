@@ -69,7 +69,7 @@ namespace Unisave.Serialization
 			if (type.IsArray)
 			{
 				//type.GetElementType();
-				throw new UnisaveException("Arrays cannot be loaded yet. Planned feature.");
+				throw new Exception("Arrays cannot be loaded yet. Planned feature.");
 			}
 
 			if (type.IsGenericType)
@@ -112,7 +112,7 @@ namespace Unisave.Serialization
 			Type valueType = typeArguments[0];
 			
 			if (keyType != typeof(string))
-				throw new UnisaveException("Dictionaries with non-string keys are not supported.");
+				throw new Exception("Dictionaries with non-string keys are not supported.");
 
 			object dictionary = type.GetConstructor(new Type[] {}).Invoke(new object[] {});
 

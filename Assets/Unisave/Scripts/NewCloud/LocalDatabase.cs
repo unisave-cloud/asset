@@ -3,7 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using LightJson;
+using LightJson.Serialization;
 using Unisave.Framework;
+using UnityEngine;
 
 namespace Unisave
 {
@@ -28,9 +30,13 @@ namespace Unisave
 
         public List<PlayerRecord> players = new List<PlayerRecord>();
         public List<EntityRecord> entities = new List<EntityRecord>();
+        private string name;
 
-        public LocalDatabase()
+        public LocalDatabase(string name)
         {
+            this.name = name;
+
+            // DEBUG
             players.Add(new PlayerRecord {
                 id = "LOCAL_ID",
                 email = "local"
@@ -40,8 +46,94 @@ namespace Unisave
                 id = "ABC123",
                 type = "PDE",
                 playerIDs = new HashSet<string>(new string[] {"LOCAL_ID"}),
-                data = new JsonObject().Add("message", "hello world!")
+                data = new JsonObject().Add("MotorbikeName", "My cool motorbike!")
             });
+        }
+
+        public void Load()
+        {
+            players.Clear();
+            entities.Clear();
+
+            string json = PlayerPrefs.GetString("unisave-local-database:" + name, "");
+            JsonObject obj;
+            
+            try
+            {
+                obj = JsonReader.Parse(json).AsJsonObject;
+            }
+            catch (JsonParseException)
+            {
+                return;
+            }
+
+            foreach (JsonObject p in obj["players"].AsJsonArray)
+            {
+                players.Add(new PlayerRecord {
+                    id = p["id"].AsString,
+                    email = p["email"].AsString
+                });
+            }
+
+            foreach (JsonObject e in obj["entities"].AsJsonArray)
+            {
+                entities.Add(new EntityRecord {
+                    id = e["id"].AsString,
+                    type = e["type"].AsString,
+                    playerIDs = new HashSet<string>(e["playerIDs"].AsJsonArray.Select(x => x.AsString)),
+                    data = e["data"].AsJsonObject
+                });
+            }
+
+            CreateLocalPlayerIfNeeded();
+        }
+
+        public void Save()
+        {
+            JsonArray ps = new JsonArray();
+            foreach (PlayerRecord p in players)
+            {
+                ps.Add(new JsonObject()
+                    .Add("id", p.id)
+                    .Add("email", p.email)
+                );
+            }
+
+            JsonArray es = new JsonArray();
+            foreach (EntityRecord e in entities)
+            {
+                var pids = new JsonArray();
+
+                foreach (string p in e.playerIDs)
+                    pids.Add(p);
+
+                es.Add(new JsonObject()
+                    .Add("id", e.id)
+                    .Add("type", e.type)
+                    .Add("playerIDs", pids)
+                    .Add("data", e.data)
+                );
+            }
+
+            JsonObject obj = new JsonObject()
+                .Add("players", ps)
+                .Add("entities", es);
+
+            PlayerPrefs.SetString("unisave-local-database:" + name, obj.ToString());
+            PlayerPrefs.Save();
+        }
+
+        private void CreateLocalPlayerIfNeeded()
+        {
+            const string email = "local";
+
+            if (players.Where(x => x.email == email).Count() == 0)
+            {
+                players.Add(new PlayerRecord {
+                    id = "ID_LOCAL",
+                    email = email
+                });
+            }
         }
 
         public IEnumerable<T> RunEntityQuery<T>(EntityQuery query) where T : Entity, new()

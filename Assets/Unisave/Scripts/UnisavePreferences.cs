@@ -40,5 +40,12 @@ namespace Unisave
 		public string gameToken;
 
 		public string localDebugPlayerEmail = "local";
+
+		// running locally:
+
+		public bool runAgainstLocalDatabase = true;
+		public string localDatabaseName = "main"; // name of the local database
+		public bool loginOnStart = false; // only works for local, because only then it can be synchronous
+		public string loginOnStartEmail = "local";
 	}
 }

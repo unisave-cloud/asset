@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unisave.Framework;
 
 namespace Unisave
 {
@@ -10,23 +11,38 @@ namespace Unisave
 	/// </summary>
 	public static class UnisaveCloud
 	{
+		private static IBackend backendInstance;
+
 		/// <summary>
 		/// Underlying backend instance
 		/// </summary>
-		private static IBackend backend;
-
-		static UnisaveCloud()
+		public static IBackend Backend
 		{
-			var preferences = UnisavePreferences.LoadPreferences();
-
-			if (true) // if run against local backend
+			get
 			{
-				backend = new LocalBackend(new LocalDatabase());
+				if (backendInstance == null)
+					CreateDefaultBackend();
 
-				// if login on start
-				if (true)
+				return backendInstance;
+			}
+		}
+
+		private static void CreateDefaultBackend()
+		{
+			CreateBackendFromPreferences(
+				UnisavePreferences.LoadPreferences()
+			);
+		}
+
+		public static void CreateBackendFromPreferences(UnisavePreferences preferences)
+		{
+			if (preferences.runAgainstLocalDatabase)
+			{
+				backendInstance = new LocalBackend(new LocalDatabase(preferences.localDatabaseName));
+
+				if (preferences.loginOnStart)
 				{
-					backend.Login(null, "local", "password");
+					backendInstance.Login(null, preferences.loginOnStartEmail, "");
 				}
 			}
 			else
@@ -37,21 +53,24 @@ namespace Unisave
 		}
 
 		/// <summary>
-		/// Returns the underlying backend instance
-		/// </summary>
-		public static IBackend GetBackend()
-		{
-			return backend;
-		}
-
-		/// <summary>
 		/// If true, we have an authorized player session and we can make requests
 		/// </summary>
 		public static bool LoggedIn
 		{
 			get
 			{
-				return backend.LoggedIn;
+				return Backend.LoggedIn;
+			}
+		}
+
+		/// <summary>
+		/// The logged-in player
+		/// </summary>
+		public static Player Player
+		{
+			get
+			{
+				return Backend.Player;
 			}
 		}
 
@@ -61,7 +80,7 @@ namespace Unisave
 		/// <returns>False if the login request was ignored for some reason</returns>
 		public static bool Login(ILoginCallback callback, string email, string password)
 		{
-			return backend.Login(callback, email, password);
+			return Backend.Login(callback, email, password);
 		}
 
 		/// <summary>
@@ -70,7 +89,7 @@ namespace Unisave
 		/// </summary>
 		public static bool Logout()
 		{
-			return backend.Logout();
+			return Backend.Logout();
 		}
 
 		/// <summary>
@@ -79,7 +98,7 @@ namespace Unisave
 		/// <returns>False if the registration request was ignored for some reason</returns>
 		public static bool Register(IRegistrationCallback callback, string email, string password)
 		{
-			return backend.Register(callback, email, password);
+			return Backend.Register(callback, email, password);
 		}
 
 

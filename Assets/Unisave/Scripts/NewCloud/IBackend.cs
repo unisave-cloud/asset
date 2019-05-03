@@ -17,6 +17,11 @@ namespace Unisave
 		bool LoggedIn { get; }
 
         /// <summary>
+        /// The logged-in player
+        /// </summary>
+        Player Player { get; }
+
+        /// <summary>
 		/// Starts the login coroutine
 		/// </summary>
 		/// <returns>False if the login request was ignored for some reason</returns>
