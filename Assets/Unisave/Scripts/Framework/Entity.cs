@@ -21,10 +21,17 @@ namespace Unisave.Framework
             entity.ID = id;
 
             // HACK
-            ((PDE)((Entity)entity)).MotorbikeName = data["MotorbikeName"];
+            //((PDE)((Entity)entity)).MotorbikeName = data["MotorbikeName"];
 
             return entity;
         }
+
+        public void Save()
+        {
+            UnityEngine.Debug.LogError("Entity.Save is not implemented");
+        }
+
+        #region "Querying"
 
         public static EntityContext OfPlayers(IEnumerable<Player> players)
         {
@@ -35,5 +42,7 @@ namespace Unisave.Framework
         {
             return new EntityContext(new Player[] { player });
         }
+
+        #endregion
     }
 }

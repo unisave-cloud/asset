@@ -7,60 +7,58 @@ using UnityEngine.UI;
 using Unisave;
 using Unisave.Framework;
 
+// TODO: move to a separate file
 public class PDE : PlayerSingleton
 {
 	public string MotorbikeName { get; set; }
 }
 
-public class GC // : Controller
-{
-
-}
-
 namespace Unisave.Examples.Cloud.Motorbike
 {
+	// TODO: move to a separate file
+	public class GarageController : Controller
+	{
+		[Action]
+		public void ChangeMotorbikeName(string newName)
+		{
+			var pde = Entity.OfPlayer(UnisaveCloud.Player).Get<PDE>();
+			pde.MotorbikeName = newName;
+			pde.Save();
+		}
+	}
+
 	public class GarageScript : MonoBehaviour
 	{
 		public InputField motorbikeNameField;
 
-		public string motorbikeName
-		{
-			get
-			{
-				return motorbikeNameField.text;
-			}
-
-			set
-			{
-				motorbikeNameField.text = value;
-			}
-		}
-
 		void Awake()
 		{
-			motorbikeNameField.text = "Loading...";
-
+			// Load motorbike name
 			Entity.OfPlayer(UnisaveCloud.Player).Request<PDE>(p => {
 				motorbikeNameField.text = p.MotorbikeName;
 			});
 
-			// send all singletons with login
+			// TODO: send all singletons with login
 			
 			// TESTING
-			Type[] types = System.Reflection.Assembly.GetExecutingAssembly().GetTypes();
+			/*Type[] types = System.Reflection.Assembly.GetExecutingAssembly().GetTypes();
 			foreach (Type type in types)
 			{
 				if (typeof(PlayerSingleton).IsAssignableFrom(type))
 					Debug.Log(type.ToString());
-			}
+			}*/
 		}
 
 		public void OnLogoutButtonClick()
 		{
-			// call action -> save
+			// Save motorbike name
+			Controller.OfType<GarageController>().ChangeMotorbikeName(motorbikeNameField.text);
 
 			UnisaveCloud.Logout();
-			SceneManager.LoadSceneAsync("Unisave/Examples/Cloud/Cloud motorbike name/LoginScene", LoadSceneMode.Single);
+			SceneManager.LoadSceneAsync(
+				"Unisave/Examples/Cloud/Cloud motorbike name/LoginScene",
+				LoadSceneMode.Single
+			);
 		}
 	}
 }

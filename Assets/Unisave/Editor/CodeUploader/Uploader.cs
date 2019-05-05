@@ -36,6 +36,9 @@ namespace Unisave.CodeUploader
 
         public void Run()
         {
+            // This is work in progress and it does not quite work yet...
+            
+            /*
             TraverseFolder("Assets", false);
 
             // do the actual upload in the background
@@ -45,6 +48,7 @@ namespace Unisave.CodeUploader
                 foreach (string path in FilesToUpload)
                     UploadScript(path, File.ReadAllText(path));
             }).Start();
+            */
         }
 
         private void TraverseFolder(string path, bool isCloud)
