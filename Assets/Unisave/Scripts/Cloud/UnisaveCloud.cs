@@ -32,6 +32,8 @@ namespace Unisave
 			CreateBackendFromPreferences(
 				UnisavePreferences.LoadPreferences()
 			);
+
+			Debug.Log("Default UnisaveCloud built");
 		}
 
 		public static void CreateBackendFromPreferences(UnisavePreferences preferences)
@@ -100,6 +102,14 @@ namespace Unisave
 		{
 			return Backend.Register(callback, email, password);
 		}
+
+		/// <summary>
+        /// Get controller instance to execute an action on it
+        /// </summary>
+        public static T Controller<T>() where T : Controller, new()
+        {
+            return Unisave.Framework.Controller.CreateInstance<T>(Player);
+        }
 
 
 

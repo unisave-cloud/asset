@@ -8,9 +8,22 @@ namespace Unisave.Framework
     /// </summary>
     public class Controller
     {
-        public static T OfType<T>() where T : Controller, new()
+        /// <summary>
+        /// Currently logged-in player.
+        /// Always has a value when executing an action.
+        /// </summary>
+        protected Player CurrentPlayer { get; private set; }
+
+        /// <summary>
+        /// Creates new instance of a controller
+        /// </summary>
+        public static T CreateInstance<T>(Player currentPlayer) where T : Controller, new()
         {
-            return new T();
+            T controller = new T();
+
+            controller.CurrentPlayer = currentPlayer;
+
+            return controller;
         }
 
         // return true to exit from the called action

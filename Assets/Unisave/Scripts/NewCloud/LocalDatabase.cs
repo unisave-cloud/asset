@@ -44,7 +44,7 @@ namespace Unisave
 
             entities.Add(new EntityRecord {
                 id = "ABC123",
-                type = "PDE",
+                type = "PlayerData",
                 playerIDs = new HashSet<string>(new string[] {"LOCAL_ID"}),
                 data = new JsonObject().Add("MotorbikeName", "My cool motorbike!")
             });

@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using LightJson;
 using System.Linq;
 
@@ -20,8 +21,22 @@ namespace Unisave.Framework
 
             entity.ID = id;
 
-            // HACK
-            //((PDE)((Entity)entity)).MotorbikeName = data["MotorbikeName"];
+            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public;
+            foreach (PropertyInfo pi in typeof(T).GetProperties(flags))
+            {
+                // both accessors needed
+                if (!pi.CanRead || !pi.CanWrite)
+                    continue;
+
+                // both accessors non static
+                if (pi.GetSetMethod().IsStatic || pi.GetGetMethod().IsStatic)
+                    continue;
+
+                // load the value
+                pi.GetSetMethod().Invoke(entity, new object[] {
+                    Unisave.Serialization.Loader.Load(data[pi.Name], pi.PropertyType)
+                });
+            }
 
             return entity;
         }
@@ -29,20 +44,9 @@ namespace Unisave.Framework
         public void Save()
         {
             UnityEngine.Debug.LogError("Entity.Save is not implemented");
+
+            // create if no ID
+            // carried IFrameworkBase.saveEntity(this)
         }
-
-        #region "Querying"
-
-        public static EntityContext OfPlayers(IEnumerable<Player> players)
-        {
-            return new EntityContext(players);
-        }
-
-        public static EntityContext OfPlayer(Player player)
-        {
-            return new EntityContext(new Player[] { player });
-        }
-
-        #endregion
     }
 }

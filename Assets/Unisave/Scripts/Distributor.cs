@@ -228,7 +228,7 @@ namespace Unisave
 				return false;
 
 			MethodInfo setter = propertyInfo.GetSetMethod();
-			MethodInfo getter = propertyInfo.GetSetMethod();
+			MethodInfo getter = propertyInfo.GetGetMethod();
 
 			// both accessors non static
 			if (setter.IsStatic || getter.IsStatic)

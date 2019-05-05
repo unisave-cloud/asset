@@ -6,11 +6,12 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Unisave/Examples/Cloud/Cloud motorbike name/LoginScene.unity
+    path: Assets/Unisave/Examples/Cloud/Motorbike/LoginScene.unity
     guid: 36fc34be674954d5eb0279e4ed416a17
   - enabled: 1
     path: Assets/Unisave/Examples/Local/Leaderboard/Leaderboard.unity
     guid: 11bbba2dc7c754175b78f7c1c95dcaf7
   - enabled: 1
-    path: Assets/Unisave/Examples/Cloud/Cloud motorbike name/GarageScene.unity
+    path: Assets/Unisave/Examples/Cloud/Motorbike/GarageScene.unity
     guid: 599b65a1ace70427a8459bbd7460139c
+  m_configObjects: {}
