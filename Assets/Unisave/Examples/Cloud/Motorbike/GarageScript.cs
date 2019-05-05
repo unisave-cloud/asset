@@ -14,6 +14,8 @@ namespace Unisave.Examples.Cloud.Motorbike
 
 		void Awake()
 		{
+			ControllerAction.On<GarageController>().ChangeMotorbikeName("Changed name!");
+
 			// Load motorbike name
 			RequestEntity.OfPlayer(UnisaveCloud.Player).Request<PlayerData>(p => {
 				motorbikeNameField.text = p.MotorbikeName;

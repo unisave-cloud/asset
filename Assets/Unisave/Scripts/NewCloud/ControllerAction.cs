@@ -10,7 +10,7 @@ namespace Unisave
     {
         public static T On<T>() where T : Controller, new()
         {
-            return Controller.CreateInstance<T>(UnisaveCloud.Player);
+            return Controller.CreateRemoteControllerInstance<T>(UnisaveCloud.Backend.CallAction);
         }
     }
 }

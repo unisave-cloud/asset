@@ -2,6 +2,7 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using Unisave.Framework;
 
 namespace Unisave
@@ -18,9 +19,12 @@ namespace Unisave
 
         private LocalDatabase database;
 
-        public LocalBackend(LocalDatabase database)
+        private IFrameworkBase localFrameworkBase;
+
+        public LocalBackend(LocalDatabase database, IFrameworkBase localFrameworkBase)
         {
             this.database = database;
+            this.localFrameworkBase = localFrameworkBase;
         }
 
         public bool Login(Action success, Action<LoginFailure> failure, string email, string password)
@@ -81,9 +85,24 @@ namespace Unisave
             return true;
         }
 
-        public void CallAction(string action, params object[] arguments)
+        public void CallAction(Type controller, string action, params object[] arguments)
         {
+            MethodInfo mi = controller.GetMethod(action);
 
+            if (mi == null)
+            {
+                throw new ArgumentException(
+                    "Provided controller " + controller + " lacks method: " + action,
+                    nameof(controller)
+                );
+            }
+
+            Controller ctrl = Controller.CreateInstance(controller, Player);
+            
+            // call the action within an appropriate framework base
+            StaticBase.OverrideBase(localFrameworkBase, () => {
+                mi.Invoke(ctrl, arguments);
+            });
         }
 
         public void RequestEntity<T>(EntityQuery query, Action<IEnumerable<T>> callback) where T : Entity, new()

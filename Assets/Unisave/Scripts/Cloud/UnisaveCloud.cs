@@ -29,6 +29,8 @@ namespace Unisave
 
 		private static void CreateDefaultBackend()
 		{
+			StaticBase.Base = new PunishingFrameworkBase();
+
 			CreateBackendFromPreferences(
 				UnisavePreferences.LoadPreferences()
 			);
@@ -40,7 +42,11 @@ namespace Unisave
 		{
 			if (preferences.runAgainstLocalDatabase)
 			{
-				backendInstance = new LocalBackend(new LocalDatabase(preferences.localDatabaseName));
+				var database = new LocalDatabase(preferences.localDatabaseName);
+				backendInstance = new LocalBackend(
+					database,
+					new LocalFrameworkBase(database)
+				);
 
 				if (preferences.loginOnStart)
 				{

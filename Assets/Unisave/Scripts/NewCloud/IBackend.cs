@@ -44,7 +44,7 @@ namespace Unisave
 
         // Being added:
 
-        void CallAction(string action, params object[] arguments);
+        void CallAction(Type controller, string action, params object[] arguments);
         void RequestEntity<T>(EntityQuery query, Action<IEnumerable<T>> callback) where T : Entity, new();
     }
 
