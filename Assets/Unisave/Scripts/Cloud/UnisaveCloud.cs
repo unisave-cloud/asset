@@ -29,13 +29,9 @@ namespace Unisave
 
 		private static void CreateDefaultBackend()
 		{
-			StaticBase.Base = new PunishingFrameworkBase();
-
 			CreateBackendFromPreferences(
 				UnisavePreferences.LoadPreferences()
 			);
-
-			Debug.Log("Default UnisaveCloud built");
 		}
 
 		public static void CreateBackendFromPreferences(UnisavePreferences preferences)
@@ -43,20 +39,19 @@ namespace Unisave
 			if (preferences.runAgainstLocalDatabase)
 			{
 				var database = new LocalDatabase(preferences.localDatabaseName);
+				database.Load();
+
 				backendInstance = new LocalBackend(
 					database,
 					new LocalFrameworkBase(database)
 				);
 
 				if (preferences.loginOnStart)
-				{
 					backendInstance.Login(null, preferences.loginOnStartEmail, "");
-				}
 			}
 			else
 			{
-				throw new NotImplementedException();
-				// backend = new CloudBackend(...);
+				backendInstance = new CloudBackend();
 			}
 		}
 

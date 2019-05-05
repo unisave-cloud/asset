@@ -43,9 +43,11 @@ namespace Unisave.Framework
                 playerIDs = new HashSet<string>(players.Select(x => x.ID));
             }
 
-            public IEnumerable<T> GetAll<T>() where T : Entity, new()
+            public IList<T> GetAll<T>() where T : Entity, new()
             {
-                return StaticBase.Base.GetEntities<T>(EntityQuery.WithPlayers(playerIDs, false));
+                return Entity.CreateInstance<T>(StaticBase.Base).Query<T>(
+                    EntityQuery.WithPlayers(playerIDs, false)
+                );
             }
 
             public T Get<T>() where T : Entity, new()

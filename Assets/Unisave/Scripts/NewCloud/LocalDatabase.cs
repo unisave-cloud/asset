@@ -35,19 +35,12 @@ namespace Unisave
         public LocalDatabase(string name)
         {
             this.name = name;
+        }
 
-            // DEBUG
-            players.Add(new PlayerRecord {
-                id = "LOCAL_ID",
-                email = "local"
-            });
-
-            entities.Add(new EntityRecord {
-                id = "ABC123",
-                type = "PlayerData",
-                playerIDs = new HashSet<string>(new string[] {"LOCAL_ID"}),
-                data = new JsonObject().Add("MotorbikeName", "My cool motorbike!")
-            });
+        public string GenerateNewEntityId()
+        {
+            var r = new System.Random();
+            return "ENTITY_" + entities.Count + "_" + r.Next().ToString();
         }
 
         public void Load()
@@ -136,7 +129,7 @@ namespace Unisave
             }
         }
 
-        public IEnumerable<T> RunEntityQuery<T>(EntityQuery query) where T : Entity, new()
+        public IEnumerable<EntityRecord> RunEntityQuery<T>(EntityQuery query) where T : Entity, new()
         {
             var entitiesOfType = from e in entities where e.type == typeof(T).Name select e;
             IEnumerable<EntityRecord> records = null;
@@ -153,7 +146,7 @@ namespace Unisave
             if (records == null)
                 throw new ArgumentException("Provided query type is not supported.");
 
-            return from r in records select Entity.FromRawData<T>(r.id, r.playerIDs, r.data);
+            return records;
         }
     }
 }

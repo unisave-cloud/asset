@@ -8,38 +8,19 @@ namespace Unisave.Framework
     /// </summary>
     public static class StaticBase
     {
-        private static IFrameworkBase baseInstance;
-
-        public static IFrameworkBase Base
-        {
-            get
-            {
-                if (baseInstance == null)
-                    throw new UnisaveException("Requesting framework static base, but no instance was set.");
-
-                return baseInstance;
-            }
-
-            set
-            {
-                if (value == null)
-                    throw new ArgumentNullException();
-
-                baseInstance = value;
-            }
-        }
+        public static IFrameworkBase Base { get; set; } = new PunishingFrameworkBase();
 
         /// <summary>
         /// Override the base value during execution of some method
         /// </summary>
         public static void OverrideBase(IFrameworkBase newBase, Action action)
         {
-            IFrameworkBase oldBase = baseInstance;
+            IFrameworkBase oldBase = Base;
 
-            baseInstance = newBase;
+            Base = newBase;
             action.Invoke();
 
-            baseInstance = oldBase;
+            Base = oldBase;
         }
     }
 }

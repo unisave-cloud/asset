@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using Unisave.Framework;
+using Unisave.Framework.Endpoints;
 
 namespace Unisave
 {
@@ -32,7 +33,7 @@ namespace Unisave
             if (LoggedIn)
                 return false;
 
-            var player = database.players.Where(x => x.email == email).First();
+            var player = database.players.Where(x => x.email == email).FirstOrDefault();
 
             if (player == null)
             {
@@ -85,29 +86,23 @@ namespace Unisave
             return true;
         }
 
-        public void CallAction(Type controller, string action, params object[] arguments)
+        public void CallAction(Type controller, string action, object[] arguments)
         {
-            MethodInfo mi = controller.GetMethod(action);
-
-            if (mi == null)
-            {
-                throw new ArgumentException(
-                    "Provided controller " + controller + " lacks method: " + action,
-                    nameof(controller)
-                );
-            }
-
-            Controller ctrl = Controller.CreateInstance(controller, Player);
-            
-            // call the action within an appropriate framework base
             StaticBase.OverrideBase(localFrameworkBase, () => {
-                mi.Invoke(ctrl, arguments);
+                var endpoint = new CallActionEndpoint(localFrameworkBase);
+                endpoint.CallAction(controller, action, Player, arguments);
             });
         }
 
-        public void RequestEntity<T>(EntityQuery query, Action<IEnumerable<T>> callback) where T : Entity, new()
+        public void RequestEntity<T>(EntityQuery query, Action<IList<T>> callback) where T : Entity, new()
         {
-            IEnumerable<T> entities = database.RunEntityQuery<T>(query);
+            IList<T> entities = null;
+
+            StaticBase.OverrideBase(localFrameworkBase, () => {
+                var endpoint = new RequestEntityEndpoint(localFrameworkBase);
+                entities = endpoint.RequestEntity<T>(query);
+            });
+
             callback.Invoke(entities);
         }
     }

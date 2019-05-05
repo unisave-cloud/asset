@@ -13,40 +13,91 @@ namespace Unisave.Framework
     /// </summary>
     public class Entity
     {
+        protected IFrameworkBase ParentFrameworkBase { get; private set; } = StaticBase.Base;
+
         public string ID { get; private set; }
 
-        public static T FromRawData<T>(string id, HashSet<string> playerIDs, JsonObject data) where T : Entity, new()
+        private ISet<string> playerIDs = new HashSet<string>();
+
+        public string EntityType => EntityUtils.GetEntityType(this.GetType());
+
+        public virtual bool CanHaveEmptyPlayers => false;
+
+        public static T CreateInstance<T>(IFrameworkBase parentBase) where T : Entity, new()
         {
-            T entity = new T();
+            T instance = new T();
+            instance.ParentFrameworkBase = parentBase;
+            return instance;
+        }
+
+        public static T CreateInstance<T>(
+            IFrameworkBase parentBase, string id, IEnumerable<string> playerIDs, JsonObject data
+        ) where T : Entity, new()
+        {
+            T entity = CreateInstance<T>(parentBase);
 
             entity.ID = id;
-
-            BindingFlags flags = BindingFlags.Instance | BindingFlags.Public;
-            foreach (PropertyInfo pi in typeof(T).GetProperties(flags))
-            {
-                // both accessors needed
-                if (!pi.CanRead || !pi.CanWrite)
-                    continue;
-
-                // both accessors non static
-                if (pi.GetSetMethod().IsStatic || pi.GetGetMethod().IsStatic)
-                    continue;
-
-                // load the value
-                pi.GetSetMethod().Invoke(entity, new object[] {
-                    Unisave.Serialization.Loader.Load(data[pi.Name], pi.PropertyType)
-                });
-            }
+            entity.playerIDs = new HashSet<string>(playerIDs);
+            
+            EntityUtils.DistributeData(entity, data);
 
             return entity;
         }
 
-        public void Save()
+        public virtual IList<T> Query<T>(EntityQuery query) where T : Entity, new()
         {
-            UnityEngine.Debug.LogError("Entity.Save is not implemented");
+            return ParentFrameworkBase.QueryEntities<T>(query);
+        }
 
-            // create if no ID
-            // carried IFrameworkBase.saveEntity(this)
+        public virtual void Create()
+        {
+            if (ID != null)
+                throw new UnisaveException("Cannot create an entity, when it already exists.");
+
+            ID = ParentFrameworkBase.CreateEntity(
+                EntityType,
+                playerIDs,
+                EntityUtils.CollectData(this)
+            );
+        }
+
+        public virtual void Save()
+        {
+            if (ID == null)
+            {
+                Create();
+                return;
+            }
+
+            if (playerIDs.Count == 0 && !CanHaveEmptyPlayers)
+            {
+                Delete();
+                return;
+            }
+            
+            ParentFrameworkBase.SaveEntity(
+                ID,
+                playerIDs,
+                EntityUtils.CollectData(this)
+            );
+        }
+
+        public virtual void Delete()
+        {
+            if (ID == null)
+                throw new UnisaveException("Cannot delete entity that does not exist yet.");
+
+            ParentFrameworkBase.DeleteEntity(ID);
+        }
+
+        public virtual void AddPlayer(Player player)
+        {
+            playerIDs.Add(player.ID);
+        }
+
+        public virtual void RemovePlayer(Player player)
+        {
+            playerIDs.Remove(player.ID);
         }
     }
 }

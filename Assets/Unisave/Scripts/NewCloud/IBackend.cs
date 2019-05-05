@@ -39,13 +39,15 @@ namespace Unisave
 		/// <returns>False if the registration request was ignored for some reason</returns>
         bool Register(Action success, Action<RegistrationFailure> failure, string email, string password);
 
+        /// <summary>
+        /// Calls an action on the server
+        /// </summary>
+        void CallAction(Type controller, string action, object[] arguments);
 
-
-
-        // Being added:
-
-        void CallAction(Type controller, string action, params object[] arguments);
-        void RequestEntity<T>(EntityQuery query, Action<IEnumerable<T>> callback) where T : Entity, new();
+        /// <summary>
+        /// Requests entitites from the server via a query
+        /// </summary>
+        void RequestEntity<T>(EntityQuery query, Action<IList<T>> callback) where T : Entity, new();
     }
 
     /// <summary>

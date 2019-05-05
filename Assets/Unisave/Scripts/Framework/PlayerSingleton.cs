@@ -7,6 +7,11 @@ namespace Unisave.Framework
     /// </summary>
     public class PlayerSingleton : PlayerEntity
     {
-        
+        public override void Create()
+        {
+            // if already exists, throw an exception
+
+            base.Create();
+        }
     }
 }
