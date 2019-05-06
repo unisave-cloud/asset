@@ -1,8 +1,8 @@
 # copy the directory and go into the copy
 cd ../
-rm -rf ./UnisaveForExport
-cp -r ./Unisave ./UnisaveForExport
-cd ./UnisaveForExport
+rm -rf ./AssetForExport
+cp -r ./Asset ./AssetForExport
+cd ./AssetForExport
 
 # remove unnecessary files
 rm ./Assets/Unisave/Resources/UnisavePreferencesFile.asset*

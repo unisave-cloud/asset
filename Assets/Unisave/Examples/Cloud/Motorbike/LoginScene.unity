@@ -353,7 +353,7 @@ PrefabInstance:
     - target: {fileID: 224136568850960018, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 224136568850960018, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
@@ -363,7 +363,7 @@ PrefabInstance:
     - target: {fileID: 224136568850960018, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 224136568850960018, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
@@ -383,7 +383,7 @@ PrefabInstance:
     - target: {fileID: 224136568850960018, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -113.35
       objectReference: {fileID: 0}
     - target: {fileID: 224991805785590658, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
@@ -393,7 +393,7 @@ PrefabInstance:
     - target: {fileID: 224991805785590658, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
       propertyPath: m_AnchorMin.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 224991805785590658, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
@@ -403,7 +403,7 @@ PrefabInstance:
     - target: {fileID: 224991805785590658, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
       propertyPath: m_AnchorMax.y
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 224991805785590658, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
@@ -418,7 +418,7 @@ PrefabInstance:
     - target: {fileID: 224991805785590658, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 0
+      value: -214.7
       objectReference: {fileID: 0}
     - target: {fileID: 224991805785590658, guid: 687054c06bd074392ae4bc17c595071b,
         type: 3}

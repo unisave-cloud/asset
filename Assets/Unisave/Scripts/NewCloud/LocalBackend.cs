@@ -31,7 +31,7 @@ namespace Unisave
         public bool Login(Action success, Action<LoginFailure> failure, string email, string password)
         {
             if (LoggedIn)
-                return false;
+                Logout();
 
             var player = database.players.Where(x => x.email == email).FirstOrDefault();
 
