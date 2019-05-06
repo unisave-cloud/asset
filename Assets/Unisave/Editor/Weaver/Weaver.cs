@@ -151,8 +151,6 @@ namespace Unisave.Weaver
             {
                 if (md.CustomAttributes.Any(x => x.AttributeType.FullName == "Unisave.ActionAttribute"))
                 {
-                    Debug.Log(md.FullName);
-
                     ILProcessor proc = md.Body.GetILProcessor();
                     Instruction first = proc.Body.Instructions.First();
                     

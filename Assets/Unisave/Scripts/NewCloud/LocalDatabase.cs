@@ -49,33 +49,32 @@ namespace Unisave
             entities.Clear();
 
             string json = PlayerPrefs.GetString("unisave-local-database:" + name, "");
-            JsonObject obj;
             
             try
             {
-                obj = JsonReader.Parse(json).AsJsonObject;
+                JsonObject obj = JsonReader.Parse(json).AsJsonObject;
+
+                foreach (JsonObject p in obj["players"].AsJsonArray)
+                {
+                    players.Add(new PlayerRecord {
+                        id = p["id"].AsString,
+                        email = p["email"].AsString
+                    });
+                }
+
+                foreach (JsonObject e in obj["entities"].AsJsonArray)
+                {
+                    entities.Add(new EntityRecord {
+                        id = e["id"].AsString,
+                        type = e["type"].AsString,
+                        playerIDs = new HashSet<string>(e["playerIDs"].AsJsonArray.Select(x => x.AsString)),
+                        data = e["data"].AsJsonObject
+                    });
+                }
             }
             catch (JsonParseException)
             {
-                return;
-            }
-
-            foreach (JsonObject p in obj["players"].AsJsonArray)
-            {
-                players.Add(new PlayerRecord {
-                    id = p["id"].AsString,
-                    email = p["email"].AsString
-                });
-            }
-
-            foreach (JsonObject e in obj["entities"].AsJsonArray)
-            {
-                entities.Add(new EntityRecord {
-                    id = e["id"].AsString,
-                    type = e["type"].AsString,
-                    playerIDs = new HashSet<string>(e["playerIDs"].AsJsonArray.Select(x => x.AsString)),
-                    data = e["data"].AsJsonObject
-                });
+                // nothing
             }
 
             CreateLocalPlayerIfNeeded();
@@ -129,18 +128,18 @@ namespace Unisave
             }
         }
 
-        public IEnumerable<EntityRecord> RunEntityQuery<T>(EntityQuery query) where T : Entity, new()
+        public IEnumerable<EntityRecord> RunEntityQuery(string entityType, EntityQuery query)
         {
-            var entitiesOfType = from e in entities where e.type == typeof(T).Name select e;
+            var entitiesOfType = from e in entities where e.type == entityType select e;
             IEnumerable<EntityRecord> records = null;
 
             if (query.Type == EntityQuery.QueryType.ByID)
                 records = from e in entitiesOfType where e.id == query.EntityID select e;
 
-            if (query.Type == EntityQuery.QueryType.ByPlayersAtLeast)
+            if (query.Type == EntityQuery.QueryType.ByPlayers && !query.MatchPlayersExactly)
                 records = from e in entitiesOfType where query.PlayerIDs.IsSubsetOf(e.playerIDs) select e;
 
-            if (query.Type == EntityQuery.QueryType.ByPlayersExactly)
+            if (query.Type == EntityQuery.QueryType.ByPlayers && query.MatchPlayersExactly)
                 records = from e in entitiesOfType where query.PlayerIDs.SetEquals(e.playerIDs) select e;
 
             if (records == null)

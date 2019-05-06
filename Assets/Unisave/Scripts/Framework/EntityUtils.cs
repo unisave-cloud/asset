@@ -18,8 +18,7 @@ namespace Unisave.Framework
 
         public static string GetEntityType(Type entityType)
         {
-            if (!typeof(Entity).IsAssignableFrom(entityType))
-                throw new ArgumentException("Provided type does not inherit from Entity");
+            VerifyEntityType(entityType);
 
             return entityType.Name;
         }
@@ -69,6 +68,30 @@ namespace Unisave.Framework
 
                 yield return pi;
             }
+        }
+
+        public static void VerifyEntityType(Type entityType)
+        {
+            if (!typeof(Entity).IsAssignableFrom(entityType))
+                throw new ArgumentException(
+                    "Provided type " + entityType + " does not inherit from Entity.",
+                    nameof(entityType)
+                );
+        }
+
+        public static Entity ConstructEntity(Type entityType)
+        {
+            VerifyEntityType(entityType);
+
+            ConstructorInfo ci = entityType.GetConstructor(new Type[] {});
+            
+            if (ci == null)
+                throw new ArgumentException(
+                    "Provided type " + entityType + " does not have empty constructor.",
+                    nameof(entityType)
+                );
+            
+            return (Entity) ci.Invoke(new object[] {});
         }
     }
 }

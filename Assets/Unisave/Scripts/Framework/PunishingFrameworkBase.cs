@@ -8,7 +8,7 @@ namespace Unisave.Framework
 {
     public class PunishingFrameworkBase : IFrameworkBase
     {
-        public IList<T> QueryEntities<T>(EntityQuery query) where T : Entity, new()
+        public IList<Entity> QueryEntities(Type entityType, EntityQuery query)
         {
             throw new InvalidOperationException(
                 "You cannot access server code from the client.\n" +

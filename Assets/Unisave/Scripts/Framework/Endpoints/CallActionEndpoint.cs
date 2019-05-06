@@ -30,19 +30,19 @@ namespace Unisave.Framework.Endpoints
         /// <summary>
         /// Call action when we know the controller type and we have all arguments deserialized
         /// </summary>
-        public void CallAction(Type controller, string action, Player caller, object[] arguments)
+        public void CallAction(Type controllerType, string action, Player caller, object[] arguments)
         {
-            MethodInfo mi = controller.GetMethod(action);
+            MethodInfo mi = controllerType.GetMethod(action);
 
             if (mi == null)
             {
                 throw new ArgumentException(
-                    "Provided controller " + controller + " lacks method: " + action,
-                    nameof(controller)
+                    "Provided controller " + controllerType + " lacks method: " + action,
+                    nameof(controllerType)
                 );
             }
 
-            Controller ctrl = Controller.CreateInstance(controller, caller);
+            Controller ctrl = Controller.CreateInstance(controllerType, caller);
 
             mi.Invoke(ctrl, arguments);
         }

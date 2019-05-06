@@ -8,6 +8,6 @@ namespace Unisave.Examples.Cloud.Motorbike
     /// </summary>
     public class PlayerData : PlayerSingleton
     {
-        public string MotorbikeName { get; set; }
+        public string MotorbikeName { get; set; } = "Default bike name";
     }
 }

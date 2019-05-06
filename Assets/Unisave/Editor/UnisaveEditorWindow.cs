@@ -58,6 +58,12 @@ namespace Unisave
 			}
 
 			GUILayout.Label("Local database", EditorStyles.boldLabel);
+			if (GUILayout.Button("Clear database"))
+			{
+				PlayerPrefs.DeleteKey("unisave-local-database:" + prefs.localDatabaseName);
+				PlayerPrefs.Save();
+				localDatabase = "{}";
+			}
 			EditorGUILayout.LabelField(localDatabase, GUILayout.ExpandHeight(true));
 		}
 

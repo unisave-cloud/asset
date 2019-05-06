@@ -27,6 +27,8 @@ namespace Unisave
 			}
 		}
 
+		public static Action<UnisavePreferences> OverridePreferences;
+
 		private static void CreateDefaultBackend()
 		{
 			CreateBackendFromPreferences(
@@ -36,6 +38,9 @@ namespace Unisave
 
 		public static void CreateBackendFromPreferences(UnisavePreferences preferences)
 		{
+			if (OverridePreferences != null)
+				OverridePreferences.Invoke(preferences);
+
 			if (preferences.runAgainstLocalDatabase)
 			{
 				var database = new LocalDatabase(preferences.localDatabaseName);

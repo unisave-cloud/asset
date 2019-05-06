@@ -21,9 +21,9 @@ namespace Unisave.Framework
         /////////////////////
 
         /// <summary>
-        /// Get entities of type T satisfying the provided query
+        /// Get entities of a given type satisfying the provided query
         /// </summary>
-        IList<T> QueryEntities<T>(EntityQuery query) where T : Entity, new();
+        IList<Entity> QueryEntities(Type entityType, EntityQuery query);
 
         /// <summary>
         /// Create new entity instance and return it's ID

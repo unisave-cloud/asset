@@ -12,8 +12,7 @@ namespace Unisave.Framework
         public enum QueryType
         {
             ByID,
-            ByPlayersAtLeast,
-            ByPlayersExactly
+            ByPlayers
         }
 
         public QueryType Type { get; private set; }
@@ -21,6 +20,8 @@ namespace Unisave.Framework
         public string EntityID { get; private set; }
 
         public HashSet<string> PlayerIDs { get; private set; }
+
+        public bool MatchPlayersExactly { get; set; } = false;
 
         public static EntityQuery WithId(string entityID)
         {
@@ -33,8 +34,9 @@ namespace Unisave.Framework
         public static EntityQuery WithPlayers(IEnumerable<string> playerIDs, bool exactly = false)
         {
             return new EntityQuery {
-                Type = exactly ? QueryType.ByPlayersExactly : QueryType.ByPlayersAtLeast,
-                PlayerIDs = new HashSet<string>(playerIDs)
+                Type = QueryType.ByPlayers,
+                PlayerIDs = new HashSet<string>(playerIDs),
+                MatchPlayersExactly = exactly
             };
         }
     }

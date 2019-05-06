@@ -65,7 +65,7 @@ namespace Unisave
 
         public bool Register(Action success, Action<RegistrationFailure> failure, string email, string password)
         {
-            var player = database.players.Where(x => x.email == email).First();
+            var player = database.players.Where(x => x.email == email).FirstOrDefault();
 
             if (player != null)
             {
@@ -83,11 +83,21 @@ namespace Unisave
                 email = email
             });
 
+            database.Save();
+
+            if (success != null)
+                success.Invoke();
+
             return true;
         }
 
         public void CallAction(Type controller, string action, object[] arguments)
         {
+            if (!LoggedIn)
+                throw new InvalidOperationException(
+                    "Cannot call controller actions without being logged in."
+                );
+
             StaticBase.OverrideBase(localFrameworkBase, () => {
                 var endpoint = new CallActionEndpoint(localFrameworkBase);
                 endpoint.CallAction(controller, action, Player, arguments);
@@ -96,6 +106,11 @@ namespace Unisave
 
         public void RequestEntity<T>(EntityQuery query, Action<IList<T>> callback) where T : Entity, new()
         {
+            if (!LoggedIn)
+                throw new InvalidOperationException(
+                    "Cannot request entities without being logged in."
+                );
+
             IList<T> entities = null;
 
             StaticBase.OverrideBase(localFrameworkBase, () => {

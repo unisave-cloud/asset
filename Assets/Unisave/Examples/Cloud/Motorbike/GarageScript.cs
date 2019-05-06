@@ -16,7 +16,7 @@ namespace Unisave.Examples.Cloud.Motorbike
 		{
 			// Load motorbike name
 			RequestEntity.OfPlayer(UnisaveCloud.Player).Request<PlayerData>(p => {
-				motorbikeNameField.text = p.MotorbikeName;
+				motorbikeNameField.text = p == null ? "null" : p.MotorbikeName;
 			});
 		}
 
@@ -27,7 +27,7 @@ namespace Unisave.Examples.Cloud.Motorbike
 
 			UnisaveCloud.Logout();
 			SceneManager.LoadSceneAsync(
-				"Unisave/Examples/Cloud/Cloud motorbike name/LoginScene",
+				"Unisave/Examples/Cloud/Motorbike/LoginScene",
 				LoadSceneMode.Single
 			);
 		}

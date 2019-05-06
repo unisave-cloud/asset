@@ -27,16 +27,16 @@ namespace Unisave.Examples.Cloud
 
             overriden = true;
 
-            var preferences = ScriptableObject.CreateInstance<UnisavePreferences>();
-
-            preferences.runAgainstLocalDatabase = true;
-
-            UnisaveCloud.CreateBackendFromPreferences(preferences);
+            UnisaveCloud.OverridePreferences = (UnisavePreferences preferences) => {
+                preferences.runAgainstLocalDatabase = true;
+            };
         }
 
-        void Awake()
+        static IsolateExample()
         {
             Override();
+
+            Debug.Log("Example codebase has been isolated.");
         }
     }
 }

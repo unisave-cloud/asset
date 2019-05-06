@@ -16,10 +16,10 @@ namespace Unisave
             this.database = database;
         }
 
-        public IList<T> QueryEntities<T>(EntityQuery query) where T : Entity, new()
+        public IList<Entity> QueryEntities(Type entityType, EntityQuery query)
         {
-            return database.RunEntityQuery<T>(query)
-                .Select(x => Entity.CreateInstance<T>(this, x.id, x.playerIDs, x.data))
+            return database.RunEntityQuery(EntityUtils.GetEntityType(entityType), query)
+                .Select(x => Entity.CreateInstance(entityType, this, x.id, x.playerIDs, x.data))
                 .ToList();
         }
 
