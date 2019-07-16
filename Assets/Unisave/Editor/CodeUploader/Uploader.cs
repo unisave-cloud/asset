@@ -4,18 +4,24 @@ using System.IO;
 using System.Net;
 using System.Text;
 using System.Threading;
+using System.Linq;
 using UnityEditor;
 using UnityEngine;
 using LightJson;
 
 namespace Unisave.CodeUploader
 {
+    /// <summary>
+    /// Uploads backend code to the server
+    /// 
+    /// Simple implementation (prototyping ;)), obtains backend folder path
+    /// from preferences, traverses this folder for .cs files
+    /// then uploads them one by one to the server
+    /// 
+    /// (no change checking, or caching so far)
+    /// </summary>
     public class Uploader
     {
-        public const string FolderName = "UnisaveCloud";
-
-        private List<string> FilesToUpload = new List<string>();
-
         private UnisavePreferences preferences;
 
         private string editorKey;
@@ -36,37 +42,40 @@ namespace Unisave.CodeUploader
 
         public void Run()
         {
-            // This is work in progress and it does not quite work yet...
-            
             /*
-            TraverseFolder("Assets", false);
+                Prototype implementation, don't curse me
+             */
+
+            var files = new List<string>();
+            TraverseFolder(files, "Assets/" + preferences.backendFolder);
+
+            // HACK: filter out only facets
+            files = files.Where(f => f.Contains("Facet")).ToList();
 
             // do the actual upload in the background
             new Thread(() => {
                 Thread.CurrentThread.IsBackground = true; 
                 
-                foreach (string path in FilesToUpload)
+                foreach (string path in files)
                     UploadScript(path, File.ReadAllText(path));
             }).Start();
-            */
         }
 
-        private void TraverseFolder(string path, bool isCloud)
+        private void TraverseFolder(List<string> files, string path)
         {
+            // branch on each subdirectory
             foreach (string dirPath in Directory.GetDirectories(path))
             {
                 string dir = Path.GetFileName(dirPath);
-                TraverseFolder(dirPath, isCloud || dir == FolderName);
+                TraverseFolder(files, dirPath);
             }
 
-            if (!isCloud)
-                return;
-
+            // select .cs files
             foreach (string filePath in Directory.GetFiles(path))
             {
                 if (Path.GetExtension(filePath) == ".cs")
                 {
-                    FilesToUpload.Add(filePath);
+                    files.Add(filePath);
                 }
             }
         }
@@ -83,7 +92,7 @@ namespace Unisave.CodeUploader
 				.Add("scriptPath", path)
 				.Add("scriptCode", code)
 				.Add("gameToken", preferences.gameToken)
-				//.Add("buildGUID", Application.buildGUID)
+				//.Add("buildGUID", Application.buildGUID) // NOT NEEDED, everything uploaded to master version
 				//.Add("version", Application.version)
 				.Add("editorKey", editorKey)
 				.ToString();
@@ -111,7 +120,7 @@ namespace Unisave.CodeUploader
                     }
                 }
             }
-            catch(Exception e)
+            catch (Exception e)
             {
                 Debug.LogError(e.ToString());
             }

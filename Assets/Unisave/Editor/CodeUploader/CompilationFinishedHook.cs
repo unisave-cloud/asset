@@ -8,6 +8,9 @@ using System.Linq;
 
 namespace Unisave.CodeUploader
 {
+    /// <summary>
+    /// Code uploader launcher
+    /// </summary>
     public static class CompilationFinishedHook
     {
         [InitializeOnLoadMethod]
@@ -29,11 +32,22 @@ namespace Unisave.CodeUploader
                 return;
             }
 
+            RunCodeUploader();
+        }
+
+        [MenuItem("Unisave debug/Upload code")]
+        public static void UploadCodeMenuItem()
+        {
+            RunCodeUploader();
+        }
+
+        private static void RunCodeUploader()
+        {
             Uploader uploader = Uploader.CreateDefaultInstance();
             uploader.Run();
         }
 
-        static bool CompilerMessagesContainError(CompilerMessage[] messages)
+        private static bool CompilerMessagesContainError(CompilerMessage[] messages)
         {
             return messages.Any(msg => msg.type == CompilerMessageType.Error);
         }

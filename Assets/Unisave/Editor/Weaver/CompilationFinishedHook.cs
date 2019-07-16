@@ -54,7 +54,8 @@ namespace Unisave.Weaver
         [InitializeOnLoadMethod]
         static void OnInitializeOnLoad()
         {
-            CompilationPipeline.assemblyCompilationFinished += OnCompilationFinished;
+            // HACK: disabled
+            //CompilationPipeline.assemblyCompilationFinished += OnCompilationFinished;
         }
 
         static void OnCompilationFinished(string assemblyPath, CompilerMessage[] messages)

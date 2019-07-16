@@ -101,7 +101,7 @@ namespace Unisave
 			var preferences = UnisavePreferences.LoadPreferences();
 
 			// make sure a continuous saver exists and is running
-			SaverComponent.GetInstance();
+			//SaverComponent.GetInstance();
 
 			string editorKey = null;
 			#if UNITY_EDITOR

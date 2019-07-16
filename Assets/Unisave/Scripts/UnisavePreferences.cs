@@ -35,9 +35,27 @@ namespace Unisave
 		// Preferences //
 		/////////////////
 		
+		/// <summary>
+		/// URL of the unisave server api
+		/// </summary>
 		public string serverApiUrl = "https://unisave.cloud/api/game/v1.0/";
 
+		/// <summary>
+		/// Token that uniquely identifies this game (and it's developer) to unisave servers
+		/// </summary>
 		public string gameToken;
+
+		/// <summary>
+		/// Path (relative to the assets folder) to directory that contains
+		/// backend related files, like facets, entities and config
+		/// 
+		/// Contents of this folder are uploaded to the server
+		/// </summary>
+		public string backendFolder = "Backend";
+
+		//
+		// Obsolete stuff:
+		//
 
 		public string localDebugPlayerEmail = "local";
 
