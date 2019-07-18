@@ -1,19 +1,18 @@
 using System;
-using Unisave.Framework;
+using Unisave;
 
 namespace Unisave.Examples.Cloud.Motorbike
 {
     /// <summary>
     /// Controller contains server-executed code that performs operations on entities
     /// </summary>
-    public class GarageController : Controller
+    public class GarageController : Facet
 	{
-		[Action]
 		public void ChangeMotorbikeName(string newName)
 		{
-			var pd = GetEntity.OfPlayer(this.CurrentPlayer).Get<PlayerData>();
-			pd.MotorbikeName = newName;
-			pd.Save();
+			// var pd = GetEntity<PlayerData>.OfPlayer(Caller).Get();
+			// pd.MotorbikeName = newName;
+			// pd.Save();
 		}
 	}
 }

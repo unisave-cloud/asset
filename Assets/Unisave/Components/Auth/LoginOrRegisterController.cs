@@ -9,7 +9,7 @@ namespace Unisave
 	/// <summary>
 	/// Controls the default login / register form prefab
 	/// </summary>
-	public class LoginOrRegisterController : MonoBehaviour, ILoginCallback, IRegistrationCallback
+	public class LoginOrRegisterController : MonoBehaviour, /*ILoginCallback,*/ IRegistrationCallback
 	{
 		public GameObject loginForm, registerForm;
 
@@ -41,7 +41,7 @@ namespace Unisave
 			messageText.text = "...";
 			messageText.gameObject.SetActive(true);
 
-			UnisaveCloud.Login(this, loginEmailField.text, loginPasswordField.text);
+			//UnisaveCloud.Login(this, loginEmailField.text, loginPasswordField.text);
 		}
 
 		public void LoginSucceeded()
@@ -49,11 +49,11 @@ namespace Unisave
 			SceneManager.LoadSceneAsync(sceneNameToLoad, LoadSceneMode.Single);
 		}
 
-		public void LoginFailed(LoginFailure failure)
-		{
-			messageText.text = failure.message;
-			messageText.gameObject.SetActive(true);
-		}
+		// public void LoginFailed(LoginFailure failure)
+		// {
+		// 	messageText.text = failure.message;
+		// 	messageText.gameObject.SetActive(true);
+		// }
 
 		void OnRegisterClicked()
 		{
@@ -66,7 +66,7 @@ namespace Unisave
 				return;
 			}
 
-			UnisaveCloud.Register(this, registerEmailField.text, registerPasswordField.text);
+			// UnisaveCloud.Register(this, registerEmailField.text, registerPasswordField.text);
 		}
 
 		public void RegistrationSucceeded()

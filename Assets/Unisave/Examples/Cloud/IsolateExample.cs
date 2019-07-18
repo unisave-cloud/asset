@@ -27,8 +27,9 @@ namespace Unisave.Examples.Cloud
 
             overriden = true;
 
-            UnisaveCloud.OverridePreferences = (UnisavePreferences preferences) => {
+            Unisave.UnisaveServer.OverridePreferences = (UnisavePreferences preferences) => {
                 preferences.runAgainstLocalDatabase = true;
+                return preferences;
             };
         }
 

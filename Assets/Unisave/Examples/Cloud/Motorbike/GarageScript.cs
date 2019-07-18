@@ -15,21 +15,21 @@ namespace Unisave.Examples.Cloud.Motorbike
 		void Awake()
 		{
 			// Load motorbike name
-			RequestEntity.OfPlayer(UnisaveCloud.Player).Request<PlayerData>(p => {
-				motorbikeNameField.text = p == null ? "null" : p.MotorbikeName;
-			});
+			// RequestEntity.OfPlayer(UnisaveCloud.Player).Request<PlayerData>(p => {
+			// 	motorbikeNameField.text = p == null ? "null" : p.MotorbikeName;
+			// });
 		}
 
 		public void OnLogoutButtonClick()
 		{
 			// Save motorbike name
-			ControllerAction.On<GarageController>().ChangeMotorbikeName(motorbikeNameField.text);
+			// ControllerAction.On<GarageController>().ChangeMotorbikeName(motorbikeNameField.text);
 
-			UnisaveCloud.Logout();
-			SceneManager.LoadSceneAsync(
-				"Unisave/Examples/Cloud/Motorbike/LoginScene",
-				LoadSceneMode.Single
-			);
+			// UnisaveCloud.Logout();
+			// SceneManager.LoadSceneAsync(
+			// 	"Unisave/Examples/Cloud/Motorbike/LoginScene",
+			// 	LoadSceneMode.Single
+			// );
 		}
 	}
 }

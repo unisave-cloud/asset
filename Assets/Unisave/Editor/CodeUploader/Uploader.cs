@@ -50,7 +50,7 @@ namespace Unisave.CodeUploader
             TraverseFolder(files, "Assets/" + preferences.backendFolder);
 
             // HACK: filter out only facets
-            files = files.Where(f => f.Contains("Facet")).ToList();
+            //files = files.Where(f => f.Contains("Facet")).ToList();
 
             // do the actual upload in the background
             new Thread(() => {

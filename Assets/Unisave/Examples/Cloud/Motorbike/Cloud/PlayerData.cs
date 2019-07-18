@@ -1,12 +1,12 @@
 using System;
-using Unisave.Framework;
+using Unisave;
 
 namespace Unisave.Examples.Cloud.Motorbike
 {
     /// <summary>
     /// Represents data belonging to a player
     /// </summary>
-    public class PlayerData : PlayerSingleton
+    public class PlayerData : Entity
     {
         public string MotorbikeName { get; set; } = "Default bike name";
     }
