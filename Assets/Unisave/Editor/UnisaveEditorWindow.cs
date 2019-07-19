@@ -16,8 +16,8 @@ namespace Unisave
 
 		private string localDatabase = "";
 
-		[MenuItem("Window/Unisave")]
-		public static void ShowWidnow()
+		[MenuItem("Window/Unisave/Preferences")]
+		public static void ShowWindow()
 		{
 			EditorWindow.GetWindow(
 				typeof(UnisaveEditorWindow),
