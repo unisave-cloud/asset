@@ -2,10 +2,12 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unisave.Auth;
+using Unisave.Authentication;
 using Unisave.Facets;
 using Unisave.Database;
 using Unisave.Runtime;
+using Unisave.Utils;
+using Unisave.Exceptions;
 using RSG;
 
 namespace Unisave
@@ -123,30 +125,28 @@ namespace Unisave
             string editorKey
         )
         {
-            this.apiUrl = apiUrl;
+            this.ApiUrl = new ApiUrl(apiUrl);
+
             this.coroutineRunner = coroutineRunner;
 
             Authenticator = new UnisaveAuthenticator(
-                coroutineRunner,
-                new ServerAuthApi(apiUrl, gameToken, editorKey)
+                this.ApiUrl,
+                gameToken,
+                editorKey
             );
         }
 
 #endregion
 
-#region "Parameters passed in the constructor"
-
         /// <summary>
-        /// Url of the unisave server's API entrypoint
+        /// Url of the unisave server's API entrypoint ending with a slash
         /// </summary>
-        private readonly string apiUrl;
+        public ApiUrl ApiUrl { get; private set; }
 
         /// <summary>
         /// Something, that can run coroutines
         /// </summary>
         private readonly CoroutineRunnerComponent coroutineRunner;
-
-#endregion
 
         /// <summary>
         /// Is the server being emulated
@@ -199,7 +199,7 @@ namespace Unisave
             if (IsEmulating)
                 throw new UnisaveException("Emulated facet called instance should already be created.");
 
-            return new UnisaveFacetCaller(Authenticator.AccessToken, apiUrl, coroutineRunner);
+            return new UnisaveFacetCaller(Authenticator.AccessToken, ApiUrl, coroutineRunner);
         }
 
         /// <summary>

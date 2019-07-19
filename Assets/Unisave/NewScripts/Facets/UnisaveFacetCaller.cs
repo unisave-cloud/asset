@@ -6,24 +6,22 @@ using UnityEngine.Networking;
 using LightJson;
 using LightJson.Serialization;
 using RSG;
+using Unisave.Utils;
+using Unisave.Exceptions;
 
 namespace Unisave.Facets
 {
     public class UnisaveFacetCaller : FacetCaller
     {
 		private string accessToken;
-        private string callFacetApiUrl;
+		private ApiUrl apiUrl;
         private CoroutineRunnerComponent coroutineRunner;
 
-        public UnisaveFacetCaller(string accessToken, string apiUrl, CoroutineRunnerComponent coroutineRunner)
+        public UnisaveFacetCaller(string accessToken, ApiUrl apiUrl, CoroutineRunnerComponent coroutineRunner)
         {
 			this.accessToken = accessToken;
             this.coroutineRunner = coroutineRunner;
-
-            if (!apiUrl.EndsWith("/"))
-				apiUrl += "/";
-
-            callFacetApiUrl = apiUrl + "call-facet";
+			this.apiUrl = apiUrl;
         }
 
 		protected override IPromise<JsonValue> PerformFacetCall(
@@ -57,7 +55,7 @@ namespace Unisave.Facets
 
 			// put because post does not work with json for some reason
 			// https://forum.unity.com/threads/posting-json-through-unitywebrequest.476254/
-			UnityWebRequest request = UnityWebRequest.Put(callFacetApiUrl, payload);
+			UnityWebRequest request = UnityWebRequest.Put(apiUrl.CallFacet(), payload);
 			request.SetRequestHeader("Content-Type", "application/json");
 			request.SetRequestHeader("Accept", "application/json");
 			

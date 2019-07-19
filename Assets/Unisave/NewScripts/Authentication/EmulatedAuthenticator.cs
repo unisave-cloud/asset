@@ -1,6 +1,7 @@
 using System;
+using RSG;
 
-namespace Unisave.Auth
+namespace Unisave.Authentication
 {
     public class EmulatedAuthenticator : IAuthenticator
     {
@@ -19,11 +20,26 @@ namespace Unisave.Auth
         /// </summary>
         public string AccessToken { get; private set; }
 
-        public bool Login(Action success, Action<LoginFailure> failure, string email, string password)
+        /// <inheritdoc/>
+        public IPromise Login(string email, string password)
 		{
-			// do some checks against the emulated player database
-            return true;
+			// TODO: do some checks against the emulated player database
+            return Promise.Resolved();
 		}
+
+        /// <inheritdoc/>
+        public IPromise Logout()
+        {
+            Player = null;
+            AccessToken = null;
+            return Promise.Resolved();
+        }
+
+        public IPromise Register(string email, string password)
+        {
+            // TODO: do updates on the emulated database
+            return Promise.Resolved();
+        }
 
         /// <summary>
         /// Logs in the fake emulated player

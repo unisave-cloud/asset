@@ -9,7 +9,7 @@ namespace Unisave
 	/// <summary>
 	/// Controls the default login / register form prefab
 	/// </summary>
-	public class LoginOrRegisterController : MonoBehaviour, /*ILoginCallback,*/ IRegistrationCallback
+	public class LoginOrRegisterController : MonoBehaviour
 	{
 		public GameObject loginForm, registerForm;
 
@@ -78,11 +78,11 @@ namespace Unisave
 			OnLoginClicked();
 		}
 
-		public void RegistrationFailed(RegistrationFailure failure)
-		{
-			messageText.text = failure.message;
-			messageText.gameObject.SetActive(true);
-		}
+		// public void RegistrationFailed(RegistrationFailure failure)
+		// {
+		// 	messageText.text = failure.message;
+		// 	messageText.gameObject.SetActive(true);
+		// }
 
 		void OnGotoRegistration()
 		{

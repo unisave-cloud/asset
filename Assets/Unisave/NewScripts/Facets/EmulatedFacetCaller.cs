@@ -6,6 +6,7 @@ using LightJson;
 using Unisave;
 using Unisave.Serialization;
 using Unisave.Database;
+using Unisave.Exceptions;
 
 namespace Unisave.Facets
 {
