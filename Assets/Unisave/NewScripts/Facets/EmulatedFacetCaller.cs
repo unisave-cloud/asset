@@ -5,16 +5,19 @@ using RSG;
 using LightJson;
 using Unisave;
 using Unisave.Serialization;
+using Unisave.Database;
 
 namespace Unisave.Facets
 {
     public class EmulatedFacetCaller : FacetCaller
     {
         private UnisavePlayer caller;
+        private EmulatedDatabase database;
 
-        public EmulatedFacetCaller(UnisavePlayer authorizedPlayer)
+        public EmulatedFacetCaller(UnisavePlayer authorizedPlayer, EmulatedDatabase database)
         {
             this.caller = authorizedPlayer;
+            this.database = database;
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
@@ -46,13 +49,16 @@ namespace Unisave.Facets
             for (int i = 0; i < arguments.Count; i++)
                 deserializedArguments[i] = Loader.Load(arguments[i], parameters[i].ParameterType);
 
-            // create facet instance and call the method
+            // create facet instance and call the method (also tell the emulated database to accept requests)
+
+            database.IsEmulatingFacetCall = true;
 
             Facet instance = Facet.CreateInstance(facetType, caller);
-
             object returnValue = methodInfo.Invoke(instance, deserializedArguments);
-
             JsonValue returnValueJson = Saver.Save(returnValue);
+
+            database.IsEmulatingFacetCall = false;
+            database.SaveDatabase();
 
             // return and resolve the promise
 			var promise = new Promise<JsonValue>();

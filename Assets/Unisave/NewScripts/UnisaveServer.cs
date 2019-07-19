@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using Unisave.Auth;
 using Unisave.Facets;
+using Unisave.Database;
+using Unisave.Runtime;
 using RSG;
 
 namespace Unisave
@@ -71,6 +73,9 @@ namespace Unisave
                 UnityEngine.Debug.LogError($"For more info on unhandled promise exceptions see:\n"
                     + "https://github.com/Real-Serious-Games/C-Sharp-Promise#unhandled-errors");
             };
+
+            // register fake database to the framework endpoint
+            Endpoints.Database = new FakeDatabase();
 
             // load preferences as defined by the user
             var preferences = UnisavePreferences.LoadPreferences();
@@ -154,6 +159,11 @@ namespace Unisave
         public IAuthenticator Authenticator { get; private set; }
 
         /// <summary>
+        /// Emulated database that stores all the emulated entities
+        /// </summary>
+        public EmulatedDatabase Database { get; private set; }
+
+        /// <summary>
         /// Handles facet calling once the player is authenticated
         /// </summary>
         public FacetCaller FacetCaller {
@@ -183,17 +193,13 @@ namespace Unisave
 
                 Debug.LogWarning("Unisave: Starting server emulation.");
                 StartEmulation();
+                return facetCaler; // has been created during emulation start
             }
 
-            // create the appropriate caller instance
             if (IsEmulating)
-            {
-                return new EmulatedFacetCaller(Authenticator.Player);
-            }
-            else
-            {
-                return new UnisaveFacetCaller(Authenticator.AccessToken, apiUrl, coroutineRunner);
-            }
+                throw new UnisaveException("Emulated facet called instance should already be created.");
+
+            return new UnisaveFacetCaller(Authenticator.AccessToken, apiUrl, coroutineRunner);
         }
 
         /// <summary>
@@ -202,6 +208,11 @@ namespace Unisave
         private void StartEmulation()
         {
             IsEmulating = true;
+
+            // initialize emulated database
+            Database = new EmulatedDatabase();
+            Database.LoadDatabase();
+            Endpoints.Database = Database;
 
             // swap out authenticators
             var emulatedAuth = new EmulatedAuthenticator();
@@ -212,7 +223,7 @@ namespace Unisave
 
             // swap out facet callers
             if (facetCaler == null || facetCaler.GetType() != typeof(EmulatedFacetCaller))
-                facetCaler = new EmulatedFacetCaller(Authenticator.Player);
+                facetCaler = new EmulatedFacetCaller(Authenticator.Player, Database);
         }
     }
 }
