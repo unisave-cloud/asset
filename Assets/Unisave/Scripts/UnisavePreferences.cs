@@ -53,6 +53,11 @@ namespace Unisave
 		/// </summary>
 		public string backendFolder = "Backend";
 
+		/// <summary>
+		/// Name of the emulated database to use
+		/// </summary>
+		public string emulatedDatabaseName = "main";
+
 		//
 		// Obsolete stuff:
 		//

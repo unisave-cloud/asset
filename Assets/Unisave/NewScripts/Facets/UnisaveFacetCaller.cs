@@ -13,13 +13,13 @@ namespace Unisave.Facets
 {
     public class UnisaveFacetCaller : FacetCaller
     {
-		private string accessToken;
+		private Func<string> GetAccessToken;
 		private ApiUrl apiUrl;
         private CoroutineRunnerComponent coroutineRunner;
 
-        public UnisaveFacetCaller(string accessToken, ApiUrl apiUrl, CoroutineRunnerComponent coroutineRunner)
+        public UnisaveFacetCaller(Func<string> GetAccessToken, ApiUrl apiUrl, CoroutineRunnerComponent coroutineRunner)
         {
-			this.accessToken = accessToken;
+			this.GetAccessToken = GetAccessToken;
             this.coroutineRunner = coroutineRunner;
 			this.apiUrl = apiUrl;
         }
@@ -47,7 +47,7 @@ namespace Unisave.Facets
         )
 		{
 			string payload = new JsonObject()
-                .Add("accessToken", accessToken)
+                .Add("accessToken", GetAccessToken())
 				.Add("facet", facetName)
                 .Add("method", methodName)
                 .Add("arguments", arguments)

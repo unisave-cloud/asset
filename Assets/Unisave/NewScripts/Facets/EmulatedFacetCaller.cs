@@ -12,13 +12,16 @@ namespace Unisave.Facets
 {
     public class EmulatedFacetCaller : FacetCaller
     {
-        private UnisavePlayer caller;
-        private EmulatedDatabase database;
+        private Func<UnisavePlayer> GetAuthorizedPlayer;
 
-        public EmulatedFacetCaller(UnisavePlayer authorizedPlayer, EmulatedDatabase database)
+        public Func<bool> PreventDatabaseAccess;
+        private bool preventDatabaseAccess = true;
+
+        public EmulatedFacetCaller(Func<UnisavePlayer> GetAuthorizedPlayer)
         {
-            this.caller = authorizedPlayer;
-            this.database = database;
+            PreventDatabaseAccess = () => preventDatabaseAccess;
+
+            this.GetAuthorizedPlayer = GetAuthorizedPlayer;
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
@@ -52,14 +55,13 @@ namespace Unisave.Facets
 
             // create facet instance and call the method (also tell the emulated database to accept requests)
 
-            database.IsEmulatingFacetCall = true;
+            preventDatabaseAccess = false;
 
-            Facet instance = Facet.CreateInstance(facetType, caller);
+            Facet instance = Facet.CreateInstance(facetType, GetAuthorizedPlayer());
             object returnValue = methodInfo.Invoke(instance, deserializedArguments);
             JsonValue returnValueJson = Saver.Save(returnValue);
 
-            database.IsEmulatingFacetCall = false;
-            database.SaveDatabase();
+            preventDatabaseAccess = true;
 
             // return and resolve the promise
 			var promise = new Promise<JsonValue>();

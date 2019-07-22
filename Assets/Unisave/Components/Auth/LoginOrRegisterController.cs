@@ -38,8 +38,11 @@ namespace Unisave
 
 		void OnLoginClicked()
 		{
-			messageText.text = "...";
-			messageText.gameObject.SetActive(true);
+			// DEBUG
+			LoginSucceeded();
+
+			//messageText.text = "...";
+			//messageText.gameObject.SetActive(true);
 
 			//UnisaveCloud.Login(this, loginEmailField.text, loginPasswordField.text);
 		}

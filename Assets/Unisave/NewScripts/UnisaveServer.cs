@@ -49,8 +49,6 @@ namespace Unisave
             inside the unity editor.
          */
 
-#region "Default instance construction"
-
         /// <summary>
         /// The default instance used by all the facades
         /// </summary>
@@ -64,7 +62,6 @@ namespace Unisave
                 return defaultInstance;
             }
         }
-
         private static UnisaveServer defaultInstance = null;
 
         private static UnisaveServer CreateDefaultInstance()
@@ -76,29 +73,64 @@ namespace Unisave
                     + "https://github.com/Real-Serious-Games/C-Sharp-Promise#unhandled-errors");
             };
 
-            // register fake database to the framework endpoint
-            Endpoints.Database = new FakeDatabase();
+            // create new instance with proper preferences
+            UnisaveServer instance = CreateFromPreferences(
+                GetDefaultPreferencesWithOverriding()
+            );
 
-            // load preferences as defined by the user
-            var preferences = UnisavePreferences.LoadPreferences();
+            // register framework endpoints
+            Endpoints.DatabaseResolver = () => instance.Database;
 
-            // override the preferences
-            // (e.g. in an example scene)
-            if (OverridePreferences != null)
-                preferences = OverridePreferences(preferences);
-
-            // create new instance with these preferences
-            return CreateFromPreferences(preferences);
+            return instance;
         }
 
         /// <summary>
-        /// Intercepts default instance creation and swaps out the preferences
+        /// List of overriding preferences.
+        /// Only the topmost preference is used (last in the list)
         /// </summary>
-        public static Func<UnisavePreferences, UnisavePreferences> OverridePreferences = null;
+        private static List<UnisavePreferences> overridingPreferences = new List<UnisavePreferences>();
 
-#endregion
+        /// <summary>
+        /// Adds preferences to be used for overriding default preferences for the default instance
+        /// </summary>
+        public static void AddOverridingPreferences(UnisavePreferences preferences)
+        {
+            if (preferences == null)
+                throw new ArgumentNullException();
 
-#region "General instance construction"
+            if (overridingPreferences.Contains(preferences))
+                return;
+
+            overridingPreferences.Add(preferences);
+            
+            if (defaultInstance != null)
+                defaultInstance.ReloadPreferences(GetDefaultPreferencesWithOverriding());
+        }
+
+        /// <summary>
+        /// Removes preferences used for overriding
+        /// </summary>
+        public static void RemoveOverridingPreferences(UnisavePreferences preferences)
+        {
+            if (preferences == null)
+                throw new ArgumentNullException();
+
+            overridingPreferences.Remove(preferences);
+            
+            if (defaultInstance != null)
+                defaultInstance.ReloadPreferences(GetDefaultPreferencesWithOverriding());
+        }
+
+        /// <summary>
+        /// Applies overriding preferences to the default instance
+        /// </summary>
+        private static UnisavePreferences GetDefaultPreferencesWithOverriding()
+        {
+            if (overridingPreferences.Count == 0)
+                return UnisavePreferences.LoadPreferences();
+
+            return overridingPreferences[overridingPreferences.Count - 1];
+        }
 
         /// <summary>
         /// Creates the instance from UnisavePreferences
@@ -114,7 +146,8 @@ namespace Unisave
                 CoroutineRunnerComponent.GetInstance(),
                 preferences.serverApiUrl,
                 preferences.gameToken,
-                editorKey
+                editorKey,
+                preferences.emulatedDatabaseName
             );
         }
 
@@ -122,21 +155,32 @@ namespace Unisave
             CoroutineRunnerComponent coroutineRunner,
             string apiUrl,
             string gameToken,
-            string editorKey
+            string editorKey,
+            string emulatedDatabaseName
         )
         {
             this.ApiUrl = new ApiUrl(apiUrl);
+            this.GameToken = gameToken;
+            this.EditorKey = editorKey;
+            this.emulatedDatabaseName = emulatedDatabaseName;
 
             this.coroutineRunner = coroutineRunner;
 
-            Authenticator = new UnisaveAuthenticator(
-                this.ApiUrl,
-                gameToken,
-                editorKey
-            );
+            IsEmulating = false;
         }
 
-#endregion
+        /// <summary>
+        /// Call this method when preferences have been changed to apply the changes
+        /// </summary>
+        public void ReloadPreferences(UnisavePreferences preferences)
+        {
+            // TODO ... load preferences
+
+            // database name
+            emulatedDatabaseName = preferences.emulatedDatabaseName;
+            if (emulatedDatabase != null)
+                emulatedDatabase.Use(emulatedDatabaseName);
+        }
 
         /// <summary>
         /// Url of the unisave server's API entrypoint ending with a slash
@@ -149,81 +193,272 @@ namespace Unisave
         private readonly CoroutineRunnerComponent coroutineRunner;
 
         /// <summary>
-        /// Is the server being emulated
+        /// Token that identifies this game to unisave servers
         /// </summary>
-        public bool IsEmulating { get; private set; } = false;
+        public string GameToken { get; private set; }
 
         /// <summary>
-        /// Authenticator used to authenticate players
+        /// Token that authenticates this editor to unisave servers
         /// </summary>
-        public IAuthenticator Authenticator { get; private set; }
+        public string EditorKey { get; private set; }
+
+        /// <summary>
+        /// Is the server being emulated
+        /// </summary>
+        public bool IsEmulating
+        {
+            get => isEmulating;
+
+            set
+            {
+                if (value == isEmulating)
+                    return;
+
+                if (value)
+                {
+                    isEmulating = true;
+                }
+                else
+                {
+                    if (IsTesting)
+                    {
+                        Debug.LogWarning(
+                            "Unisave: Stopping testing because emulation was disabled.\n" +
+                            "Tests can only be run during emulation."
+                        );
+                        TearDownTesting();
+                    }
+
+                    isEmulating = false;
+                }
+            }
+        }
+        private bool isEmulating = false;
+
+        /// <summary>
+        /// Is the server being tested
+        /// 
+        /// Tests automatically run during emulation. So this value only
+        /// determines what database to use during emulation.
+        /// </summary>
+        public bool IsTesting { get; private set; } = false;
 
         /// <summary>
         /// Emulated database that stores all the emulated entities
         /// </summary>
-        public EmulatedDatabase Database { get; private set; }
+        public EmulatedDatabase EmulatedDatabase
+        {
+            get
+            {
+                if (emulatedDatabase == null)
+                {
+                    emulatedDatabase = new EmulatedDatabase(
+                        EmulatedFacetCaller.PreventDatabaseAccess
+                    );
+                    emulatedDatabase.Use(emulatedDatabaseName);
+                }
+
+                return emulatedDatabase;
+            }
+        }
+        private EmulatedDatabase emulatedDatabase;
+
+        /// <summary>
+        /// Name of the emulated database that is used
+        /// </summary>
+        private string emulatedDatabaseName;
+
+        /// <summary>
+        /// Empty, if no tests ran so far. Not deleted once test finishes, but left
+        /// alone to be checked in the uniarchy if needed.
+        /// </summary>
+        public EmulatedDatabase TestingDatabase
+        {
+            get
+            {
+                if (testingDatabase == null)
+                {
+                    testingDatabase = new EmulatedDatabase(
+                        PreventAccess: () => false // testing database can be accesed at any time
+                    );
+                    testingDatabase.Use("testing");
+                }
+
+                return testingDatabase;
+            }
+        }
+        private EmulatedDatabase testingDatabase;
+
+        /// <summary>
+        /// Resolves the database endpoint for the unisave framework
+        /// </summary>
+        public IDatabase Database
+        {
+            get
+            {
+                if (IsEmulating)
+                {
+                    if (IsTesting)
+                        return TestingDatabase;
+                    else
+                        return EmulatedDatabase;
+                }
+                else
+                {
+                    return new FakeDatabase();
+                }
+            }
+        }
+
+        /// <summary>
+        /// Authenticator that authenticates via the unisave servers
+        /// </summary>
+        public UnisaveAuthenticator UnisaveAuthenticator
+        {
+            get
+            {
+                if (unisaveAuthenticator == null)
+                {
+                    unisaveAuthenticator = new UnisaveAuthenticator(
+                        ApiUrl,
+                        GameToken,
+                        EditorKey
+                    );
+                }
+
+                return unisaveAuthenticator;
+            }
+        }
+        private UnisaveAuthenticator unisaveAuthenticator;
+
+        /// <summary>
+        /// Authenticator that runs against the emulated or testing database
+        /// </summary>
+        public EmulatedAuthenticator EmulatedAuthenticator
+        {
+            get
+            {
+                if (emulatedAuthenticator == null)
+                {
+                    emulatedAuthenticator = new EmulatedAuthenticator();
+                }
+
+                return emulatedAuthenticator;
+            }
+        }
+        private EmulatedAuthenticator emulatedAuthenticator;
+
+        /// <summary>
+        /// Authenticator used to authenticate players
+        /// </summary>
+        public IAuthenticator Authenticator
+        {
+            get
+            {
+                if (IsEmulating)
+                    return EmulatedAuthenticator;
+                else
+                    return UnisaveAuthenticator;
+            }
+        }
+
+        /// <summary>
+        /// Facet caller that performs the calls against unisave servers
+        /// </summary>
+        public UnisaveFacetCaller UnisaveFacetCaller
+        {
+            get
+            {
+                if (unisaveFacetCaller == null)
+                {
+                    unisaveFacetCaller = new UnisaveFacetCaller(
+                        () => UnisaveAuthenticator.AccessToken,
+                        ApiUrl,
+                        coroutineRunner
+                    );
+                }
+
+                return unisaveFacetCaller;
+            }
+        }
+        private UnisaveFacetCaller unisaveFacetCaller;
+
+        /// <summary>
+        /// Facet caller that emulates the calls locally against the emulated database
+        /// </summary>
+        public EmulatedFacetCaller EmulatedFacetCaller
+        {
+            get
+            {
+                if (emulatedFacetCaller == null)
+                {
+                    emulatedFacetCaller = new EmulatedFacetCaller(
+                        () => EmulatedAuthenticator.Player
+                    );
+                }
+
+                return emulatedFacetCaller;
+            }
+        }
+        private EmulatedFacetCaller emulatedFacetCaller;
 
         /// <summary>
         /// Handles facet calling once the player is authenticated
+        /// If no player authenticated, emulated player gets logged in
         /// </summary>
-        public FacetCaller FacetCaller {
+        public FacetCaller FacetCaller
+        {
             get
             {
-                if (facetCaler == null)
-                    facetCaler = CreateFacetCaller();
-                
-                return facetCaler;
+                if (IsEmulating)
+                {
+                    if (!EmulatedAuthenticator.LoggedIn)
+                    {
+                        Debug.LogWarning("Unisave: Logging in emulated player.");
+                        EmulatedAuthenticator.LoginEmulatedPlayer();
+                    }
+
+                    return EmulatedFacetCaller;
+                }
+                else
+                {
+                    if (!UnisaveAuthenticator.LoggedIn)
+                    {
+                        if (!Application.isEditor)
+                            throw new Exception("Cannot call facet methods without a logged-in player.");
+
+                        Debug.LogWarning("Unisave: Starting server emulation, logging in emulated player.");
+                        IsEmulating = true;
+                        EmulatedAuthenticator.LoginEmulatedPlayer();
+
+                        return EmulatedFacetCaller;
+                    }
+
+                    return UnisaveFacetCaller;
+                }
             }
-        }
-        private FacetCaller facetCaler;
-
-        /// <summary>
-        /// Called, when a facet caller instance is requested for the first time
-        /// </summary>
-        private FacetCaller CreateFacetCaller()
-        {
-            /*
-                Here is the place Unisave starts the emulation, if no player is logged in.
-             */
-
-            if (!Authenticator.LoggedIn)
-            {
-                if (!Application.isEditor)
-                    throw new Exception("Cannot call facet methods without a logged-in player.");
-
-                Debug.LogWarning("Unisave: Starting server emulation.");
-                StartEmulation();
-                return facetCaler; // has been created during emulation start
-            }
-
-            if (IsEmulating)
-                throw new UnisaveException("Emulated facet called instance should already be created.");
-
-            return new UnisaveFacetCaller(Authenticator.AccessToken, ApiUrl, coroutineRunner);
         }
 
         /// <summary>
-        /// Starts server emulation
+        /// Setup environment for running tests
         /// </summary>
-        private void StartEmulation()
+        public void SetUpTesting()
         {
             IsEmulating = true;
+            IsTesting = true;
+            
+            TestingDatabase.Clear();
+            EmulatedAuthenticator.LoginEmulatedPlayer();
+        }
 
-            // initialize emulated database
-            Database = new EmulatedDatabase();
-            Database.LoadDatabase();
-            Endpoints.Database = Database;
+        /// <summary>
+        /// Testing has finished, tear the testing environment down
+        /// </summary>
+        public void TearDownTesting()
+        {
+            IsTesting = false;
 
-            // swap out authenticators
-            var emulatedAuth = new EmulatedAuthenticator();
-            Authenticator = emulatedAuth;
-
-            // login emulated player
-            emulatedAuth.LoginEmulatedPlayer();
-
-            // swap out facet callers
-            if (facetCaler == null || facetCaler.GetType() != typeof(EmulatedFacetCaller))
-                facetCaler = new EmulatedFacetCaller(Authenticator.Player, Database);
+            EmulatedAuthenticator.Logout();
         }
     }
 }

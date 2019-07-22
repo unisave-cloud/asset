@@ -1,5 +1,6 @@
 using System;
 using RSG;
+using Unisave.Database;
 
 namespace Unisave.Authentication
 {
@@ -46,7 +47,7 @@ namespace Unisave.Authentication
         /// </summary>
         public void LoginEmulatedPlayer()
         {
-            Player = new UnisavePlayer("emulated-player-id");
+            Player = EmulatedDatabase.EmulatedPlayer;
             AccessToken = "emulated-player-access-token";
         }
     }

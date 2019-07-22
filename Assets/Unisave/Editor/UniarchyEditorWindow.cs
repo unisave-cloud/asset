@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
+using System.Linq;
 
 namespace Unisave
 {
@@ -33,7 +34,32 @@ namespace Unisave
 
         void OnGUI()
         {
-            treeView.OnGUI(new Rect(0, 0, position.width, position.height));
+            /*
+                - client entity cache
+                    - MotorbikeEntity (yamaha)
+                - emulated databases
+                    - main
+                        - players
+                        - entities
+                    - motorbike example db
+                        - players
+                        - entities
+                - testing database (if exists)
+                - database backups
+                    - my-cool-backup
+                    - other backup
+             */
+
+
+            //treeView.OnGUI(new Rect(0, 0, position.width, position.height));
+
+            var s = Unisave.Serialization.Saver.Save(
+                Unisave.UnisaveServer.DefaultInstance.TestingDatabase.entities.Values.ToList()
+            ).ToString(true);
+
+            s += "\n\n" + Unisave.UnisaveServer.DefaultInstance.EmulatedDatabase.DatabaseName;
+
+            GUI.Label(new Rect(0, 0, position.width, position.height), "DB: \n" + s);
         }
 
         class SimpleTreeView : TreeView
