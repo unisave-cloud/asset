@@ -29,7 +29,7 @@ namespace Unisave.CodeUploader
         public static Uploader CreateDefaultInstance()
         {
             return new Uploader(
-                UnisavePreferences.LoadPreferences(),
+                UnisavePreferences.LoadOrCreate(),
                 EditorPrefs.GetString("unisave.editorKey", null)
             );
         }
@@ -47,7 +47,7 @@ namespace Unisave.CodeUploader
              */
 
             var files = new List<string>();
-            TraverseFolder(files, "Assets/" + preferences.backendFolder);
+            TraverseFolder(files, "Assets/" + preferences.BackendFolder);
 
             // HACK: filter out only facets
             //files = files.Where(f => f.Contains("Facet")).ToList();
@@ -89,20 +89,18 @@ namespace Unisave.CodeUploader
             }
 
             string payloadString = new JsonObject()
-				.Add("scriptPath", path)
-				.Add("scriptCode", code)
-				.Add("gameToken", preferences.gameToken)
-				//.Add("buildGUID", Application.buildGUID) // NOT NEEDED, everything uploaded to master version
-				//.Add("version", Application.version)
+				.Add("gameToken", preferences.GameToken)
 				.Add("editorKey", editorKey)
+                .Add("scriptPath", path)
+				.Add("scriptCode", code)
 				.ToString();
 
             byte[] contentBytes = new UTF8Encoding().GetBytes(payloadString);
 
             HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(
-                new Uri(new Uri(preferences.serverApiUrl), "upload-script")
+                new Unisave.Utils.ApiUrl(preferences.ServerUrl).UploadScript()
             );
-            request.Method = "PUT";
+            request.Method = "POST";
             request.ContentType = "application/json";
             request.ContentLength = contentBytes.LongLength;
             request.GetRequestStream().Write(contentBytes, 0, contentBytes.Length);
@@ -118,6 +116,9 @@ namespace Unisave.CodeUploader
                     {
                         // ...
                     }
+
+                    // PRINT RESPONSE:
+                    //Debug.Log(new StreamReader(response.GetResponseStream()).ReadToEnd());
                 }
             }
             catch (Exception e)

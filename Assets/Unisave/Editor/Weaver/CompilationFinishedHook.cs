@@ -1,14 +1,14 @@
 using System;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Compilation;
-using UnityEditor.Callbacks;
-using UnityEditor.Build.Reporting;
+//using UnityEditor.Compilation;
+//using UnityEditor.Callbacks;
+//using UnityEditor.Build.Reporting;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityAssembly = UnityEditor.Compilation.Assembly;
+//using UnityAssembly = UnityEditor.Compilation.Assembly;
 
 namespace Unisave.Weaver
 {
@@ -49,7 +49,7 @@ namespace Unisave.Weaver
 
 
 
-    public static class CompilationFinishedHook
+    /*public static class CompilationFinishedHook
     {
         [InitializeOnLoadMethod]
         static void OnInitializeOnLoad()
@@ -86,5 +86,5 @@ namespace Unisave.Weaver
         {
             return messages.Any(msg => msg.type == CompilerMessageType.Error);
         }
-    }
+    }*/
 }

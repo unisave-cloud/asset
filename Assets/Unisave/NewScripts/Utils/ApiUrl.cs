@@ -9,30 +9,30 @@ namespace Unisave.Utils
     /// </summary>
     public class ApiUrl
     {
-        private string absoluteEndpointUrl;
+        private string serverUrl;
 
-        public ApiUrl(string absoluteEndpointUrl)
+        public ApiUrl(string serverUrl)
         {
-            this.absoluteEndpointUrl = absoluteEndpointUrl;
+            this.serverUrl = serverUrl;
 
-            if (!this.absoluteEndpointUrl.EndsWith("/"))
-                this.absoluteEndpointUrl += "/";
+            if (!this.serverUrl.EndsWith("/"))
+                this.serverUrl += "/";
         }
 
-        /// <summary>
-        /// Create url from a relative url (do not start relative url with slash)
-        /// </summary>
-        public string Url(string relativeUrl)
+        private string GameApiUrl(string relativeUrl)
         {
-            return absoluteEndpointUrl + relativeUrl;
+            return serverUrl + "api/game/v1.0/" + relativeUrl;
         }
 
-        public string Login() => Url("login");
+        private string EditorApiUrl(string relativeUrl)
+        {
+            return serverUrl + "api/editor/v1.0/" + relativeUrl;
+        }
 
-        public string Logout() => Url("logout");
-
-        public string Register() => Url("register");
-
-        public string CallFacet() => Url("call-facet");
+        public string Register() => GameApiUrl("register");
+        public string Login() => GameApiUrl("login");
+        public string Logout() => GameApiUrl("logout");
+        public string CallFacet() => GameApiUrl("call-facet");
+        public string UploadScript() => EditorApiUrl("upload-script");
     }
 }

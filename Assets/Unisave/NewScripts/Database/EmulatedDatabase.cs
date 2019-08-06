@@ -311,6 +311,14 @@ namespace Unisave.Database
                     entityIds.IntersectWith(playerEntityIds);
             }
 
+            // game entity is queried
+            if (entityIds == null)
+            {
+                // super slow, but... prototyping! :D
+                var ownedIds = new HashSet<string>(entityOwnerships.Select(x => x.Item1));
+                entityIds = new HashSet<string>(entities.Keys.Where(x => !ownedIds.Contains(x)));
+            }
+
             // load entities
             IEnumerable<RawEntity> loadedEntities = entityIds.Select(id => LoadEntity(id));
 

@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -12,23 +13,53 @@ namespace Unisave
 		/// <summary>
 		/// Name of the preferences asset inside a Resources folder (without extension)
 		/// </summary>
-		public const string ResourceFileName = "UnisavePreferencesFile";
+		public const string PreferencesFileName = "UnisavePreferencesFile";
 
 		/// <summary>
 		/// Loads preferences from the file
 		/// </summary>
-		public static UnisavePreferences LoadPreferences()
+		public static UnisavePreferences LoadOrCreate()
 		{
-			var preferences = Resources.Load<UnisavePreferences>(ResourceFileName);
+			// try to load
+			var preferences = Resources.Load<UnisavePreferences>(PreferencesFileName);
 
+			// load failed, create them instead (if inside editor)
 			if (preferences == null)
 			{
-				// return default preferences
-				preferences = ScriptableObject.CreateInstance<UnisavePreferences>();
-				Debug.LogWarning("Unisave preferences not found. Server connection will not work.");
+				#if UNITY_EDITOR
+					var path = "Assets/Unisave/Resources/" + PreferencesFileName + ".asset";
+
+					preferences = ScriptableObject.CreateInstance<UnisavePreferences>();
+					UnityEditor.AssetDatabase.CreateAsset(preferences, path);
+					UnityEditor.AssetDatabase.SaveAssets();
+					UnityEditor.AssetDatabase.Refresh();
+				#else
+					throw new InvalidOperationException(
+						"Unisave preferences have not been found. " +
+						"Make sure you configure unisave before building your game."
+					);
+				#endif
 			}
 
 			return preferences;
+		}
+
+		/// <summary>
+		/// Saves preferences. Callable only from inside the editor
+		/// </summary>
+		public void Save()
+		{
+			#if UNITY_EDITOR
+				UnityEditor.EditorUtility.SetDirty(this);
+				UnityEditor.AssetDatabase.SaveAssets();
+				UnityEditor.AssetDatabase.Refresh();
+
+				// note that editor key is saved continuously
+			#else
+				throw new InvalidOperationException(
+					"You can save Unsiave preferences only when running inside the editor."
+				);
+			#endif
 		}
 
 		/////////////////
@@ -36,14 +67,82 @@ namespace Unisave
 		/////////////////
 		
 		/// <summary>
-		/// URL of the unisave server api
+		/// URL of the Unisave server
 		/// </summary>
-		public string serverApiUrl = "https://unisave.cloud/api/game/v1.0/";
+		public string ServerUrl
+		{
+			get => serverUrl;
+			
+			set
+			{
+				serverUrl = value;
+			}
+		}
+		
+		[SerializeField]
+		private string serverUrl = "https://unisave.cloud/";
 
 		/// <summary>
-		/// Token that uniquely identifies this game (and it's developer) to unisave servers
+		/// Token that uniquely identifies your game
 		/// </summary>
-		public string gameToken;
+		public string GameToken
+		{
+			get => gameToken;
+
+			set
+			{
+				gameToken = value;
+			}
+		}
+
+		[SerializeField]
+		private string gameToken;
+
+		/// <summary>
+		/// Authentication key for Unity editor. This is to make sure noone else
+		/// who knows the game token can mess with your game.
+		/// 
+		/// The editor is actually not stored inside preferences file, but in EditorPrefs
+		/// instead to prevent accidental leakage by releasing your game.
+		/// </summary>
+		public string EditorKey
+		{
+			get
+			{
+				if (!editorKeyCacheActive)
+				{
+					#if UNITY_EDITOR
+						editorKeyCache = UnityEditor.EditorPrefs.GetString("unisave.editorKey", null);
+						editorKeyCacheActive = true;
+					#else
+						throw new InvalidOperationException("You cannot access editor key during runtime.");
+					#endif
+				}
+
+				return editorKeyCache;
+			}
+
+			set
+			{
+				if (value == EditorKey)
+					return;
+
+				#if UNITY_EDITOR
+					UnityEditor.EditorPrefs.SetString("unisave.editorKey", value);
+				#else
+					throw new InvalidOperationException("You cannot access editor key during runtime.");
+				#endif
+
+				editorKeyCache = value;
+				editorKeyCacheActive = true;
+			}
+		}
+		
+		[NonSerialized]
+		private string editorKeyCache;
+
+		[NonSerialized]
+		private bool editorKeyCacheActive = false;
 
 		/// <summary>
 		/// Path (relative to the assets folder) to directory that contains
@@ -51,24 +150,33 @@ namespace Unisave
 		/// 
 		/// Contents of this folder are uploaded to the server
 		/// </summary>
-		public string backendFolder = "Backend";
+		public string BackendFolder
+		{
+			get => backendFolder;
+
+			set
+			{
+				backendFolder = value;
+			}
+		}
+
+		[SerializeField]
+		private string backendFolder = "Backend";
 
 		/// <summary>
 		/// Name of the emulated database to use
 		/// </summary>
-		public string emulatedDatabaseName = "main";
+		public string EmulatedDatabaseName
+		{
+			get => emulatedDatabaseName;
 
-		//
-		// Obsolete stuff:
-		//
-
-		public string localDebugPlayerEmail = "local";
-
-		// running locally:
-
-		public bool runAgainstLocalDatabase = true;
-		public string localDatabaseName = "main"; // name of the local database
-		public bool loginOnStart = false; // only works for local, because only then it can be synchronous
-		public string loginOnStartEmail = "local";
+			set
+			{
+				emulatedDatabaseName = value;
+			}
+		}
+		
+		[SerializeField]
+		private string emulatedDatabaseName = "main";
 	}
 }

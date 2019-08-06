@@ -50,5 +50,22 @@ namespace Unisave.Authentication
             Player = EmulatedDatabase.EmulatedPlayer;
             AccessToken = "emulated-player-access-token";
         }
+
+        /// <summary>
+        /// Perform an action as a different user
+        /// </summary>
+        public void AsPlayer(UnisavePlayer player, Action action)
+        {
+            UnisavePlayer oldPlayer = Player;
+            string oldAccessToken = AccessToken;
+
+            Player = player;
+            AccessToken = "access-token-of-some-random-player";
+
+            action();
+
+            Player = oldPlayer;
+            AccessToken = oldAccessToken;
+        }
     }
 }

@@ -10,11 +10,9 @@ namespace Unisave
 		/// <summary>
 		/// Reference to the preferences file
 		/// </summary>
-		private UnisavePreferences prefs;
+		private UnisavePreferences preferences;
 
-		private string editorKey;
-
-		private string localDatabase = "";
+		private Texture unisaveLogo;
 
 		[MenuItem("Window/Unisave/Preferences")]
 		public static void ShowWindow()
@@ -28,86 +26,50 @@ namespace Unisave
 
 		void OnGUI()
 		{
-			if (prefs == null)
-			{
-				PreparePreferencesFile();
+			if (preferences == null)
+				preferences = UnisavePreferences.LoadOrCreate();
 
-				editorKey = EditorPrefs.GetString("unisave.editorKey", null);
-			}
+			DrawUnisaveLogo();
 
-			GUILayout.Label("Server connection parameters", EditorStyles.boldLabel);
-			prefs.serverApiUrl = EditorGUILayout.TextField("Server API URL", prefs.serverApiUrl);
-			prefs.gameToken = EditorGUILayout.TextField("Game token", prefs.gameToken);
-			editorKey = EditorGUILayout.TextField("Editor key", editorKey);
+			GUILayout.Label("Unisave server connection", EditorStyles.boldLabel);
+			preferences.ServerUrl = EditorGUILayout.TextField("Server URL", preferences.ServerUrl);
+			preferences.GameToken = EditorGUILayout.TextField("Game token", preferences.GameToken);
+			preferences.EditorKey = EditorGUILayout.TextField("Editor key", preferences.EditorKey);
 
-			GUILayout.Label("Debugging", EditorStyles.boldLabel);
-			EditorGUILayout.HelpBox(
-				"Use this for development of scenes that require a logged-in player " +
-				"or whenever you don't want to make network calls to the Unisave servers.",
-				MessageType.Info
+			GUILayout.Label("Development", EditorStyles.boldLabel);
+			preferences.BackendFolder = EditorGUILayout.TextField("Backend assets folder", preferences.BackendFolder);
+			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
+
+			GUILayout.Space(30f);
+
+			GUILayout.Label("Changes to configuration are saved automatically.");
+		}
+
+		void DrawUnisaveLogo()
+		{
+			const float height = 120f;
+			const float margin = 10f;
+
+			if (unisaveLogo == null)
+				unisaveLogo = Resources.Load<Texture>("UnisaveLogo");
+
+			GUI.DrawTexture(
+				new Rect((position.width - height) / 2, margin, height, height),
+				unisaveLogo
 			);
-			prefs.runAgainstLocalDatabase = EditorGUILayout.Toggle("Run against local database", prefs.runAgainstLocalDatabase);
-			if (prefs.runAgainstLocalDatabase)
-			{
-				prefs.loginOnStart = EditorGUILayout.Toggle("Auto-login", prefs.loginOnStart);
-				
-				if (prefs.loginOnStart)
-				{
-					prefs.loginOnStartEmail = EditorGUILayout.TextField("With email", prefs.loginOnStartEmail);
-				}
-			}
-
-			GUILayout.Label("Local database", EditorStyles.boldLabel);
-			if (GUILayout.Button("Clear database"))
-			{
-				PlayerPrefs.DeleteKey("unisave-local-database:" + prefs.localDatabaseName);
-				PlayerPrefs.Save();
-				localDatabase = "{}";
-			}
-			EditorGUILayout.LabelField(localDatabase, GUILayout.ExpandHeight(true));
+			GUILayout.Space(height + 2 * margin);
 		}
 
 		void OnFocus()
 		{
-			localDatabase = PlayerPrefs.GetString("unisave-local-database:" + prefs.localDatabaseName, "{}");
-			localDatabase = LightJson.Serialization.JsonReader.Parse(localDatabase).ToString(true);
+			// force the file to reload by forgetting it
+			preferences = null;
 		}
 
 		void OnLostFocus()
 		{
-			SaveChanges();
-		}
-
-		/////////////////
-		// Preferences //
-		/////////////////
-
-		/// <summary>
-		/// Checks for existance and, if needed, creates the preferences file
-		/// </summary>
-		void PreparePreferencesFile()
-		{
-			var path = "Assets/Unisave/Resources/" + UnisavePreferences.ResourceFileName + ".asset";
-	
-			prefs = AssetDatabase.LoadAssetAtPath<UnisavePreferences>(path);
-	
-			if (prefs == null)
-			{
-				Debug.Log("Couldn't find unisave preferences. Creating...");
-				prefs = CreateInstance<UnisavePreferences>();
-				AssetDatabase.CreateAsset(prefs, path);
-				AssetDatabase.SaveAssets();
-				AssetDatabase.Refresh();
-			}
-		}
-
-		void SaveChanges()
-		{
-			EditorPrefs.SetString("unisave.editorKey", editorKey);
-
-			EditorUtility.SetDirty(prefs);
-			AssetDatabase.SaveAssets();
-			AssetDatabase.Refresh();
+			if (preferences != null)
+				preferences.Save();
 		}
 	}
 }

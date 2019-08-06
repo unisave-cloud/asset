@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+using Unisave.Authentication;
 
 namespace Unisave
 {
@@ -38,25 +39,18 @@ namespace Unisave
 
 		void OnLoginClicked()
 		{
-			// DEBUG
-			LoginSucceeded();
+			messageText.text = "...";
+			messageText.gameObject.SetActive(true);
 
-			//messageText.text = "...";
-			//messageText.gameObject.SetActive(true);
-
-			//UnisaveCloud.Login(this, loginEmailField.text, loginPasswordField.text);
+			Auth.Login(loginEmailField.text, loginPasswordField.text)
+				.Then(() => {
+					SceneManager.LoadSceneAsync(sceneNameToLoad, LoadSceneMode.Single);
+				})
+				.Catch(failure => {
+					messageText.text = ((LoginFailure)failure).message;
+					messageText.gameObject.SetActive(true);
+				});
 		}
-
-		public void LoginSucceeded()
-		{
-			SceneManager.LoadSceneAsync(sceneNameToLoad, LoadSceneMode.Single);
-		}
-
-		// public void LoginFailed(LoginFailure failure)
-		// {
-		// 	messageText.text = failure.message;
-		// 	messageText.gameObject.SetActive(true);
-		// }
 
 		void OnRegisterClicked()
 		{
@@ -69,23 +63,19 @@ namespace Unisave
 				return;
 			}
 
-			// UnisaveCloud.Register(this, registerEmailField.text, registerPasswordField.text);
+			Auth.Register(registerEmailField.text, registerPasswordField.text)
+				.Then(() => {
+					loginEmailField.text = registerEmailField.text;
+					loginPasswordField.text = registerPasswordField.text;
+
+					OnGotoLogin();
+					OnLoginClicked();
+				})
+				.Catch(failure => {
+					messageText.text = ((RegistrationFailure)failure).message;
+					messageText.gameObject.SetActive(true);
+				});
 		}
-
-		public void RegistrationSucceeded()
-		{
-			loginEmailField.text = registerEmailField.text;
-			loginPasswordField.text = registerPasswordField.text;
-
-			OnGotoLogin();
-			OnLoginClicked();
-		}
-
-		// public void RegistrationFailed(RegistrationFailure failure)
-		// {
-		// 	messageText.text = failure.message;
-		// 	messageText.gameObject.SetActive(true);
-		// }
 
 		void OnGotoRegistration()
 		{

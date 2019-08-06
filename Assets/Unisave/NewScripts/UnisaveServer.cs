@@ -127,7 +127,7 @@ namespace Unisave
         private static UnisavePreferences GetDefaultPreferencesWithOverriding()
         {
             if (overridingPreferences.Count == 0)
-                return UnisavePreferences.LoadPreferences();
+                return UnisavePreferences.LoadOrCreate();
 
             return overridingPreferences[overridingPreferences.Count - 1];
         }
@@ -137,17 +137,12 @@ namespace Unisave
         /// </summary>
         public static UnisaveServer CreateFromPreferences(UnisavePreferences preferences)
         {
-            string editorKey = null;
-			#if UNITY_EDITOR
-				editorKey = UnityEditor.EditorPrefs.GetString("unisave.editorKey", null);
-			#endif
-
             return new UnisaveServer(
                 CoroutineRunnerComponent.GetInstance(),
-                preferences.serverApiUrl,
-                preferences.gameToken,
-                editorKey,
-                preferences.emulatedDatabaseName
+                preferences.ServerUrl,
+                preferences.GameToken,
+                preferences.EditorKey,
+                preferences.EmulatedDatabaseName
             );
         }
 
@@ -177,7 +172,7 @@ namespace Unisave
             // TODO ... load preferences
 
             // database name
-            emulatedDatabaseName = preferences.emulatedDatabaseName;
+            emulatedDatabaseName = preferences.EmulatedDatabaseName;
             if (emulatedDatabase != null)
                 emulatedDatabase.Use(emulatedDatabaseName);
         }

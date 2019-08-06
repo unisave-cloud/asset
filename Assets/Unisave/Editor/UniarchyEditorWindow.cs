@@ -39,12 +39,13 @@ namespace Unisave
                     - MotorbikeEntity (yamaha)
                 - emulated databases
                     - main
-                        - players
-                        - entities
+                        - players XXX
+                        - entities XXX
                     - motorbike example db
-                        - players
-                        - entities
-                - testing database (if exists)
+                        - players  NOPE use an intuitive structure:
+                                gameentities, player -> playerentities, sharedentitites
+                        - entities XXX
+                - development database
                 - database backups
                     - my-cool-backup
                     - other backup
@@ -54,7 +55,7 @@ namespace Unisave
             //treeView.OnGUI(new Rect(0, 0, position.width, position.height));
 
             var s = Unisave.Serialization.Saver.Save(
-                Unisave.UnisaveServer.DefaultInstance.TestingDatabase.entities.Values.ToList()
+                Unisave.UnisaveServer.DefaultInstance.EmulatedDatabase.entities.Values.ToList()
             ).ToString(true);
 
             s += "\n\n" + Unisave.UnisaveServer.DefaultInstance.EmulatedDatabase.DatabaseName;

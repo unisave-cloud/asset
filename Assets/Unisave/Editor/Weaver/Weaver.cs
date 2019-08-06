@@ -1,18 +1,18 @@
 using System;
 using UnityEngine;
 using UnityEditor;
-using UnityEditor.Compilation;
+//using UnityEditor.Compilation;
 using Mono.CecilX;
 using Mono.CecilX.Cil;
 using System.Linq;
 using System.Collections;
 using System.Collections.Generic;
 using System.IO;
-using UnityAssembly = UnityEditor.Compilation.Assembly;
+//using UnityAssembly = UnityEditor.Compilation.Assembly;
 
 namespace Unisave.Weaver
 {
-    public class Weaver
+    /*public class Weaver
     {
         public const string UnisaveFrameworkAssemblyName = "Unisave.Framework";
         public const string UnisaveWeaverAssemblyName = "Unisave.Weaver";
@@ -210,5 +210,5 @@ namespace Unisave.Weaver
                 td.Methods.Add(versionMethod);
             }
         }
-    }
+    }*/
 }
