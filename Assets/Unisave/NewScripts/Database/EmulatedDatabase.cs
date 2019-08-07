@@ -22,81 +22,66 @@ namespace Unisave.Database
         public const string EmulatedPlayerEmail = "emulated@unisave.cloud";
         public static UnisavePlayer EmulatedPlayer => new UnisavePlayer("emulated-player-id");
 
-        public struct PlayerRecord
+        public struct PlayerRecord : IEquatable<PlayerRecord>
         {
             public string id;
             public string email;
+
+            public bool Equals(PlayerRecord that)
+            {
+                return this.id == that.id;
+            }
         }
-
-        public const string PlayerPrefsDatabaseKey = "Unisave.EmulatedDatabase.Instance:"; // + name
-        public const string PlayerPrefsDatabaseListKey = "Unisave.EmulatedDatabase.List"; // json array of names
-
-        /*
-            The data is public, but that's just because I'm lazy. Refactor in the future.
-         */
 
         /// <summary>
         /// List of all players
         /// </summary>
-        public List<PlayerRecord> players = new List<PlayerRecord>();
+        private ISet<PlayerRecord> players = new HashSet<PlayerRecord>();
 
         /// <summary>
         /// List of all entities
         /// </summary>
-        public Dictionary<string, RawEntity> entities = new Dictionary<string, RawEntity>();
+        private Dictionary<string, RawEntity> entities = new Dictionary<string, RawEntity>();
 
         /// <summary>
         /// Pairs of [ entity | player ]
         /// </summary>
-        public List<Tuple<string, string>> entityOwnerships = new List<Tuple<string, string>>();
+        private List<Tuple<string, string>> entityOwnerships = new List<Tuple<string, string>>();
 
         /// <summary>
-        /// Currently used database
+        /// Name of the database
         /// </summary>
-        public string DatabaseName { get; private set; }
+        public string Name { get; private set; }
 
         /// <summary>
         /// When true, the database shouldn't be accessed
         /// (to detect client-side db access)
         /// </summary>
-        private Func<bool> PreventAccess;
-
-        public EmulatedDatabase(Func<bool> PreventAccess)
-        {
-            this.PreventAccess = PreventAccess;
-
-            Clear();
-        }
+        public Func<bool> PreventAccess { get; set; } = () => false;
 
         /// <summary>
-        /// What database to use
+        /// Called after someone accesses and mutates the database via the IDatabase interface
+        /// (meaning from inside the emulated server code)
         /// </summary>
-        public void Use(string databaseName)
+        public event OnChangeEventHandler OnChange;
+
+        /// <summary>
+        /// Event handler for the AfterInterfaceAccess event
+        /// </summary>
+        /// <param name="subject">Database that was accessed</param>
+        public delegate void OnChangeEventHandler(EmulatedDatabase subject);
+
+        public EmulatedDatabase(string name)
         {
-            if (String.IsNullOrEmpty(databaseName))
-                databaseName = "null";
-
-            if (databaseName == DatabaseName)
-                return;
-
-            // stop using current database
-            if (DatabaseName != null)
-            {
-                SaveDatabase();
-                DatabaseName = null;
-            }
+            this.Name = name;
 
             Clear();
-
-            // start using specified database
-            DatabaseName = databaseName;
-            LoadDatabase();
         }
 
         /// <summary>
         /// Empty the database
         /// </summary>
-        public void Clear()
+        public void Clear(bool raiseChangeEvent = false)
         {
             players.Clear();
             entities.Clear();
@@ -107,52 +92,15 @@ namespace Unisave.Database
                 id = EmulatedPlayerId,
                 email = EmulatedPlayerEmail
             });
+
+            if (raiseChangeEvent)
+                OnChange(this);
         }
 
         /// <summary>
-        /// Load database content from player prefs
+        /// Serialize database to json
         /// </summary>
-        private void LoadDatabase()
-        {
-            string rawJson = PlayerPrefs.GetString(PlayerPrefsDatabaseKey + DatabaseName, null);
-
-            // database does not exist yet
-            if (String.IsNullOrEmpty(rawJson))
-                return;
-
-            JsonObject json = JsonReader.Parse(rawJson);
-
-            players.AddRange(
-                json["players"]
-                    .AsJsonArray
-                    .Select(
-                        x => new PlayerRecord {
-                            id = x.AsJsonObject["id"].AsString,
-                            email = x.AsJsonObject["email"].AsString
-                        }
-                    )
-            );
-
-            var enumerable = json["entities"].AsJsonArray.Select(x => RawEntity.FromJson(x));
-            foreach (RawEntity e in enumerable)
-                entities.Add(e.id, e);
-
-            entityOwnerships.AddRange(
-                json["entityOwnerships"]
-                    .AsJsonArray
-                    .Select(
-                        x => new Tuple<string, string>(
-                            x.AsJsonObject["entityId"],
-                            x.AsJsonObject["playerId"]
-                        )
-                    )
-            );
-        }
-
-        /// <summary>
-        /// Save database to player prefs
-        /// </summary>
-        private void SaveDatabase()
+        public JsonObject ToJson()
         {
             JsonObject json = new JsonObject();
 
@@ -180,30 +128,77 @@ namespace Unisave.Database
                     .ToArray()
             );
 
-            PlayerPrefs.SetString(PlayerPrefsDatabaseKey + DatabaseName, json.ToString());
+            return json;
+        }
 
-            // DB list
+        /// <summary>
+        /// Load database from its serialized form in json
+        /// </summary>
+        public static EmulatedDatabase FromJson(JsonObject json, string name)
+        {
+            var database = new EmulatedDatabase(name);
 
-            string rawJsonDatabases = PlayerPrefs.GetString(PlayerPrefsDatabaseListKey, null);
-            if (String.IsNullOrEmpty(rawJsonDatabases))
-                rawJsonDatabases = "[]";
-            JsonArray jsonDatabases = JsonReader.Parse(rawJsonDatabases);
-
-            var databases = new HashSet<string>(
-                jsonDatabases.Select(x => (string)x)
+            database.players.UnionWith(
+                json["players"]
+                    .AsJsonArray
+                    .Select(
+                        x => new PlayerRecord {
+                            id = x.AsJsonObject["id"].AsString,
+                            email = x.AsJsonObject["email"].AsString
+                        }
+                    )
             );
 
-            databases.Add(DatabaseName);
+            var enumerable = json["entities"].AsJsonArray.Select(x => RawEntity.FromJson(x));
+            foreach (RawEntity e in enumerable)
+                database.entities.Add(e.id, e);
 
-            jsonDatabases = new JsonArray(
-                databases.Select(x => (JsonValue)x).ToArray()
+            database.entityOwnerships.AddRange(
+                json["entityOwnerships"]
+                    .AsJsonArray
+                    .Select(
+                        x => new Tuple<string, string>(
+                            x.AsJsonObject["entityId"],
+                            x.AsJsonObject["playerId"]
+                        )
+                    )
             );
 
-            PlayerPrefs.SetString(PlayerPrefsDatabaseListKey, jsonDatabases.ToString());
+            return database;
+        }
 
-            // save
+        /// <summary>
+        /// Enumerate players inside the database
+        /// </summary>
+        public IEnumerable<PlayerRecord> EnumeratePlayers()
+        {
+            return players;
+        }
 
-            PlayerPrefs.Save();
+        /// <summary>
+        /// Enumerate all entities that belong to a single player
+        /// </summary>
+        public IEnumerable<RawEntity> EnumeratePlayerEntities(string playerId)
+        {
+            return entities.Values.Where(e => e.ownerIds.Count == 1 && e.ownerIds.First() == playerId);
+        }
+
+        /// <summary>
+        /// Enumerate all entities that belong to at least two players
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<RawEntity> EnumerateSharedEntities()
+        {
+            return entities.Values.Where(e => e.ownerIds.Count >= 2);
+        }
+
+        /// <summary>
+        /// Enumerate all entities that belong to at least two players
+        /// </summary>
+        /// <returns></returns>
+        public IEnumerable<RawEntity> EnumerateGameEntities()
+        {
+            return entities.Values.Where(e => e.ownerIds.Count == 0);
         }
 
         /// <summary>
@@ -212,7 +207,7 @@ namespace Unisave.Database
         /// </summary>
         private void GuardClientSide()
         {
-            if (PreventAccess())
+            if (PreventAccess != null && PreventAccess())
                 FakeDatabase.NotifyDeveloper();
         }
 
@@ -226,7 +221,7 @@ namespace Unisave.Database
             else
                 UpdateEntity(entity);
 
-            SaveDatabase();
+            OnChange(this);
         }
 
         private void InsertEntity(RawEntity entity)
@@ -275,7 +270,8 @@ namespace Unisave.Database
                 return false;
 
             entities.Remove(id);
-            SaveDatabase();
+            
+            OnChange(this);
 
             return true;
         }

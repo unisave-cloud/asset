@@ -178,5 +178,21 @@ namespace Unisave
 		
 		[SerializeField]
 		private string emulatedDatabaseName = "main";
+
+		/// <summary>
+		/// Emulate even if the scene does not require it
+		/// </summary>
+		public bool AlwaysEmulate
+		{
+			get => alwaysEmulate;
+
+			set
+			{
+				alwaysEmulate = value;
+			}
+		}
+		
+		[SerializeField]
+		private bool alwaysEmulate = false;
 	}
 }

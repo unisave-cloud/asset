@@ -14,6 +14,8 @@ namespace Unisave
 
 		private Texture unisaveLogo;
 
+		private Vector2 windowScroll = Vector3.zero;
+
 		[MenuItem("Window/Unisave/Preferences")]
 		public static void ShowWindow()
 		{
@@ -29,6 +31,8 @@ namespace Unisave
 			if (preferences == null)
 				preferences = UnisavePreferences.LoadOrCreate();
 
+			windowScroll = GUILayout.BeginScrollView(windowScroll);
+
 			DrawUnisaveLogo();
 
 			GUILayout.Label("Unisave server connection", EditorStyles.boldLabel);
@@ -39,10 +43,13 @@ namespace Unisave
 			GUILayout.Label("Development", EditorStyles.boldLabel);
 			preferences.BackendFolder = EditorGUILayout.TextField("Backend assets folder", preferences.BackendFolder);
 			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
+			preferences.AlwaysEmulate = EditorGUILayout.Toggle("Always emulate", preferences.AlwaysEmulate);
 
 			GUILayout.Space(30f);
 
 			GUILayout.Label("Changes to configuration are saved automatically.");
+
+			GUILayout.EndScrollView();
 		}
 
 		void DrawUnisaveLogo()

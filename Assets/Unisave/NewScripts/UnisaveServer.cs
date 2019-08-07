@@ -137,13 +137,18 @@ namespace Unisave
         /// </summary>
         public static UnisaveServer CreateFromPreferences(UnisavePreferences preferences)
         {
-            return new UnisaveServer(
+            var server = new UnisaveServer(
                 CoroutineRunnerComponent.GetInstance(),
                 preferences.ServerUrl,
                 preferences.GameToken,
                 preferences.EditorKey,
                 preferences.EmulatedDatabaseName
             );
+
+            if (preferences.AlwaysEmulate)
+                server.IsEmulating = true;
+
+            return server;
         }
 
         public UnisaveServer(
@@ -169,12 +174,15 @@ namespace Unisave
         /// </summary>
         public void ReloadPreferences(UnisavePreferences preferences)
         {
-            // TODO ... load preferences
-
-            // database name
+            // emulated database name
             emulatedDatabaseName = preferences.EmulatedDatabaseName;
-            if (emulatedDatabase != null)
-                emulatedDatabase.Use(emulatedDatabaseName);
+            emulatedDatabase = null; // make it reload once needed
+
+            // always emulate
+            if (preferences.AlwaysEmulate)
+                IsEmulating = true;
+
+            // TODO: apply remaining preferences
         }
 
         /// <summary>
@@ -211,6 +219,7 @@ namespace Unisave
 
                 if (value)
                 {
+                    Debug.LogWarning("Unisave: Starting server emulation.");
                     isEmulating = true;
                 }
                 else
@@ -247,10 +256,11 @@ namespace Unisave
             {
                 if (emulatedDatabase == null)
                 {
-                    emulatedDatabase = new EmulatedDatabase(
-                        EmulatedFacetCaller.PreventDatabaseAccess
-                    );
-                    emulatedDatabase.Use(emulatedDatabaseName);
+                    emulatedDatabase = EmulatedDatabaseRepository
+                        .GetInstance()
+                        .GetDatabase(emulatedDatabaseName);
+                    
+                    emulatedDatabase.PreventAccess = EmulatedFacetCaller.PreventDatabaseAccess;
                 }
 
                 return emulatedDatabase;
@@ -273,10 +283,12 @@ namespace Unisave
             {
                 if (testingDatabase == null)
                 {
-                    testingDatabase = new EmulatedDatabase(
-                        PreventAccess: () => false // testing database can be accesed at any time
-                    );
-                    testingDatabase.Use("testing");
+                    testingDatabase = EmulatedDatabaseRepository
+                        .GetInstance()
+                        .GetDatabase("testing");
+
+                    // testing database can be accessed anytime
+                    testingDatabase.PreventAccess = () => false;
                 }
 
                 return testingDatabase;
@@ -422,8 +434,8 @@ namespace Unisave
                         if (!Application.isEditor)
                             throw new Exception("Cannot call facet methods without a logged-in player.");
 
-                        Debug.LogWarning("Unisave: Starting server emulation, logging in emulated player.");
                         IsEmulating = true;
+                        Debug.LogWarning("Unisave: Logging in emulated player.");
                         EmulatedAuthenticator.LoginEmulatedPlayer();
 
                         return EmulatedFacetCaller;
