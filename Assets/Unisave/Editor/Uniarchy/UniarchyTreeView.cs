@@ -34,6 +34,15 @@ namespace Unisave.Uniarchy
             }
             root.AddChild(emulatedDatabases);
 
+            var developmentDatabase = new TreeViewItem { id = idAllocator.NextId(), displayName = "Development database" };
+            developmentDatabase.AddChild(
+                new TreeViewItem {
+                    id = idAllocator.NextId(),
+                    displayName = "Will be inspectable soon..."
+                }
+            );
+            root.AddChild(developmentDatabase);
+
             SetupDepthsFromParentsAndChildren(root);
 
             return root;

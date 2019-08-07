@@ -6,11 +6,11 @@ using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Unisave;
 
-namespace Unisave.Examples.Cloud.Motorbike
+namespace Unisave.Examples.Chess
 {
 	public class GarageScript : MonoBehaviour
 	{
-		public InputField motorbikeNameField;
+		//public InputField motorbikeNameField;
 
 		void Awake()
 		{

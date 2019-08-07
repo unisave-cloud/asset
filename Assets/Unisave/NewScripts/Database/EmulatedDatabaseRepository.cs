@@ -130,7 +130,8 @@ namespace Unisave.Database
             );
             PlayerPrefs.Save();
 
-            OnChange();
+            if (OnChange != null)
+                OnChange();
         }
 
         /// <summary>
@@ -203,7 +204,8 @@ namespace Unisave.Database
             SaveDatabaseList();
             SaveDatabase(database);
 
-            OnChange();
+            if (OnChange != null)
+                OnChange();
         }
 
         /// <summary>
@@ -231,7 +233,8 @@ namespace Unisave.Database
             // register as deleted for possible revival
             deletedDatabases[name] = database;
 
-            OnChange();
+            if (OnChange != null)
+                OnChange();
         }
     }
 }

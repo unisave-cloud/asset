@@ -821,7 +821,7 @@ GameObject:
   - component: {fileID: 1598601115}
   - component: {fileID: 1598601114}
   m_Layer: 0
-  m_Name: GarageScript
+  m_Name: GarageController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
