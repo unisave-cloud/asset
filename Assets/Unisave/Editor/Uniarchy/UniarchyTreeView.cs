@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
@@ -9,6 +10,13 @@ namespace Unisave.Uniarchy
 {
     class UniarchyTreeView : TreeView
     {
+        /// <summary>
+        /// The selected item
+        /// </summary>
+        public static TreeViewItem SelectedItem { get; private set; } = null;
+
+        public static event Action OnSelectionChange;
+
         EmulatedDatabaseRepository databaseRepository;
 
         public UniarchyTreeView(TreeViewState treeViewState) : base(treeViewState)
@@ -46,6 +54,20 @@ namespace Unisave.Uniarchy
             SetupDepthsFromParentsAndChildren(root);
 
             return root;
+        }
+
+        protected override void SelectionChanged(IList<int> selectedIds)
+        {
+            if (selectedIds.Count == 0 || selectedIds.Count > 1)
+            {
+                SelectedItem = null;
+                return;
+            }
+
+            SelectedItem = FindItem(selectedIds[0], rootItem);
+
+            if (OnSelectionChange != null)
+                OnSelectionChange();
         }
     }
 }

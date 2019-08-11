@@ -821,7 +821,7 @@ GameObject:
   - component: {fileID: 1598601115}
   - component: {fileID: 1598601114}
   m_Layer: 0
-  m_Name: GarageController
+  m_Name: HomeController
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -839,7 +839,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 91bc24c6a54604666aa6cc2e099bebcd, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  motorbikeNameField: {fileID: 1581356870}
 --- !u!4 &1598601115
 Transform:
   m_ObjectHideFlags: 0

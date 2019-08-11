@@ -37,28 +37,16 @@ namespace Unisave.Uniarchy
                 - client entity cache
                     - MotorbikeEntity (yamaha)
                 - emulated databases
-                    - main
-                        - players XXX
-                        - entities XXX
-                    - motorbike example db
-                        - players  NOPE use an intuitive structure:
-                                gameentities, player -> playerentities, sharedentitites
-                        - entities XXX
-                - development database
-                - database backups
+                    - ...
+                - database backups (database snapshots rather)
                     - my-cool-backup
                     - other backup
              */
 
+            if (treeView == null)
+                OnEnable();
+
             treeView.OnGUI(new Rect(0, 0, position.width, position.height));
-
-            /*var s = Unisave.Serialization.Saver.Save(
-                Unisave.UnisaveServer.DefaultInstance.EmulatedDatabase.entities.Values.ToList()
-            ).ToString(true);
-
-            s += "\n\n" + Unisave.UnisaveServer.DefaultInstance.EmulatedDatabase.DatabaseName;
-
-            GUI.Label(new Rect(0, 0, position.width, position.height), "DB: \n" + s);*/
         }
     }
 }

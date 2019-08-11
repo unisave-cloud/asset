@@ -2,6 +2,8 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Unisave.Database;
+using Unisave.Uniarchy;
 
 namespace Unisave
 {
@@ -24,6 +26,13 @@ namespace Unisave
 				false,
 				"Unisave"
 			);
+		}
+
+		void OnEnable()
+		{
+			UniarchyTreeView.OnSelectionChange += () => {
+				Repaint();
+			};
 		}
 
 		void OnGUI()
@@ -49,6 +58,10 @@ namespace Unisave
 
 			GUILayout.Label("Changes to configuration are saved automatically.");
 
+			GUILayout.Space(30f);
+
+			DrawUnspector();
+
 			GUILayout.EndScrollView();
 		}
 
@@ -65,6 +78,62 @@ namespace Unisave
 				unisaveLogo
 			);
 			GUILayout.Space(height + 2 * margin);
+		}
+
+		void DrawUnspector()
+		{
+			var selection = UniarchyTreeView.SelectedItem;
+
+			if (selection == null)
+				return;
+
+			if (selection is DatabaseItem)
+			{
+				DrawUnspectorTitle("Database");
+				
+				var database = ((DatabaseItem)selection).Database;
+
+				ReadOnlyField("Name", database.Name);
+
+				EditorGUILayout.BeginHorizontal();
+				if (GUILayout.Button("Clear"))
+					database.Clear(true);
+				if (GUILayout.Button("Delete"))
+					EmulatedDatabaseRepository.GetInstance().DeleteDatabase(database.Name);
+				EditorGUILayout.EndHorizontal();
+			}
+
+			if (selection is EntityItem)
+			{
+				DrawUnspectorTitle("Entity");
+
+				var entity = ((EntityItem)selection).GetEntity();
+
+				ReadOnlyField("ID", entity.id);
+				ReadOnlyField("Type", entity.type);
+
+				GUILayout.Label(entity.ToJson().ToString(true));
+			}
+		}
+
+		void ReadOnlyField(string label, string content)
+		{
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField(label, GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+			EditorGUILayout.SelectableLabel(content, EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+			EditorGUILayout.EndHorizontal();
+		}
+
+		void DrawUnspectorTitle(string text)
+		{
+			GUILayout.Label(
+				text,
+				new GUIStyle {
+					fontSize = 18,
+					fontStyle = FontStyle.Bold,
+					alignment = TextAnchor.MiddleCenter
+				}
+			);
 		}
 
 		void OnFocus()

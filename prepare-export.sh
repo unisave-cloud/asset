@@ -8,3 +8,6 @@ cd ./AssetForExport
 rm ./Assets/Unisave/Resources/UnisavePreferencesFile.asset*
 rm -r ./Assets/Unisave/Editor/Tests*
 
+# remove chess example (not finished yet)
+rm -r ./Assets/Unisave/Examples/Chess*
+

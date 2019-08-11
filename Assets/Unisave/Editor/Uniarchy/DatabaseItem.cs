@@ -21,10 +21,7 @@ namespace Unisave.Uniarchy
             foreach (RawEntity entity in Database.EnumerateGameEntities())
             {
                 gameEntities.AddChild(
-                    new TreeViewItem {
-                        id = idAllocator.NextId(),
-                        displayName = entity.type + " [" + entity.id + "]"
-                    }
+                    new EntityItem(entity, idAllocator)
                 );
             }
             AddChild(gameEntities);
@@ -37,10 +34,7 @@ namespace Unisave.Uniarchy
             foreach (RawEntity entity in Database.EnumerateSharedEntities())
             {
                 sharedEntities.AddChild(
-                    new TreeViewItem {
-                        id = idAllocator.NextId(),
-                        displayName = entity.type + " [" + entity.id + "]"
-                    }
+                    new EntityItem(entity, idAllocator)
                 );
             }
             AddChild(sharedEntities);
@@ -55,10 +49,7 @@ namespace Unisave.Uniarchy
                 foreach (RawEntity entity in Database.EnumeratePlayerEntities(player.id))
                 {
                     playerItem.AddChild(
-                        new TreeViewItem {
-                            id = idAllocator.NextId(),
-                            displayName = entity.type + " [" + entity.id + "]"
-                        }
+                        new EntityItem(entity, idAllocator)
                     );
                 }
                 
