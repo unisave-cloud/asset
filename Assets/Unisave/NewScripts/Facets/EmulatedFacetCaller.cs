@@ -7,6 +7,7 @@ using Unisave;
 using Unisave.Serialization;
 using Unisave.Database;
 using Unisave.Exceptions;
+using Unisave.Runtime;
 
 namespace Unisave.Facets
 {
@@ -36,43 +37,31 @@ namespace Unisave.Facets
 
             Type facetType = Facet.FindFacetTypeByName(facetName, allTypes.ToArray());
 
-            MethodInfo methodInfo = Facet.FindFacetMethodByName(facetType, methodName);
-
-            // deserialize arguments
-
-            object[] deserializedArguments = new object[arguments.Count];
-            ParameterInfo[] parameters = methodInfo.GetParameters();
-
-            if (parameters.Length != arguments.Count)
-                throw new UnisaveException(
-                    $"Method '{facetName}.{methodName}' accepts different number of arguments than provided. "
-                    + "Make sure you don't use the params keyword or default argument values, "
-                    + "since it is not supported by Unisave."
-                );
-
-            for (int i = 0; i < arguments.Count; i++)
-                deserializedArguments[i] = Loader.Load(arguments[i], parameters[i].ParameterType);
-
-            // create facet instance and call the method (also tell the emulated database to accept requests)
-
-            preventDatabaseAccess = false;
-
+            // execute the facet
+            
             Facet instance = Facet.CreateInstance(facetType, GetAuthorizedPlayer());
-            object returnValue = methodInfo.Invoke(instance, deserializedArguments);
-            JsonValue returnValueJson = Saver.Save(returnValue);
+            JsonValue returnValue;
+            
+            try
+            {
+                preventDatabaseAccess = false;
+                returnValue = ExecutionHelper.ExecuteMethod(
+                    instance, methodName, arguments, out MethodInfo methodInfo
+                );
+            }
+            catch (TargetInvocationException e)
+            {
+                // behave just like the real server would
+                return Promise<JsonValue>.Rejected(
+                    new UnisaveFacetCaller.RemoteException(e.InnerException.ToString())
+                );
+            }
+            finally
+            {
+                preventDatabaseAccess = true;
+            }
 
-            preventDatabaseAccess = true;
-
-            // return and resolve the promise
-			var promise = new Promise<JsonValue>();
-			promise.Resolve(returnValueJson);
-			return promise;
-
-            // NOTE: the promise doesn't need to be rejected, since any exception will
-            // kill this execution synchronously
-
-            // However think about this in the future. The emulated server should behave
-            // the same way the real server would.
+            return Promise<JsonValue>.Resolved(returnValue);
 		}
     }
 }

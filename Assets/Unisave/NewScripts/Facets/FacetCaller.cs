@@ -7,6 +7,7 @@ using RSG;
 using LightJson;
 using Unisave.Exceptions;
 using Unisave.Serialization;
+using Unisave.Runtime;
 
 namespace Unisave.Facets
 {
@@ -37,7 +38,7 @@ namespace Unisave.Facets
         )
         {
             // check method return type
-            MethodInfo methodInfo = Facet.FindFacetMethodByName(facetType, methodName);
+            MethodInfo methodInfo = ExecutionHelper.FindMethodByName(facetType, methodName);
             
             if (methodInfo.ReturnType != returnType)
                 throw new UnisaveException(
@@ -70,7 +71,7 @@ namespace Unisave.Facets
         )
         {
             // check method return type
-            MethodInfo methodInfo = Facet.FindFacetMethodByName(facetType, methodName);
+            MethodInfo methodInfo = ExecutionHelper.FindMethodByName(facetType, methodName);
             
             if (methodInfo.ReturnType != typeof(void))
                 throw new UnisaveException(
