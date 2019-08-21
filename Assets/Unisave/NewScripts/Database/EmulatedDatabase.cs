@@ -57,7 +57,7 @@ namespace Unisave.Database
         /// When true, the database shouldn't be accessed
         /// (to detect client-side db access)
         /// </summary>
-        public Func<bool> PreventAccess { get; set; } = () => false;
+        public bool PreventAccess { get; set; } = false;
 
         /// <summary>
         /// Called after someone accesses and mutates the database via the IDatabase interface
@@ -202,12 +202,29 @@ namespace Unisave.Database
         }
 
         /// <summary>
+        /// Adds a new player into the database and returns it's ID
+        /// </summary>
+        public string AddPlayer(string email)
+        {
+            var id = Str.Random(16);
+
+            players.Add(new PlayerRecord {
+                id = id,
+                email = email
+            });
+
+            OnChange(this);
+
+            return id;
+        }
+
+        /// <summary>
         /// Checks proper emulation state.
         /// Throws exception on failure
         /// </summary>
         private void GuardClientSide()
         {
-            if (PreventAccess != null && PreventAccess())
+            if (PreventAccess)
                 FakeDatabase.NotifyDeveloper();
         }
 

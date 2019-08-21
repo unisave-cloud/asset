@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using RSG;
 using Unisave.Utils;
+using Unisave.Serialization;
 using LightJson;
 
 namespace Unisave.Authentication
@@ -230,7 +231,7 @@ namespace Unisave.Authentication
 		}
 
 		/// <inheritdoc/>
-		public IPromise Register(string email, string password)
+		public IPromise Register(string email, string password, Dictionary<string, object> hookArguments)
 		{
 			if (registrationCoroutineRunning)
 			{
@@ -251,6 +252,7 @@ namespace Unisave.Authentication
 					.Add("buildGUID", Application.buildGUID)
 					.Add("version", Application.version)
 					.Add("editorKey", editorKey)
+					.Add("hookArguments", Saver.Save(hookArguments))
 			).Then((JsonValue jsonValue) => {
 				JsonObject response = jsonValue;
 				switch (response["code"].AsString)

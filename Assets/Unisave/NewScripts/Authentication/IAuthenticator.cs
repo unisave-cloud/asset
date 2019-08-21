@@ -38,7 +38,7 @@ namespace Unisave.Authentication
         /// <summary>
         /// Attempts to register a new player
         /// </summary>
-        IPromise Register(string email, string password);
+        IPromise Register(string email, string password, Dictionary<string, object> hookArguments);
     }
 
     ///////////////////////////

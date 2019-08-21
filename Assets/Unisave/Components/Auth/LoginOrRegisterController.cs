@@ -63,7 +63,11 @@ namespace Unisave
 				return;
 			}
 
-			Auth.Register(registerEmailField.text, registerPasswordField.text)
+			// TODO: add optional "Name" field
+			Dictionary<string, object> hookArguments = new Dictionary<string, object>();
+			hookArguments.Add("name", "Peter Peterson!");
+
+			Auth.Register(registerEmailField.text, registerPasswordField.text, hookArguments)
 				.Then(() => {
 					loginEmailField.text = registerEmailField.text;
 					loginPasswordField.text = registerPasswordField.text;
@@ -72,7 +76,16 @@ namespace Unisave
 					OnLoginClicked();
 				})
 				.Catch(failure => {
-					messageText.text = ((RegistrationFailure)failure).message;
+					if (failure is RegistrationFailure)
+					{
+						messageText.text = ((RegistrationFailure)failure).message;
+					}
+					else
+					{
+						messageText.text = "Unknown error.";
+						Debug.LogException(failure);
+					}
+
 					messageText.gameObject.SetActive(true);
 				});
 		}

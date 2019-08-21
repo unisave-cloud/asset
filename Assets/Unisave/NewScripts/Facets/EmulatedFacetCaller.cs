@@ -15,14 +15,15 @@ namespace Unisave.Facets
     {
         private Func<UnisavePlayer> GetAuthorizedPlayer;
 
-        public Func<bool> PreventDatabaseAccess;
-        private bool preventDatabaseAccess = true;
+        /// <summary>
+        /// Allows access to the emulated databse for a window of time
+        /// </summary>
+        private Action<Action> DatabaseAccessWindow;
 
-        public EmulatedFacetCaller(Func<UnisavePlayer> GetAuthorizedPlayer)
+        public EmulatedFacetCaller(Func<UnisavePlayer> GetAuthorizedPlayer, Action<Action> DatabaseAccessWindow)
         {
-            PreventDatabaseAccess = () => preventDatabaseAccess;
-
             this.GetAuthorizedPlayer = GetAuthorizedPlayer;
+            this.DatabaseAccessWindow = DatabaseAccessWindow;
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
@@ -40,14 +41,15 @@ namespace Unisave.Facets
             // execute the facet
             
             Facet instance = Facet.CreateInstance(facetType, GetAuthorizedPlayer());
-            JsonValue returnValue;
+            JsonValue returnValue = JsonValue.Null;
             
             try
             {
-                preventDatabaseAccess = false;
-                returnValue = ExecutionHelper.ExecuteMethod(
-                    instance, methodName, arguments, out MethodInfo methodInfo
-                );
+                DatabaseAccessWindow(() => {
+                    returnValue = ExecutionHelper.ExecuteMethod(
+                        instance, methodName, arguments, out MethodInfo methodInfo
+                    );
+                });
             }
             catch (TargetInvocationException e)
             {
@@ -55,10 +57,6 @@ namespace Unisave.Facets
                 return Promise<JsonValue>.Rejected(
                     new UnisaveFacetCaller.RemoteException(e.InnerException.ToString())
                 );
-            }
-            finally
-            {
-                preventDatabaseAccess = true;
             }
 
             return Promise<JsonValue>.Resolved(returnValue);

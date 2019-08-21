@@ -7,9 +7,52 @@ using System.IO;
 
 namespace Unisave.Editor
 {
+    /// <summary>
+    /// This class is responsible for the "Create >> Unisave >> *" context menu
+    /// </summary>
     public static class AssetCreation
     {
-        [MenuItem("Assets/Create/Unisave/Backend folder", false, 10)]
+        [MenuItem("Assets/Create/Unisave/Entity", false, 1)]
+        public static void CreateEntity()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "NewEntity",
+                templateName: "Templates/EntityTemplate",
+                wildcard: "#ENTITYNAME#"
+            );
+        }
+
+        [MenuItem("Assets/Create/Unisave/Facet", false, 2)]
+        public static void CreateFacet()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "NewFacet",
+                templateName: "Templates/FacetTemplate",
+                wildcard: "#FACETNAME#"
+            );
+        }
+
+        [MenuItem("Assets/Create/Unisave/Hook/OnPlayerRegistration", false, 3)]
+        public static void CreatePlayerRegistrationHook()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "OnPlayerRegistration",
+                templateName: "Templates/Hooks/PlayerRegistrationHookTemplate",
+                wildcard: "#HOOKNAME#"
+            );
+        }
+
+        [MenuItem("Assets/Create/Unisave/Boilerplate/CreatePlayerEntityOnPlayerRegistration", false, 4)]
+        public static void CreateBoilerplateCreatePlayerEntity()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "CreatePlayerEntityOnPlayerRegistration",
+                templateName: "Templates/Boilerplate/CreatePlayerEntityOnRegistrationHookTemplate",
+                wildcard: "#HOOKNAME#"
+            );
+        }
+
+        [MenuItem("Assets/Create/Unisave/Backend folder", false, 20)]
         public static void CreateBackendFolder()
         {
             var path = GetCurrentDirectoryPath();
@@ -20,59 +63,39 @@ namespace Unisave.Editor
             AssetDatabase.CreateFolder(path + "/Backend", "Migrations");
         }
 
-        [MenuItem("Assets/Create/Unisave/Entity", false, 1)]
-        public static void CreateEntity()
-        {
-            CreateAsset(
-                GetCurrentDirectoryPath() + "/NewEntity.cs",
-                Resources.Load<Texture2D>("UnisaveLogo"),
-                (pathName) => {
-                    AssetDatabase.CreateAsset(
-                        new TextAsset(),
-                        pathName
-                    );
-
-                    var name = Path.GetFileNameWithoutExtension(pathName);
-                    
-                    File.WriteAllText(
-                        pathName,
-                        Resources.Load<TextAsset>("EntityTemplate").text
-                            .Replace("#ENTITYNAME#", name)
-                    );
-
-                    AssetDatabase.ImportAsset(pathName);
-                }
-            );
-        }
-
-        [MenuItem("Assets/Create/Unisave/Facet", false, 2)]
-        public static void CreateFacet()
-        {
-            CreateAsset(
-                GetCurrentDirectoryPath() + "/NewFacet.cs",
-                Resources.Load<Texture2D>("UnisaveLogo"),
-                (pathName) => {
-                    AssetDatabase.CreateAsset(
-                        new TextAsset(),
-                        pathName
-                    );
-
-                    var name = Path.GetFileNameWithoutExtension(pathName);
-                    
-                    File.WriteAllText(
-                        pathName,
-                        Resources.Load<TextAsset>("FacetTemplate").text
-                            .Replace("#FACETNAME#", name)
-                    );
-
-                    AssetDatabase.ImportAsset(pathName);
-                }
-            );
-        }
-
         /////////////
         // Helpers //
         /////////////
+
+        /// <summary>
+        /// Creates a CS script from template
+        /// </summary>
+        /// <param name="defaultName">Default name of the file and the main class</param>
+        /// <param name="templateName">Name of the template resource file</param>
+        /// <param name="wildcard">Wildcard for the class name</param>
+        public static void CreateScriptFromTemplate(string defaultName, string templateName, string wildcard)
+        {
+            CreateAsset(
+                GetCurrentDirectoryPath() + "/" + defaultName + ".cs",
+                Resources.Load<Texture2D>("UnisaveLogo"),
+                (pathName) => {
+                    AssetDatabase.CreateAsset(
+                        new TextAsset(),
+                        pathName
+                    );
+
+                    var name = Path.GetFileNameWithoutExtension(pathName);
+                    
+                    File.WriteAllText(
+                        pathName,
+                        Resources.Load<TextAsset>(templateName).text
+                            .Replace(wildcard, name)
+                    );
+
+                    AssetDatabase.ImportAsset(pathName);
+                }
+            );
+        }
 
         /// <summary>
         /// Get directory where we want to create the new asset

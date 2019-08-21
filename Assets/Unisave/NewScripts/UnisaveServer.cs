@@ -260,13 +260,30 @@ namespace Unisave
                         .GetInstance()
                         .GetDatabase(emulatedDatabaseName);
                     
-                    emulatedDatabase.PreventAccess = EmulatedFacetCaller.PreventDatabaseAccess;
+                    emulatedDatabase.PreventAccess = true;
                 }
 
                 return emulatedDatabase;
             }
         }
         private EmulatedDatabase emulatedDatabase;
+
+        /// <summary>
+        /// Allows access to emulated database for a window of time
+        /// </summary>
+        private void EmulatedDatabaseAccessWindow(Action action)
+        {
+            EmulatedDatabase.PreventAccess = false;
+
+            try
+            {
+                action.Invoke();
+            }
+            finally
+            {
+                EmulatedDatabase.PreventAccess = true;
+            }
+        }
 
         /// <summary>
         /// Name of the emulated database that is used
@@ -286,9 +303,6 @@ namespace Unisave
                     testingDatabase = EmulatedDatabaseRepository
                         .GetInstance()
                         .GetDatabase("testing");
-
-                    // testing database can be accessed anytime
-                    testingDatabase.PreventAccess = () => false;
                 }
 
                 return testingDatabase;
@@ -347,7 +361,10 @@ namespace Unisave
             {
                 if (emulatedAuthenticator == null)
                 {
-                    emulatedAuthenticator = new EmulatedAuthenticator();
+                    emulatedAuthenticator = new EmulatedAuthenticator(
+                        () => IsTesting ? TestingDatabase : EmulatedDatabase,
+                        EmulatedDatabaseAccessWindow
+                    );
                 }
 
                 return emulatedAuthenticator;
@@ -400,7 +417,8 @@ namespace Unisave
                 if (emulatedFacetCaller == null)
                 {
                     emulatedFacetCaller = new EmulatedFacetCaller(
-                        () => EmulatedAuthenticator.Player
+                        () => EmulatedAuthenticator.Player,
+                        EmulatedDatabaseAccessWindow
                     );
                 }
 

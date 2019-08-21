@@ -28,9 +28,9 @@ namespace Unisave
         /// <summary>
         /// Attempt to register a new player
         /// </summary>
-        public static IPromise Register(string email, string password)
+        public static IPromise Register(string email, string password, Dictionary<string, object> hookArguments = null)
         {
-            return UnisaveServer.DefaultInstance.Authenticator.Register(email, password);
+            return UnisaveServer.DefaultInstance.Authenticator.Register(email, password, hookArguments);
         }
     }
 }
