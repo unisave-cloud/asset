@@ -252,7 +252,7 @@ namespace Unisave.Authentication
 					.Add("buildGUID", Application.buildGUID)
 					.Add("version", Application.version)
 					.Add("editorKey", editorKey)
-					.Add("hookArguments", Saver.Save(hookArguments))
+					.Add("hookArguments", Serializer.ToJson(hookArguments))
 			).Then((JsonValue jsonValue) => {
 				JsonObject response = jsonValue;
 				switch (response["code"].AsString)

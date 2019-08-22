@@ -116,7 +116,7 @@ namespace Unisave.Authentication
                 
             var jsonHookArguments = new Dictionary<string, JsonValue>();
             foreach (var pair in hookArguments)
-                jsonHookArguments.Add(pair.Key, Saver.Save(pair.Value));
+                jsonHookArguments.Add(pair.Key, Serializer.ToJson(pair.Value));
 
             List<PlayerRegistrationHook> hooks = allTypes
                 .Where(t => typeof(PlayerRegistrationHook).IsAssignableFrom(t))
@@ -126,7 +126,7 @@ namespace Unisave.Authentication
 
             hooks.Sort((a, b) => a.Order - b.Order); // small to big
 
-            JsonArray jsonArguments = Saver.Save(hookArguments.ToList());
+            JsonArray jsonArguments = Serializer.ToJson(hookArguments.ToList());
 
             DatabaseAccessWindow(() => {
                 foreach (var hook in hooks)

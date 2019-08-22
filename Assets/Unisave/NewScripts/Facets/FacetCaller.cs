@@ -49,7 +49,7 @@ namespace Unisave.Facets
 
             return PerformFacetCall(facetType.Name, methodName, SerializeArguments(arguments))
                 .Then((JsonValue returnedValue) => {
-                    return Loader.Load(returnedValue, returnType);
+                    return Serializer.FromJson(returnedValue, returnType);
                 });
         }
 
@@ -106,7 +106,7 @@ namespace Unisave.Facets
         {
             var jsonArgs = new JsonArray();
 			for (int i = 0; i < arguments.Length; i++)
-				jsonArgs.Add(Saver.Save(arguments[i]));
+				jsonArgs.Add(Serializer.ToJson(arguments[i]));
             return jsonArgs;
         }
     }

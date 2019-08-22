@@ -162,7 +162,7 @@ namespace Unisave
 
 				field.field.SetValue(
 					target,
-					Loader.Load(distributedValue, field.field.FieldType) // json -> c#
+					Serializer.FromJson(distributedValue, field.field.FieldType) // json -> c#
 				);
 			}
 		}
@@ -184,7 +184,7 @@ namespace Unisave
 				property.property.GetSetMethod().Invoke(
 					target,
 					new object[] {
-						Loader.Load(distributedValue, property.property.PropertyType) // json -> c#
+						Serializer.FromJson(distributedValue, property.property.PropertyType) // json -> c#
 					}
 				);
 			}
@@ -274,7 +274,7 @@ namespace Unisave
 		{
 			foreach (DistribField field in fields)
 			{
-				JsonValue collectedValue = Saver.Save(field.field.GetValue(target));
+				JsonValue collectedValue = Serializer.ToJson(field.field.GetValue(target));
 				repository.Set(field.key, collectedValue);
 			}
 		}
@@ -283,7 +283,7 @@ namespace Unisave
 		{
 			foreach (DistribProperty property in properties)
 			{
-				JsonValue collectedValue = Saver.Save(
+				JsonValue collectedValue = Serializer.ToJson(
 					property.property.GetGetMethod().Invoke(target, new object[] {})
 				);
 				repository.Set(property.key, collectedValue);
