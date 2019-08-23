@@ -8,6 +8,7 @@ using LightJson.Serialization;
 using RSG;
 using Unisave.Utils;
 using Unisave.Exceptions;
+using Unisave.Serialization;
 
 namespace Unisave.Facets
 {
@@ -131,10 +132,13 @@ namespace Unisave.Facets
 					break;
 
 				case "game-exception":
-					RejectAndThrow(
-						promise,
-						new RemoteException(response["message"])
-					);
+					Exception e = new RemoteException(response["message"]);
+					
+					if (!response["exception"].IsNull)
+						e = (Exception) Serializer.FromJson(response["exception"], typeof(Exception));
+					
+					promise.Reject(e);
+					//RejectAndThrow(promise, e);
 					break;
 
 				case "error":
