@@ -28,7 +28,7 @@ namespace Unisave.CodeUploader
             // Do nothing if there were compile errors on the target
             if (CompilerMessagesContainError(messages))
             {
-                Debug.Log("CodeUploader: stop because compile errors on target");
+                //Debug.Log("CodeUploader: stop because compile errors on target");
                 return;
             }
 
@@ -51,15 +51,5 @@ namespace Unisave.CodeUploader
         {
             return messages.Any(msg => msg.type == CompilerMessageType.Error);
         }
-
-        // Testing:
-        // [PostProcessBuild(1)]
-        // static void OnPostprocessBuild(BuildTarget target, string pathToBuiltProject)
-        // {
-        //     Debug.Log("CodeUploader: Postprocess build");
-        //     Debug.Log(target);
-        //     Debug.Log(pathToBuiltProject);
-        //     Debug.Log(Application.buildGUID);
-        // }
     }
 }

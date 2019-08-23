@@ -32,7 +32,11 @@ namespace Unisave.Utils
         public string Register() => GameApiUrl("register");
         public string Login() => GameApiUrl("login");
         public string Logout() => GameApiUrl("logout");
+        
         public string CallFacet() => GameApiUrl("call-facet");
+        
+        public string StartScriptUpload() => EditorApiUrl("upload-script/start");
         public string UploadScript() => EditorApiUrl("upload-script");
+        public string FinishScriptUpload() => EditorApiUrl("upload-script/finish");
     }
 }
