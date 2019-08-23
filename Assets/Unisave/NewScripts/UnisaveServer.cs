@@ -68,9 +68,11 @@ namespace Unisave
         {
             // register promise exception handler
             Promise.UnhandledException += (object sender, ExceptionEventArgs e) => {
-                UnityEngine.Debug.LogError($"Unhandled promise exception: {e.Exception.ToString()}");
-                UnityEngine.Debug.LogError($"For more info on unhandled promise exceptions see:\n"
-                    + "https://github.com/Real-Serious-Games/C-Sharp-Promise#unhandled-errors");
+                UnityEngine.Debug.LogException(e.Exception);
+
+                // UnityEngine.Debug.LogError($"Unhandled promise exception: {e.Exception.ToString()}");
+                // UnityEngine.Debug.LogError($"For more info on unhandled promise exceptions see:\n"
+                //     + "https://github.com/Real-Serious-Games/C-Sharp-Promise#unhandled-errors");
             };
 
             // create new instance with proper preferences
@@ -269,23 +271,6 @@ namespace Unisave
         private EmulatedDatabase emulatedDatabase;
 
         /// <summary>
-        /// Allows access to emulated database for a window of time
-        /// </summary>
-        private void EmulatedDatabaseAccessWindow(Action action)
-        {
-            EmulatedDatabase.PreventAccess = false;
-
-            try
-            {
-                action.Invoke();
-            }
-            finally
-            {
-                EmulatedDatabase.PreventAccess = true;
-            }
-        }
-
-        /// <summary>
         /// Name of the emulated database that is used
         /// </summary>
         private string emulatedDatabaseName;
@@ -362,8 +347,7 @@ namespace Unisave
                 if (emulatedAuthenticator == null)
                 {
                     emulatedAuthenticator = new EmulatedAuthenticator(
-                        () => IsTesting ? TestingDatabase : EmulatedDatabase,
-                        EmulatedDatabaseAccessWindow
+                        () => IsTesting ? TestingDatabase : EmulatedDatabase
                     );
                 }
 
@@ -417,8 +401,7 @@ namespace Unisave
                 if (emulatedFacetCaller == null)
                 {
                     emulatedFacetCaller = new EmulatedFacetCaller(
-                        () => EmulatedAuthenticator.Player,
-                        EmulatedDatabaseAccessWindow
+                        () => EmulatedAuthenticator.Player
                     );
                 }
 

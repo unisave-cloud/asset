@@ -38,15 +38,9 @@ namespace Unisave.Authentication
         /// </summary>
         private Func<EmulatedDatabase> GetDatabase;
 
-        /// <summary>
-        /// Allows access to the database for a given window of time
-        /// </summary>
-        private Action<Action> DatabaseAccessWindow;
-
-        public EmulatedAuthenticator(Func<EmulatedDatabase> GetDatabase, Action<Action> DatabaseAccessWindow)
+        public EmulatedAuthenticator(Func<EmulatedDatabase> GetDatabase)
         {
             this.GetDatabase = GetDatabase;
-            this.DatabaseAccessWindow = DatabaseAccessWindow;
         }
 
         /// <inheritdoc/>
@@ -94,7 +88,7 @@ namespace Unisave.Authentication
         {
             EmulatedDatabase database = GetDatabase();
 
-            // update database
+            // prevent duplicity
             if (database.EnumeratePlayers().Where(r => r.email == email).Any())
             {
                 return Promise.Rejected(new RegistrationFailure {
@@ -103,35 +97,19 @@ namespace Unisave.Authentication
                 });
             }
 
+            // update database
             string playerId = database.AddPlayer(email);
-            UnisavePlayer player = new UnisavePlayer(playerId);
 
-            // execute hooks
-            List<Type> allTypes = new List<Type>();
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-                allTypes.AddRange(asm.GetTypes());
+            // run hooks
+            ScriptExecutionResult result = EmulatedScriptRunner.ExecuteScript(
+                "player-registration-hook",
+                new JsonObject()
+                    .Add("arguments", Serializer.ToJson(hookArguments))
+                    .Add("playerId", playerId)
+            );
 
-            if (hookArguments == null)
-                hookArguments = new Dictionary<string, object>();
-                
-            var jsonHookArguments = new Dictionary<string, JsonValue>();
-            foreach (var pair in hookArguments)
-                jsonHookArguments.Add(pair.Key, Serializer.ToJson(pair.Value));
-
-            List<PlayerRegistrationHook> hooks = allTypes
-                .Where(t => typeof(PlayerRegistrationHook).IsAssignableFrom(t))
-                .Where(t => t != typeof(PlayerRegistrationHook)) // not the abstract hook class itself
-                .Select(t => PlayerRegistrationHook.CreateInstance(t, player, jsonHookArguments))
-                .ToList();
-
-            hooks.Sort((a, b) => a.Order - b.Order); // small to big
-
-            JsonArray jsonArguments = Serializer.ToJson(hookArguments.ToList());
-
-            DatabaseAccessWindow(() => {
-                foreach (var hook in hooks)
-                    hook.Run();
-            });
+            if (!result.IsOK)
+                return Promise.Rejected(result.TransformNonOkResultToFinalException());
 
             return Promise.Resolved();
         }

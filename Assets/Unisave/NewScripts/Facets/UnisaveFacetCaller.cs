@@ -64,10 +64,9 @@ namespace Unisave.Facets
 
 			if (request.isNetworkError)
 			{
-				RejectAndThrow(
-					promise,
+				promise.Reject(
 					new UnisaveException(
-						"Facet call failed due to a network error."
+						"Facet call failed due to a network error: " + request.error
 					)
 				);
 				yield break;
@@ -75,8 +74,7 @@ namespace Unisave.Facets
 
 			if (request.responseCode == 401)
 			{
-				RejectAndThrow(
-					promise,
+				promise.Reject(
 					new UnisaveException(
 						"Unisave server rejected facet call, because the provided access token was invalid."
 					)
@@ -86,8 +84,7 @@ namespace Unisave.Facets
 
 			if (request.responseCode != 200)
 			{
-				RejectAndThrow(
-					promise,
+				promise.Reject(
 					new UnisaveException(
 						$"Unisave server didn't perform facet call, HTTP response was {request.responseCode}."
 					)
@@ -113,12 +110,7 @@ namespace Unisave.Facets
 			}
 			catch (JsonParseException)
 			{
-				RejectAndThrow(
-					promise,
-					new UnisaveException(
-						"Facet call failed, server response had invalid format."
-					)
-				);
+				promise.Reject(new UnisaveException("Facet call failed, server response had invalid format."));
 				yield break;
 			}
 
@@ -138,29 +130,16 @@ namespace Unisave.Facets
 						e = (Exception) Serializer.FromJson(response["exception"], typeof(Exception));
 					
 					promise.Reject(e);
-					//RejectAndThrow(promise, e);
 					break;
 
 				case "error":
-					RejectAndThrow(
-						promise,
-						new UnisaveException("Facet call error:\n" + response["message"])
-					);
+					promise.Reject(new UnisaveException("Facet call error:\n" + response["message"]));
 					break;
 
 				case "compile-error":
-					RejectAndThrow(
-						promise,
-						new UnisaveException("Server compile error:\n" + response["message"])
-					);
+					promise.Reject(new UnisaveException("Server compile error:\n" + response["message"]));
 					break;
 			}
-		}
-
-		private void RejectAndThrow(Promise<JsonValue> promise, Exception e)
-		{
-			promise.Reject(e);
-			throw e;
 		}
 
 		/// <summary>

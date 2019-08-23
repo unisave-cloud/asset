@@ -15,51 +15,36 @@ namespace Unisave.Facets
     {
         private Func<UnisavePlayer> GetAuthorizedPlayer;
 
-        /// <summary>
-        /// Allows access to the emulated databse for a window of time
-        /// </summary>
-        private Action<Action> DatabaseAccessWindow;
-
-        public EmulatedFacetCaller(Func<UnisavePlayer> GetAuthorizedPlayer, Action<Action> DatabaseAccessWindow)
+        public EmulatedFacetCaller(Func<UnisavePlayer> GetAuthorizedPlayer)
         {
             this.GetAuthorizedPlayer = GetAuthorizedPlayer;
-            this.DatabaseAccessWindow = DatabaseAccessWindow;
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
             string facetName, string methodName, JsonArray arguments
         )
 		{
-            // get all types and find the target facet type and method
+            ScriptExecutionResult result = EmulatedScriptRunner.ExecuteScript(
+                "facet",
+                new JsonObject()
+                    .Add("facetName", facetName)
+                    .Add("methodName", methodName)
+                    .Add("arguments", arguments)
+                    .Add("callerId", GetAuthorizedPlayer().Id)
+            );
 
-            List<Type> allTypes = new List<Type>();
-            foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
-                allTypes.AddRange(asm.GetTypes());
-
-            Type facetType = Facet.FindFacetTypeByName(facetName, allTypes.ToArray());
-
-            // execute the facet
-            
-            Facet instance = Facet.CreateInstance(facetType, GetAuthorizedPlayer());
-            JsonValue returnValue = JsonValue.Null;
-            
-            try
+            if (result.IsOK)
             {
-                DatabaseAccessWindow(() => {
-                    returnValue = ExecutionHelper.ExecuteMethod(
-                        instance, methodName, arguments, out MethodInfo methodInfo
-                    );
-                });
-            }
-            catch (TargetInvocationException e)
-            {
-                // behave just like the real server would
-                return Promise<JsonValue>.Rejected(
-                    new UnisaveFacetCaller.RemoteException(e.InnerException.ToString())
+                return Promise<JsonValue>.Resolved(
+                    result.methodResponse["returnValue"]
                 );
             }
-
-            return Promise<JsonValue>.Resolved(returnValue);
+            else
+            {
+                return Promise<JsonValue>.Rejected(
+                    result.TransformNonOkResultToFinalException()
+                );
+            }
 		}
     }
 }
