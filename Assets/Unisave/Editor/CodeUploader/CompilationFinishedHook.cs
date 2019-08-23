@@ -35,11 +35,11 @@ namespace Unisave.CodeUploader
             RunCodeUploader();
         }
 
-        [MenuItem("Unisave debug/Upload code")]
-        public static void UploadCodeMenuItem()
-        {
-            RunCodeUploader();
-        }
+        // [MenuItem("Unisave debug/Upload code")]
+        // public static void UploadCodeMenuItem()
+        // {
+        //     RunCodeUploader();
+        // }
 
         private static void RunCodeUploader()
         {
