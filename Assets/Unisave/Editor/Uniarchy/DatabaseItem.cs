@@ -44,7 +44,10 @@ namespace Unisave.Uniarchy
         {
             foreach (EmulatedDatabase.PlayerRecord player in Database.EnumeratePlayers())
             {
-                var playerItem = new TreeViewItem { id = idAllocator.NextId(), displayName = player.email };
+                var playerItem = new TreeViewItem {
+                    id = idAllocator.NextId(),
+                    displayName = player.email + " [" + player.id + "]"
+                };
                 
                 foreach (RawEntity entity in Database.EnumeratePlayerEntities(player.id))
                 {

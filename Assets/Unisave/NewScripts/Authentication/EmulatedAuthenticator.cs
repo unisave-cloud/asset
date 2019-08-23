@@ -8,6 +8,8 @@ using Unisave.Runtime;
 using Unisave.Serialization;
 using LightJson;
 using System.Reflection;
+using Unisave.Exceptions;
+using Unisave.Exceptions.PlayerRegistration;
 
 namespace Unisave.Authentication
 {
@@ -90,12 +92,7 @@ namespace Unisave.Authentication
 
             // prevent duplicity
             if (database.EnumeratePlayers().Where(r => r.email == email).Any())
-            {
-                return Promise.Rejected(new RegistrationFailure {
-                    type = RegistrationFailureType.EmailAlreadyRegistered,
-                    message = "This email is already registered."
-                });
-            }
+                return Promise.Rejected(new EmailAlreadyRegisteredException());
 
             // update database
             string playerId = database.AddPlayer(email);
@@ -109,7 +106,12 @@ namespace Unisave.Authentication
             );
 
             if (!result.IsOK)
+            {
+                // remove player
+                database.RemovePlayer(playerId);
+
                 return Promise.Rejected(result.TransformNonOkResultToFinalException());
+            }
 
             return Promise.Resolved();
         }

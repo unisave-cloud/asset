@@ -4,6 +4,9 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Unisave.Authentication;
+using Unisave.Exceptions;
+using Unisave.Exceptions.ServerConnection;
+using Unisave.Exceptions.PlayerRegistration;
 
 namespace Unisave
 {
@@ -75,17 +78,13 @@ namespace Unisave
 					OnGotoLogin();
 					OnLoginClicked();
 				})
-				.Catch(failure => {
-					if (failure is RegistrationFailure)
-					{
-						messageText.text = ((RegistrationFailure)failure).message;
-					}
+				.Catch(exception => {
+					if (exception is ExceptionWithPlayerMessage)
+						messageText.text = ((ExceptionWithPlayerMessage)exception).MessageForPlayer;
 					else
-					{
 						messageText.text = "Unknown error.";
-						Debug.LogException(failure);
-					}
 
+					Debug.LogException(exception);
 					messageText.gameObject.SetActive(true);
 				});
 		}

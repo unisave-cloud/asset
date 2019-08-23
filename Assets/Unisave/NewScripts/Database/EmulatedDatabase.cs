@@ -22,7 +22,7 @@ namespace Unisave.Database
         public const string EmulatedPlayerEmail = "emulated@unisave.cloud";
         public static UnisavePlayer EmulatedPlayer => new UnisavePlayer("emulated-player-id");
 
-        public struct PlayerRecord : IEquatable<PlayerRecord>
+        public class PlayerRecord : IEquatable<PlayerRecord>
         {
             public string id;
             public string email;
@@ -138,6 +138,10 @@ namespace Unisave.Database
         {
             var database = new EmulatedDatabase(name);
 
+            // truly clear, the deafult clear leaves the emulated player in place
+            database.players.Clear();
+            database.entities.Clear();
+
             database.players.UnionWith(
                 json["players"]
                     .AsJsonArray
@@ -216,6 +220,23 @@ namespace Unisave.Database
             OnChange(this);
 
             return id;
+        }
+
+        /// <summary>
+        /// Remove a player by it's id
+        /// </summary>
+        public bool RemovePlayer(string id)
+        {
+            PlayerRecord player = players.Where(r => r.id == id).FirstOrDefault();
+
+            if (player == null)
+                return false;
+
+            players.Remove(player);
+
+            OnChange(this);
+            
+            return true;
         }
 
         /// <summary>

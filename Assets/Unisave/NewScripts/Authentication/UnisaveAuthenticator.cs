@@ -5,6 +5,9 @@ using UnityEngine;
 using RSG;
 using Unisave.Utils;
 using Unisave.Serialization;
+using Unisave.Exceptions;
+using Unisave.Exceptions.ServerConnection;
+using Unisave.Exceptions.PlayerRegistration;
 using LightJson;
 
 namespace Unisave.Authentication
@@ -262,47 +265,58 @@ namespace Unisave.Authentication
 						break;
 
 					case "email-already-registered":
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.EmailAlreadyRegistered,
-							message = response["message"].AsString
-						});
+						promise.Reject(
+							new EmailAlreadyRegisteredException()
+								.TellPlayer(response["message"].AsString)
+						);
 						break;
 
 					case "maintenance-mode":
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.ServerUnderMaintenance,
-							message = response["message"].AsString
-						});
+						promise.Reject(
+							new ServerUnderMaintenanceException()
+								.TellPlayer(response["message"].AsString)
+						);
 						break;
 
 					case "invalid-game-token":
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.InvalidGameToken,
-							message = response["message"].AsString
-						});
+						promise.Reject(new InvalidGameTokenException());
 						break;
 
 					case "invalid-email":
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.InvalidEmail,
-							message = response["message"].AsString
-						});
+						promise.Reject(
+							new InvalidEmailException()
+								.TellPlayer(response["message"].AsString)
+						);
 						break;
 
 					case "invalid-password":
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.InvalidPassword,
-							message = response["message"].AsString
-						});
+						promise.Reject(
+							new InvalidPasswordException()
+								.TellPlayer(response["message"].AsString)
+						);
+						break;
+
+					case "hook-crashed":
+						if (response["exception"].IsNull)
+						{
+							promise.Reject(new UnisaveException(
+								response["message"].AsString + "\n" + response["exceptionAsString"].AsString
+							));
+						}
+						else
+						{
+							promise.Reject(
+								(Exception)Serializer.FromJson(response["exception"], typeof(Exception))
+							);
+						}
 						break;
 
 					default:
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.OtherError,
-							message = response.ContainsKey("message")
+						promise.Reject(new UnisaveException(
+							response.ContainsKey("message")
 								? response["message"].AsString
 								: "Server response had invalid format."
-						});
+						));
 						break;
 				}
 			})
@@ -315,22 +329,9 @@ namespace Unisave.Authentication
 
 				HttpException he = (HttpException)e;
 
-				switch (he.Type)
-				{
-					case HttpException.ExceptionType.NetworkError:
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.NetworkError,
-							message = he.Request.error
-						});
-						break;
-
-					case HttpException.ExceptionType.JsonParseException:
-						promise.Reject(new RegistrationFailure {
-							type = RegistrationFailureType.OtherError,
-							message = "Server response had invalid format."
-						});
-						break;
-				}
+				promise.Reject(new ServerConnectionException(
+					he.Request.error
+				));
 			})
 			.Finally(() => {
 				registrationCoroutineRunning = false;

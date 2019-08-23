@@ -90,30 +90,4 @@ namespace Unisave.Authentication
         NotLoggedIn,
         OtherError
     }
-
-    //////////////////////////////////
-    // Registration data structures //
-    //////////////////////////////////
-
-    public class RegistrationFailure : Exception
-    {
-        public RegistrationFailureType type;
-        public string message;
-
-        public override string ToString()
-        {
-            return "Registration failure type: " + type.ToString() + "\n" + message;
-        }
-    }
-
-    public enum RegistrationFailureType
-    {
-        NetworkError,
-        InvalidGameToken,
-        EmailAlreadyRegistered,
-        InvalidEmail,
-        InvalidPassword,
-        ServerUnderMaintenance,
-        OtherError
-    }
 }

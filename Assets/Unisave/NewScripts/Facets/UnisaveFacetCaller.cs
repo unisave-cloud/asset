@@ -8,6 +8,7 @@ using LightJson.Serialization;
 using RSG;
 using Unisave.Utils;
 using Unisave.Exceptions;
+using Unisave.Exceptions.ServerConnection;
 using Unisave.Serialization;
 
 namespace Unisave.Facets
@@ -75,7 +76,7 @@ namespace Unisave.Facets
 			if (request.responseCode == 401)
 			{
 				promise.Reject(
-					new UnisaveException(
+					new InvalidAccessTokenException(
 						"Unisave server rejected facet call, because the provided access token was invalid."
 					)
 				);
@@ -124,7 +125,9 @@ namespace Unisave.Facets
 					break;
 
 				case "game-exception":
-					Exception e = new RemoteException(response["message"]);
+					Exception e = new UnisaveException(
+						"Server exception: " + response["message"] // deprecated method of returning exceptions
+					);
 					
 					if (!response["exception"].IsNull)
 						e = (Exception) Serializer.FromJson(response["exception"], typeof(Exception));
@@ -139,29 +142,6 @@ namespace Unisave.Facets
 				case "compile-error":
 					promise.Reject(new UnisaveException("Server compile error:\n" + response["message"]));
 					break;
-			}
-		}
-
-		/// <summary>
-		/// Encapsulates exception that happened on the other side of the network
-		/// </summary>
-		public class RemoteException : System.Exception
-		{
-			private string wholeText;
-
-			public override string Message => wholeText.Split('\n').FirstOrDefault();
-
-			public override string StackTrace => string.Join("\n", wholeText.Split('\n').Skip(1));
-
-			public RemoteException(string innerExceptionText)
-			{
-				this.wholeText = "Exception occured when executing remote facet call --> "
-					+ innerExceptionText + "\n\n";
-			}
-
-			public override string ToString()
-			{
-				return wholeText;
 			}
 		}
     }
