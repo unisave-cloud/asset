@@ -19,7 +19,7 @@ namespace Unisave
 
 		public InputField loginEmailField, loginPasswordField;
 		public Button loginButton;
-		public InputField registerEmailField, registerPasswordField, registerConfirmPasswordField;
+		public InputField registerEmailField, registerNameField, registerPasswordField, registerConfirmPasswordField;
 		public Button registerButton;
 		
 		public Button gotoRegistration, gotoLogin;
@@ -66,9 +66,12 @@ namespace Unisave
 				return;
 			}
 
-			// TODO: add optional "Name" field
 			Dictionary<string, object> hookArguments = new Dictionary<string, object>();
-			hookArguments.Add("name", "Peter Peterson!");
+
+			if (registerNameField)
+			{
+				hookArguments.Add("name", registerNameField.text);
+			}
 
 			Auth.Register(registerEmailField.text, registerPasswordField.text, hookArguments)
 				.Then(() => {
