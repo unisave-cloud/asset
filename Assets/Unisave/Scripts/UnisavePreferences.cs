@@ -194,5 +194,21 @@ namespace Unisave
 		
 		[SerializeField]
 		private bool alwaysEmulate = false;
+
+		/// <summary>
+		/// Email of the player used for autologin
+		/// </summary>
+		public string AutoLoginPlayerEmail
+		{
+			get => autoLoginPlayerEmail;
+
+			set
+			{
+				autoLoginPlayerEmail = value;
+			}
+		}
+
+		[SerializeField]
+		private string autoLoginPlayerEmail = "john@doe.com";
 	}
 }

@@ -18,10 +18,6 @@ namespace Unisave.Database
     /// </summary>
     public class EmulatedDatabase : IDatabase
     {
-        public const string EmulatedPlayerId = "emulated-player-id";
-        public const string EmulatedPlayerEmail = "emulated@unisave.cloud";
-        public static UnisavePlayer EmulatedPlayer => new UnisavePlayer("emulated-player-id");
-
         public class PlayerRecord : IEquatable<PlayerRecord>
         {
             public string id;
@@ -87,12 +83,6 @@ namespace Unisave.Database
             entities.Clear();
             entityOwnerships.Clear();
 
-            // create the always present emulated player
-            players.Add(new PlayerRecord {
-                id = EmulatedPlayerId,
-                email = EmulatedPlayerEmail
-            });
-
             if (raiseChangeEvent)
                 OnChange(this);
         }
@@ -137,10 +127,6 @@ namespace Unisave.Database
         public static EmulatedDatabase FromJson(JsonObject json, string name)
         {
             var database = new EmulatedDatabase(name);
-
-            // truly clear, the deafult clear leaves the emulated player in place
-            database.players.Clear();
-            database.entities.Clear();
 
             database.players.UnionWith(
                 json["players"]

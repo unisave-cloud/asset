@@ -77,6 +77,20 @@ namespace Unisave.Authentication
             return Promise.Resolved();
 		}
 
+        /// <summary>
+        /// Login a specific player
+        /// </summary>
+        public void LoginPlayer(UnisavePlayer player)
+        {
+            EmulatedDatabase database = GetDatabase();
+
+            if (!database.EnumeratePlayers().Where(r => r.id == player.Id).Any())
+                throw new UnisaveException("Cannot login a player that is not inside the database.");
+
+            Player = player;
+            AccessToken = Str.Random(16);
+        }
+
         /// <inheritdoc/>
         public IPromise Logout()
         {
@@ -88,11 +102,28 @@ namespace Unisave.Authentication
         /// <inheritdoc/>
         public IPromise Register(string email, string password, Dictionary<string, object> hookArguments)
         {
+            try
+            {
+                RegisterPlayer(email, password, hookArguments);
+            }
+            catch (Exception e)
+            {
+                return Promise.Rejected(e);
+            }
+
+            return Promise.Resolved();
+        }
+
+        /// <summary>
+        /// Registers a player synchronously and returns it
+        /// </summary>
+        public UnisavePlayer RegisterPlayer(string email, string password, Dictionary<string, object> hookArguments)
+        {
             EmulatedDatabase database = GetDatabase();
 
             // prevent duplicity
             if (database.EnumeratePlayers().Where(r => r.email == email).Any())
-                return Promise.Rejected(new EmailAlreadyRegisteredException());
+                throw new EmailAlreadyRegisteredException();
 
             // update database
             string playerId = database.AddPlayer(email);
@@ -110,19 +141,36 @@ namespace Unisave.Authentication
                 // remove player
                 database.RemovePlayer(playerId);
 
-                return Promise.Rejected(result.TransformNonOkResultToFinalException());
+                throw result.TransformNonOkResultToFinalException();
             }
 
-            return Promise.Resolved();
+            return new UnisavePlayer(playerId);
         }
 
         /// <summary>
         /// Logs in the fake emulated player
         /// </summary>
-        public void LoginEmulatedPlayer()
+        public void AutoLogin(string email)
         {
-            Player = EmulatedDatabase.EmulatedPlayer;
-            AccessToken = "emulated-player-access-token";
+            UnityEngine.Debug.LogWarning($"Unisave: Performing auto login for '{email}'.");
+
+            EmulatedDatabase database = GetDatabase();
+
+            EmulatedDatabase.PlayerRecord playerRecord = database
+                .EnumeratePlayers()
+                .Where(r => r.email == email)
+                .FirstOrDefault();
+
+            if (playerRecord == null)
+            {
+                throw new UnisaveException(
+                    $"Auto login failed. Player '{email}' does not exist.\n" +
+                    "Register this player first inside the emulated database."
+                );
+            }
+
+            Player = new UnisavePlayer(playerRecord.id);
+            AccessToken = Str.Random(16);
         }
 
         /// <summary>

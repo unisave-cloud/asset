@@ -40,10 +40,11 @@ namespace Unisave
             - facet calling
             - entity persistence
 
-            When the scenario 1) occurs, we don't know what player to log into. Developer has to
-            either explicitly state it in the UnisavePreferences, or Unisave will log into
-            the so called EmulatedPlayer. That's a player that always exists in the emulated
-            database.
+            When the scenario 1) occurs, we don't know what player to log into. Developer
+            has to explicitly state the desired player email address in Unisave preferences
+            under the field "Auto-login email". Player with this email has to exist inside the
+            emulated database otherwise the login cannot be performed. Create this player
+            by using standard registration with explicit emulation enabled.
 
             Emulation can never take place in a built game. It only happens, when running
             inside the unity editor.
@@ -149,7 +150,8 @@ namespace Unisave
                 preferences.ServerUrl,
                 preferences.GameToken,
                 preferences.EditorKey,
-                preferences.EmulatedDatabaseName
+                preferences.EmulatedDatabaseName,
+                preferences.AutoLoginPlayerEmail
             );
 
             if (preferences.AlwaysEmulate)
@@ -163,13 +165,15 @@ namespace Unisave
             string apiUrl,
             string gameToken,
             string editorKey,
-            string emulatedDatabaseName
+            string emulatedDatabaseName,
+            string autoLoginPlayerEmail
         )
         {
             this.ApiUrl = new ApiUrl(apiUrl);
             this.GameToken = gameToken;
             this.EditorKey = editorKey;
             this.emulatedDatabaseName = emulatedDatabaseName;
+            this.autoLoginPlayerEmail = autoLoginPlayerEmail;
 
             this.coroutineRunner = coroutineRunner;
 
@@ -188,6 +192,9 @@ namespace Unisave
             // always emulate
             if (preferences.AlwaysEmulate)
                 IsEmulating = true;
+
+            // email for auto login
+            autoLoginPlayerEmail = preferences.AutoLoginPlayerEmail;
 
             // TODO: apply remaining preferences
         }
@@ -322,6 +329,11 @@ namespace Unisave
         }
 
         /// <summary>
+        /// Email of the player that should be automatically logged in
+        /// </summary>
+        private string autoLoginPlayerEmail;
+
+        /// <summary>
         /// Authenticator that authenticates via the unisave servers
         /// </summary>
         public UnisaveAuthenticator UnisaveAuthenticator
@@ -427,8 +439,7 @@ namespace Unisave
                 {
                     if (!EmulatedAuthenticator.LoggedIn)
                     {
-                        Debug.LogWarning("Unisave: Logging in emulated player.");
-                        EmulatedAuthenticator.LoginEmulatedPlayer();
+                        EmulatedAuthenticator.AutoLogin(autoLoginPlayerEmail);
                     }
 
                     return EmulatedFacetCaller;
@@ -441,8 +452,8 @@ namespace Unisave
                             throw new Exception("Cannot call facet methods without a logged-in player.");
 
                         IsEmulating = true;
-                        Debug.LogWarning("Unisave: Logging in emulated player.");
-                        EmulatedAuthenticator.LoginEmulatedPlayer();
+
+                        EmulatedAuthenticator.AutoLogin(autoLoginPlayerEmail);
 
                         return EmulatedFacetCaller;
                     }
@@ -461,7 +472,6 @@ namespace Unisave
             IsTesting = true;
             
             TestingDatabase.Clear();
-            EmulatedAuthenticator.LoginEmulatedPlayer();
         }
 
         /// <summary>

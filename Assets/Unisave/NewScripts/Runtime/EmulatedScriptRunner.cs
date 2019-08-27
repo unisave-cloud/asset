@@ -36,12 +36,13 @@ namespace Unisave.Runtime
             foreach (Assembly asm in AppDomain.CurrentDomain.GetAssemblies())
                 allTypes.AddRange(asm.GetTypes());
 
+            bool wasAccessPrevented = db.PreventAccess;
             db.PreventAccess = false;
 
             string responseString = Entrypoint.Start(executionParameters.ToString(), allTypes.ToArray());
             JsonObject response = JsonReader.Parse(responseString);
 
-            db.PreventAccess = true;
+            db.PreventAccess = wasAccessPrevented;
 
             switch (response["result"].AsString)
             {

@@ -9,13 +9,6 @@ namespace Unisave
     public static class Testing
     {
         /// <summary>
-        /// Instance of the emulated player.
-        /// This is a player that always exists inside the emulated database
-        /// and it's the player you log into when emulation begins.
-        /// </summary>
-        public static UnisavePlayer EmulatedPlayer => EmulatedDatabase.EmulatedPlayer;
-
-        /// <summary>
         /// Setup unsiave testing
         /// </summary>
         public static void SetUp()
@@ -43,6 +36,24 @@ namespace Unisave
                 );
 
             UnisaveServer.DefaultInstance.EmulatedAuthenticator.AsPlayer(player, action);
+        }
+
+        /// <summary>
+        /// Registers a new player for testing
+        /// </summary>
+        public static UnisavePlayer RegisterPlayer(string email, Dictionary<string, object> hookArguments)
+        {
+            return UnisaveServer.DefaultInstance.EmulatedAuthenticator.RegisterPlayer(
+                email, "password", hookArguments
+            );
+        }
+
+        /// <summary>
+        /// Log a player in
+        /// </summary>
+        public static void LoginPlayer(UnisavePlayer player)
+        {
+            UnisaveServer.DefaultInstance.EmulatedAuthenticator.LoginPlayer(player);
         }
     }
 }
