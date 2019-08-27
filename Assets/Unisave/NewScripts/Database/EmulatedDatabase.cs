@@ -9,6 +9,7 @@ using Unisave.Serialization;
 using Unisave.Utils;
 using LightJson;
 using LightJson.Serialization;
+using Unisave.Exceptions;
 
 namespace Unisave.Database
 {
@@ -331,16 +332,17 @@ namespace Unisave.Database
                     entityIds.IntersectWith(playerEntityIds);
             }
 
-            // game entity is queried
+            // players have no effect on entity selection
             if (entityIds == null)
             {
-                // super slow, but... prototyping! :D
-                var ownedIds = new HashSet<string>(entityOwnerships.Select(x => x.Item1));
-                entityIds = new HashSet<string>(entities.Keys.Where(x => !ownedIds.Contains(x)));
+                entityIds = new HashSet<string>(entities.Keys);
             }
 
             // load entities
             IEnumerable<RawEntity> loadedEntities = entityIds.Select(id => LoadEntity(id));
+
+            // remove entities that do not match where clauses
+            loadedEntities = loadedEntities.Where(e => WhereClausesMatch(e, query));
 
             // if exact, remove those owned by too many players
             if (query.requireOwnersExactly)
@@ -351,6 +353,104 @@ namespace Unisave.Database
                 return loadedEntities.Take(1);
 
             return loadedEntities;
+        }
+
+        /// <summary>
+        /// Return true if all where clauses match the entity
+        /// </summary>
+        private bool WhereClausesMatch(RawEntity e, EntityQuery query)
+        {
+            foreach (var clause in query.whereClauses)
+            {
+                switch (clause["type"].AsString)
+                {
+                    case "Basic":
+                        var extracted = JsonExtract(e.data, clause["path"]);
+                        var value = clause["value"];
+                        switch (clause["operator"].AsString)
+                        {
+                            case "=":
+                                if (extracted != value)
+                                    return false;
+                                break;
+
+                            case "!=":
+                            case "<>":
+                                if (extracted == value)
+                                    return false;
+                                break;
+
+                            case ">":
+                            case ">=":
+                            case "<":
+                            case "<=":
+                                if (value.IsNumber)
+                                {
+                                    if (clause["operator"].AsString == ">" && !(extracted.AsNumber > value.AsNumber))
+                                        return false;
+                                    if (clause["operator"].AsString == ">=" && !(extracted.AsNumber >= value.AsNumber))
+                                        return false;
+                                    if (clause["operator"].AsString == "<" && !(extracted.AsNumber < value.AsNumber))
+                                        return false;
+                                    if (clause["operator"].AsString == "<=" && !(extracted.AsNumber <= value.AsNumber))
+                                        return false;
+                                }
+                                else
+                                {
+                                    int c = extracted.AsString.CompareTo(value.AsString);
+
+                                    if (clause["operator"].AsString == ">" && !(c > 0))
+                                        return false;
+                                    if (clause["operator"].AsString == ">=" && !(c >= 0))
+                                        return false;
+                                    if (clause["operator"].AsString == "<" && !(c < 0))
+                                        return false;
+                                    if (clause["operator"].AsString == "<=" && !(c <= 0))
+                                        return false;
+                                }
+                                break;
+
+                            default:
+                                throw new UnisaveException(
+                                    $"Unknown where clause operator: " + clause["operator"]
+                                );
+                        }
+                        break;
+
+                    default:
+                        throw new UnisaveException(
+                            $"Unknown where clause type: " + clause["type"]
+                        );
+                }
+            }
+
+            return true;
+        }
+
+        private JsonValue JsonExtract(JsonValue subject, string pathString)
+        {
+            foreach (string step in pathString.Split(new string[] {"->"}, StringSplitOptions.RemoveEmptyEntries))
+            {
+                if (subject.IsJsonArray)
+                {
+                    if (int.TryParse(step, out int index))
+                        subject = subject.AsJsonArray[index];
+                    else
+                        subject = JsonValue.Null;
+
+                    continue;
+                }
+
+                if (subject.IsJsonObject)
+                {
+                    subject = subject.AsJsonObject[step];
+                    continue;
+                }
+
+                subject = JsonValue.Null;
+            }
+
+            return subject;
         }
 
         /// <summary>
