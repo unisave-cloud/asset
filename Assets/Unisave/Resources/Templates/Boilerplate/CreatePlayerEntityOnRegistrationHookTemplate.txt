@@ -22,6 +22,7 @@ public class #HOOKNAME# : PlayerRegistrationHook
 
         // check if this name is already used
         PlayerEntity playerEntity = GetEntity<PlayerEntity>
+            .OfAnyPlayers()
             .Where("Name", requestedName)
             .First();
 
