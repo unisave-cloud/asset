@@ -129,6 +129,12 @@ namespace Unisave.CodeUploader
         {
             // NOTE: keep everything ordered alphabetically, because it affects the global hash
 
+            if (!Directory.Exists(path))
+                throw new UnisaveException(
+                    $"Backend folder '{path}' does not exist.\n" +
+                    "Check your Unisave preferences for the 'Backend assets folder' field. Make sure it's set up properly."
+                );
+
             // branch on each subdirectory
             foreach (string dirPath in Directory.GetDirectories(path).OrderBy(f => f))
             {
@@ -218,12 +224,6 @@ namespace Unisave.CodeUploader
                     using (var sr = new StreamReader(response.GetResponseStream()))
                         responseString = sr.ReadToEnd();
 
-                    if ((int)response.StatusCode == 401)
-                        throw new UnisaveException(
-                            "Server rejected connection due to authorization. Check your game token and editor key.\n"
-                            + responseString
-                        );
-
                     if ((int)response.StatusCode != 200)
                         throw new UnisaveException(
                             "Server responded with non 200 response:\n" +
@@ -238,12 +238,16 @@ namespace Unisave.CodeUploader
                 if (e is WebException)
                 {
                     if ((int)((HttpWebResponse)((WebException)e).Response).StatusCode == 401)
-                    {
                         throw new UnisaveException(
                             "Server response to code uploader was 401 unauthorized.\n"
                             + "Check that your game token and editor key are correctly set up."
                         );
-                    }
+
+                    if ((int)((HttpWebResponse)((WebException)e).Response).StatusCode == 429)
+                        throw new UnisaveException(
+                            "Server refuses code uploader requests due to their amount. This happens when Unity editor does a lot of recompiling.\n"
+                            + "Simply wait for a while and this problem will go away."
+                        );
                 }
 
                 Debug.LogError("Server sent:\n" + responseString);
