@@ -10,6 +10,16 @@ namespace Unisave
     public static class Auth
     {
         /// <summary>
+        /// Logged in player or null
+        /// </summary>
+        public static UnisavePlayer Player => UnisaveServer.DefaultInstance.Authenticator.Player;
+
+        /// <summary>
+        /// Is someone logged in?
+        /// </summary>
+        public static bool LoggedIn => UnisaveServer.DefaultInstance.Authenticator.LoggedIn;
+
+        /// <summary>
         /// Attempt player login
         /// </summary>
         public static IPromise Login(string email, string password)
