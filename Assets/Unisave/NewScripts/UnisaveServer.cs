@@ -233,6 +233,11 @@ namespace Unisave
 
                 if (value)
                 {
+                    // emulation cannot be started in runtime
+                    // this may happen if the developer forgets the "Always emulate" option enabled during build
+                    if (!Application.isEditor)
+                        return;
+
                     Debug.LogWarning("Unisave: Starting server emulation.");
                     isEmulating = true;
                 }
