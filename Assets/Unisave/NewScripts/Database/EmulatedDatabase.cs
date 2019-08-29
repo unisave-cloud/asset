@@ -335,7 +335,9 @@ namespace Unisave.Database
             // players have no effect on entity selection
             if (entityIds == null)
             {
-                entityIds = new HashSet<string>(entities.Keys);
+                entityIds = new HashSet<string>(
+                    entities.Where(p => p.Value.type == entityType).Select(p => p.Key)
+                );
             }
 
             // load entities
