@@ -15,8 +15,6 @@ namespace Unisave.Uniarchy
         /// </summary>
         public static TreeViewItem SelectedItem { get; private set; } = null;
 
-        public static event Action OnSelectionChange;
-
         EmulatedDatabaseRepository databaseRepository;
 
         public UniarchyTreeView(TreeViewState treeViewState) : base(treeViewState)
@@ -66,8 +64,7 @@ namespace Unisave.Uniarchy
 
             SelectedItem = FindItem(selectedIds[0], rootItem);
 
-            if (OnSelectionChange != null)
-                OnSelectionChange();
+            SelectionWrapper.SelectObject(SelectedItem);
         }
     }
 }
