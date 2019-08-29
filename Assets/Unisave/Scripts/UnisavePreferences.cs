@@ -115,7 +115,7 @@ namespace Unisave
 						editorKeyCache = UnityEditor.EditorPrefs.GetString("unisave.editorKey", null);
 						editorKeyCacheActive = true;
 					#else
-						throw new InvalidOperationException("You cannot access editor key during runtime.");
+						return null;
 					#endif
 				}
 
