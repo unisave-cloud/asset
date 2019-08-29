@@ -122,20 +122,22 @@ namespace Unisave.Editor
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
-                new CreateAssetCallback(callback),
+                ScriptableObject.CreateInstance<CreateAssetCallback>().SetCallback(callback),
                 defaultPathName,
                 icon,
                 null
             );
         }
 
+        // inherits indirectly from ScriptableObject, so cannot be created using constructor
         private class CreateAssetCallback : UnityEditor.ProjectWindowCallback.EndNameEditAction
         {
             private Action<string> callback;
 
-            public CreateAssetCallback(Action<string> callback)
+            public CreateAssetCallback SetCallback(Action<string> callback)
             {
                 this.callback = callback;
+                return this;
             }
 
             public override void Action(int instanceId, string pathName, string resourceFile)
