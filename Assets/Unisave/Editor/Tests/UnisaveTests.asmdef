@@ -1,10 +1,9 @@
 {
-    "name": "UnisaveEditor",
-    "references": [
-        "LightJson",
-        "Unisave"
+    "name": "UnisaveTests",
+    "references": [],
+    "optionalUnityReferences": [
+        "TestAssemblies"
     ],
-    "optionalUnityReferences": [],
     "includePlatforms": [
         "Editor"
     ],
