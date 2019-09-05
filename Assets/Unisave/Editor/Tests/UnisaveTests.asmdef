@@ -1,6 +1,9 @@
 {
     "name": "UnisaveTests",
-    "references": [],
+    "references": [
+        "LightJson",
+        "Unisave"
+    ],
     "optionalUnityReferences": [
         "TestAssemblies"
     ],
