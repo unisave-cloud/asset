@@ -1,6 +1,7 @@
 ﻿using System;
 using Unisave;
 using RSG;
+using System.Threading.Tasks;
 
 namespace Unisave
 {
@@ -23,6 +24,24 @@ namespace Unisave
         }
 
         /// <summary>
+        /// Same as Call, but used via the C# await async keywords
+        /// </summary>
+        public static Task<R> CallAsync<R>(string methodName, params object[] arguments)
+        {
+            var source = new TaskCompletionSource<R>();
+
+            Call<R>(methodName, arguments)
+                .Then(r => {
+                    source.SetResult(r);
+                })
+                .Catch(e => {
+                    source.SetException(e);
+                });
+
+            return source.Task;
+        }
+
+        /// <summary>
         /// Calls a facet method that returns void
         /// </summary>
         /// <param name="methodName">Name of the facet method</param>
@@ -31,6 +50,24 @@ namespace Unisave
         public static IPromise Call(string methodName, params object[] arguments)
         {
             return UnisaveServer.DefaultInstance.FacetCaller.CallFacetMethod<F>(methodName, arguments);
+        }
+
+        /// <summary>
+        /// Same as Call, but used via the C# await async keywords
+        /// </summary>
+        public static Task CallAsync(string methodName, params object[] arguments)
+        {
+            var source = new TaskCompletionSource<bool>(); // bool is dummy void
+
+            Call(methodName, arguments)
+                .Then(() => {
+                    source.SetResult(true);
+                })
+                .Catch(e => {
+                    source.SetException(e);
+                });
+
+            return source.Task;
         }
     }
 }
