@@ -44,7 +44,7 @@ namespace Unisave.CodeUploader
         private static void RunCodeUploader()
         {
             Uploader uploader = Uploader.CreateDefaultInstance();
-            uploader.Run();
+            uploader.RunAutomaticUpload();
         }
 
         private static bool CompilerMessagesContainError(CompilerMessage[] messages)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
+using Unisave.Serialization;
 
 namespace Unisave
 {
@@ -40,17 +41,44 @@ namespace Unisave
 			preferences.GameToken = EditorGUILayout.TextField("Game token", preferences.GameToken);
 			preferences.EditorKey = EditorGUILayout.TextField("Editor key", preferences.EditorKey);
 
-			GUILayout.Label("Development", EditorStyles.boldLabel);
+			GUILayout.Label("Code uploading", EditorStyles.boldLabel);
 			preferences.BackendFolder = EditorGUILayout.TextField("Backend assets folder", preferences.BackendFolder);
+			preferences.AutomaticCodeUploading = EditorGUILayout.Toggle("Automatic", preferences.AutomaticCodeUploading);
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Manual", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+			if (GUILayout.Button("Upload", GUILayout.Width(50f)))
+				RunManualCodeUpload();
+			EditorGUILayout.EndHorizontal();
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Last upload at", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+			EditorGUILayout.LabelField(preferences.LastCodeUploadAt?.ToString("yyyy-MM-dd H:mm:ss") ?? "Never");
+			EditorGUILayout.EndHorizontal();
+
+			GUILayout.Label("Database emulation", EditorStyles.boldLabel);
 			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
 			preferences.AlwaysEmulate = EditorGUILayout.Toggle("Always emulate", preferences.AlwaysEmulate);
+
+			GUILayout.Label("Auto-login", EditorStyles.boldLabel);
 			preferences.AutoLoginPlayerEmail = EditorGUILayout.TextField("Auto-login email", preferences.AutoLoginPlayerEmail);
+			EditorGUILayout.Toggle("Auto-register", false);
+			GUILayout.Label("Auto-registration arguments\nTODO");
 
 			GUILayout.Space(30f);
 
 			GUILayout.Label("Changes to configuration are saved automatically.");
 
 			GUILayout.Space(30f);
+
+			// ===
+
+			// TODO: create json editor component
+
+			// EditorGUILayout.BeginHorizontal();
+			// EditorGUILayout.LabelField("lorem", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+			// EditorGUILayout.SelectableLabel("content", EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
+			// EditorGUILayout.EndHorizontal();
+
+			// ===
 
 			GUILayout.EndScrollView();
 		}
@@ -68,6 +96,14 @@ namespace Unisave
 				unisaveLogo
 			);
 			GUILayout.Space(height + 2 * margin);
+		}
+
+		void RunManualCodeUpload()
+		{
+			Debug.Log("CodeUploader: Starting the upload...");
+			var uploader = CodeUploader.Uploader.CreateDefaultInstance();
+			uploader.Run();
+			Debug.Log("CodeUploader: Done.");
 		}
 
 		void OnFocus()

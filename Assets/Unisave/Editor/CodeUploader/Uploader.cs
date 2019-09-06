@@ -52,6 +52,14 @@ namespace Unisave.CodeUploader
             apiUrl = new ApiUrl(preferences.ServerUrl);
         }
 
+        public void RunAutomaticUpload()
+        {
+            if (!preferences.AutomaticCodeUploading)
+                return;
+
+            Run();
+        }
+
         public void Run()
         {
             // get the list of all files to upload
@@ -120,6 +128,9 @@ namespace Unisave.CodeUploader
             {
                 Debug.LogError("Server compile error:\n" + uploadFinishResponse["compilationMessage"]);
             }
+
+            // save upload time
+            preferences.LastCodeUploadAt = DateTime.Now;
         }
 
         /// <summary>

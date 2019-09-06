@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using Unisave.Serialization;
 
 namespace Unisave
 {
@@ -99,6 +100,12 @@ namespace Unisave
 		private string gameToken;
 
 		/// <summary>
+		/// Returns a prefix for keys stored inside editor prefs
+		/// That makes sure editor prefs are not shared between projects
+		/// </summary>
+		private string KeySuffix => gameToken ?? "null";
+
+		/// <summary>
 		/// Authentication key for Unity editor. This is to make sure noone else
 		/// who knows the game token can mess with your game.
 		/// 
@@ -112,7 +119,9 @@ namespace Unisave
 				if (!editorKeyCacheActive)
 				{
 					#if UNITY_EDITOR
-						editorKeyCache = UnityEditor.EditorPrefs.GetString("unisave.editorKey", null);
+						editorKeyCache = UnityEditor.EditorPrefs.GetString(
+							"unisave.editorKey:" + KeySuffix, null
+						);
 						editorKeyCacheActive = true;
 					#else
 						return null;
@@ -128,7 +137,9 @@ namespace Unisave
 					return;
 
 				#if UNITY_EDITOR
-					UnityEditor.EditorPrefs.SetString("unisave.editorKey", value);
+					UnityEditor.EditorPrefs.SetString(
+						"unisave.editorKey:" + KeySuffix, value
+					);
 				#else
 					throw new InvalidOperationException("You cannot access editor key during runtime.");
 				#endif
@@ -162,6 +173,57 @@ namespace Unisave
 
 		[SerializeField]
 		private string backendFolder = "Backend";
+
+		/// <summary>
+		/// Upload backend code automatically after compilation finishes
+		/// </summary>
+		public bool AutomaticCodeUploading
+		{
+			get => automaticCodeUploading;
+
+			set
+			{
+				automaticCodeUploading = value;
+			}
+		}
+
+		[SerializeField]
+		private bool automaticCodeUploading = true;
+
+
+
+
+
+
+		/// <summary>
+		/// 
+		/// </summary>
+		public DateTime? LastCodeUploadAt
+		{
+			get
+			{
+				var data = UnityEditor.EditorPrefs.GetString(
+					"unisave.lastCodeUploadAt:" + KeySuffix, null
+				);
+
+				if (String.IsNullOrEmpty(data))
+					return null;
+
+				return Serializer.FromJsonString<DateTime>(data);
+			}
+
+			set
+			{
+				UnityEditor.EditorPrefs.SetString(
+					"unisave.lastCodeUploadAt:" + KeySuffix,
+					Serializer.ToJson(value).ToString()
+				);
+			}
+		}
+
+
+
+
 
 		/// <summary>
 		/// Name of the emulated database to use
