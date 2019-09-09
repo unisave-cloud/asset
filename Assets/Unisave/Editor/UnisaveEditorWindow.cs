@@ -15,6 +15,10 @@ namespace Unisave
 
 		private Texture unisaveLogo;
 
+		private JsonEditor autoRegistrationArguments = new JsonEditor();
+
+		private readonly string frameworkVersion = typeof(Entity).Assembly.GetName().Version.ToString(3);
+
 		private Vector2 windowScroll = Vector3.zero;
 
 		[MenuItem("Window/Unisave/Preferences")]
@@ -60,8 +64,9 @@ namespace Unisave
 
 			GUILayout.Label("Auto-login", EditorStyles.boldLabel);
 			preferences.AutoLoginPlayerEmail = EditorGUILayout.TextField("Auto-login email", preferences.AutoLoginPlayerEmail);
-			EditorGUILayout.Toggle("Auto-register", false);
-			GUILayout.Label("Auto-registration arguments\nTODO");
+			preferences.AutoRegisterPlayer = EditorGUILayout.Toggle("Auto-register", preferences.AutoRegisterPlayer);
+			GUILayout.Label("Auto-registration arguments");
+			preferences.AutoRegisterArguments = autoRegistrationArguments.OnGUI(preferences.AutoRegisterArguments);
 
 			GUILayout.Space(30f);
 
@@ -69,16 +74,8 @@ namespace Unisave
 
 			GUILayout.Space(30f);
 
-			// ===
-
-			// TODO: create json editor component
-
-			// EditorGUILayout.BeginHorizontal();
-			// EditorGUILayout.LabelField("lorem", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
-			// EditorGUILayout.SelectableLabel("content", EditorStyles.textField, GUILayout.Height(EditorGUIUtility.singleLineHeight));
-			// EditorGUILayout.EndHorizontal();
-
-			// ===
+			GUILayout.Label("Unisave asset version: " + UnisaveServer.AssetVersion);
+			GUILayout.Label("Unisave framework version: " + frameworkVersion);
 
 			GUILayout.EndScrollView();
 		}

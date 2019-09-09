@@ -9,6 +9,7 @@ using Unisave.Runtime;
 using Unisave.Utils;
 using Unisave.Exceptions;
 using RSG;
+using LightJson;
 
 namespace Unisave
 {
@@ -151,7 +152,9 @@ namespace Unisave
                 preferences.GameToken,
                 preferences.EditorKey,
                 preferences.EmulatedDatabaseName,
-                preferences.AutoLoginPlayerEmail
+                preferences.AutoLoginPlayerEmail,
+                preferences.AutoRegisterPlayer,
+                preferences.AutoRegisterArguments
             );
 
             if (preferences.AlwaysEmulate)
@@ -166,7 +169,9 @@ namespace Unisave
             string gameToken,
             string editorKey,
             string emulatedDatabaseName,
-            string autoLoginPlayerEmail
+            string autoLoginPlayerEmail,
+            bool autoRegister,
+            JsonObject autoRegisterArguments
         )
         {
             this.ApiUrl = new ApiUrl(apiUrl);
@@ -174,6 +179,8 @@ namespace Unisave
             this.EditorKey = editorKey;
             this.emulatedDatabaseName = emulatedDatabaseName;
             this.autoLoginPlayerEmail = autoLoginPlayerEmail;
+            this.autoRegister = autoRegister;
+            this.autoRegisterArguments = autoRegisterArguments;
 
             this.coroutineRunner = coroutineRunner;
 
@@ -195,6 +202,10 @@ namespace Unisave
 
             // email for auto login
             autoLoginPlayerEmail = preferences.AutoLoginPlayerEmail;
+
+            // auto registration
+            autoRegister = preferences.AutoRegisterPlayer;
+            autoRegisterArguments = preferences.AutoRegisterArguments;
 
             // TODO: apply remaining preferences
         }
@@ -339,6 +350,16 @@ namespace Unisave
         private string autoLoginPlayerEmail;
 
         /// <summary>
+        /// Should a player be automatically registered
+        /// </summary>
+        private bool autoRegister;
+
+        /// <summary>
+        /// Arguments for automatic registration
+        /// </summary>
+        private JsonObject autoRegisterArguments;
+
+        /// <summary>
         /// Authenticator that authenticates via the unisave servers
         /// </summary>
         public UnisaveAuthenticator UnisaveAuthenticator
@@ -444,7 +465,9 @@ namespace Unisave
                 {
                     if (!EmulatedAuthenticator.LoggedIn)
                     {
-                        EmulatedAuthenticator.AutoLogin(autoLoginPlayerEmail);
+                        EmulatedAuthenticator.AutoLogin(
+                            autoLoginPlayerEmail, autoRegister, autoRegisterArguments
+                        );
                     }
 
                     return EmulatedFacetCaller;
@@ -458,7 +481,9 @@ namespace Unisave
 
                         IsEmulating = true;
 
-                        EmulatedAuthenticator.AutoLogin(autoLoginPlayerEmail);
+                        EmulatedAuthenticator.AutoLogin(
+                            autoLoginPlayerEmail, autoRegister, autoRegisterArguments
+                        );
 
                         return EmulatedFacetCaller;
                     }

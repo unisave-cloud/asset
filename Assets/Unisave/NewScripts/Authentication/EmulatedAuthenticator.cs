@@ -118,6 +118,9 @@ namespace Unisave.Authentication
         /// Registers a player synchronously and returns it
         /// </summary>
         public UnisavePlayer RegisterPlayer(string email, string password, Dictionary<string, object> hookArguments)
+            => RegisterPlayer(email, password, Serializer.ToJson(hookArguments));
+        
+        private UnisavePlayer RegisterPlayer(string email, string password, JsonObject hookArguments)
         {
             EmulatedDatabase database = GetDatabase();
 
@@ -132,7 +135,7 @@ namespace Unisave.Authentication
             ScriptExecutionResult result = EmulatedScriptRunner.ExecuteScript(
                 "player-registration-hook",
                 new JsonObject()
-                    .Add("arguments", Serializer.ToJson(hookArguments))
+                    .Add("arguments", hookArguments)
                     .Add("playerId", playerId)
             );
 
@@ -150,7 +153,7 @@ namespace Unisave.Authentication
         /// <summary>
         /// Logs in the fake emulated player
         /// </summary>
-        public void AutoLogin(string email)
+        public void AutoLogin(string email, bool autoRegister, JsonObject autoRegisterArguments)
         {
             UnityEngine.Debug.LogWarning($"Unisave: Performing auto login for '{email}'.");
 
@@ -163,14 +166,28 @@ namespace Unisave.Authentication
 
             if (playerRecord == null)
             {
-                throw new UnisaveException(
-                    $"Auto login failed. Player '{email}' does not exist.\n" +
-                    "Register this player first inside the emulated database."
-                );
-            }
+                if (autoRegister)
+                {
+                    UnityEngine.Debug.LogWarning(
+                        $"Unisave: Performing auto registration for '{email}' with {autoRegisterArguments}."
+                    );
 
-            Player = new UnisavePlayer(playerRecord.id);
-            AccessToken = Str.Random(16);
+                    Player = RegisterPlayer(email, "password", autoRegisterArguments);
+                    AccessToken = Str.Random(16);
+                }
+                else
+                {
+                    throw new UnisaveException(
+                        $"Auto login failed. Player '{email}' does not exist.\n" +
+                        "Register this player first inside the emulated database or enable auto-registration."
+                    );
+                }
+            }
+            else
+            {
+                Player = new UnisavePlayer(playerRecord.id);
+                AccessToken = Str.Random(16);
+            }
         }
 
         /// <summary>

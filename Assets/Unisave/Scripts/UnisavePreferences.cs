@@ -3,6 +3,8 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using Unisave.Serialization;
+using LightJson;
+using LightJson.Serialization;
 
 namespace Unisave
 {
@@ -272,5 +274,37 @@ namespace Unisave
 
 		[SerializeField]
 		private string autoLoginPlayerEmail = "john@doe.com";
+
+		/// <summary>
+		/// Automatically register a player when not present to be logged in
+		/// </summary>
+		public bool AutoRegisterPlayer
+		{
+			get => autoRegisterPlayer;
+
+			set
+			{
+				autoRegisterPlayer = value;
+			}
+		}
+
+		[SerializeField]
+		private bool autoRegisterPlayer = true;
+
+		/// <summary>
+		/// Arguments for the automatic registration
+		/// </summary>
+		public JsonObject AutoRegisterArguments
+		{
+			get => JsonReader.Parse(autoRegisterArguments);
+
+			set
+			{
+				autoRegisterArguments = value.ToString();
+			}
+		}
+
+		[SerializeField]
+		private string autoRegisterArguments = @"{""name"":""John""}";
 	}
 }
