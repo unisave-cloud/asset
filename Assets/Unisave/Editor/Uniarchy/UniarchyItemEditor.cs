@@ -6,12 +6,16 @@ using Unisave;
 using Unisave.Uniarchy;
 using Unisave.Database;
 using UnityEditor.IMGUI.Controls;
+using Unisave.Serialization;
+using Unisave.Editor.JsonEditor;
 
 namespace Unsiave.Uniarchy
 {
     [CustomEditor(typeof(SelectionWrapper), false)]
     public class UniarchyItemEditor : Editor
     {
+		private JsonEditor jsonEditor;
+
         private void OnEnable()
         {
             // this.target
@@ -56,8 +60,17 @@ namespace Unsiave.Uniarchy
 
 				ReadOnlyField("ID", entity.id);
 				ReadOnlyField("Type", entity.type);
+				ReadOnlyField("Owners", string.Join(", ", entity.ownerIds));
+				ReadOnlyField("Created", Serializer.ToJson(entity.createdAt).AsString);
+				ReadOnlyField("Updated", Serializer.ToJson(entity.updatedAt).AsString);
 
-				GUILayout.Label(entity.ToJson().ToString(true));
+				if (jsonEditor == null)
+				{
+					jsonEditor = new JsonEditor();
+					jsonEditor.SetValue(entity.data);
+				}
+				
+				jsonEditor.OnGUI();
 			}
         }
 

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using Unisave.Serialization;
+using Unisave.Editor.JsonEditor;
 
 namespace Unisave
 {
@@ -15,7 +16,8 @@ namespace Unisave
 
 		private Texture unisaveLogo;
 
-		private JsonEditor autoRegistrationArguments = new JsonEditor();
+		// editor for autoreg arguments
+		private JsonEditor autoRegistrationArguments;
 
 		private readonly string frameworkVersion = typeof(Entity).Assembly.GetName().Version.ToString(3);
 
@@ -31,10 +33,67 @@ namespace Unisave
 			);
 		}
 
+		void OnFocus()
+		{
+			// force the file to reload by forgetting it
+			// (loading happens inside OnGUI)
+			preferences = null;
+		}
+
+		// called by unity, when keyboard focus is lost
+		// BUT ALSO by this window when mouse leaves the window
+		void OnLostFocus()
+		{
+			if (preferences != null)
+			{
+				BeforePreferencesSave();
+				preferences.Save();
+			}
+		}
+
+		/// <summary>
+		/// Called when preferences get reloaded
+		/// (usually on focus or creation)
+		/// </summary>
+		private void OnPrefencesLoaded()
+		{
+			// load autoreg arguments
+			if (autoRegistrationArguments == null)
+			{
+				autoRegistrationArguments = new JsonEditor();
+
+				autoRegistrationArguments.SetValue(preferences.AutoRegisterArguments);
+
+				// save on change
+				// (because focus loosing works in a strange way...)
+				autoRegistrationArguments.OnChange += () => {
+					if (preferences != null && autoRegistrationArguments != null)
+						preferences.AutoRegisterArguments = autoRegistrationArguments.GetValue();
+				};
+			}
+			else
+			{
+				autoRegistrationArguments.SetValue(preferences.AutoRegisterArguments);
+			}
+		}
+
+		/// <summary>
+		/// Called just before preferences get saved
+		/// (usually on lost focus)
+		/// </summary>
+		private void BeforePreferencesSave()
+		{
+			// save autoreg arguments
+			preferences.AutoRegisterArguments = autoRegistrationArguments.GetValue();
+		}
+
 		void OnGUI()
 		{
 			if (preferences == null)
+			{
 				preferences = UnisavePreferences.LoadOrCreate();
+				OnPrefencesLoaded();
+			}
 
 			windowScroll = GUILayout.BeginScrollView(windowScroll);
 
@@ -65,8 +124,10 @@ namespace Unisave
 			GUILayout.Label("Auto-login", EditorStyles.boldLabel);
 			preferences.AutoLoginPlayerEmail = EditorGUILayout.TextField("Auto-login email", preferences.AutoLoginPlayerEmail);
 			preferences.AutoRegisterPlayer = EditorGUILayout.Toggle("Auto-register", preferences.AutoRegisterPlayer);
-			GUILayout.Label("Auto-registration arguments");
-			preferences.AutoRegisterArguments = autoRegistrationArguments.OnGUI(preferences.AutoRegisterArguments);
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Auto-reg arguments", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+			autoRegistrationArguments.OnGUI();
+			EditorGUILayout.EndHorizontal();
 
 			GUILayout.Space(30f);
 
@@ -78,6 +139,10 @@ namespace Unisave
 			GUILayout.Label("Unisave framework version: " + frameworkVersion);
 
 			GUILayout.EndScrollView();
+
+			// detect mouse leave
+			if (Event.current.type == EventType.MouseLeaveWindow)
+				OnLostFocus();
 		}
 
 		void DrawUnisaveLogo()
@@ -101,18 +166,6 @@ namespace Unisave
 			var uploader = CodeUploader.Uploader.CreateDefaultInstance();
 			uploader.Run();
 			Debug.Log("CodeUploader: Done.");
-		}
-
-		void OnFocus()
-		{
-			// force the file to reload by forgetting it
-			preferences = null;
-		}
-
-		void OnLostFocus()
-		{
-			if (preferences != null)
-				preferences.Save();
 		}
 	}
 }
