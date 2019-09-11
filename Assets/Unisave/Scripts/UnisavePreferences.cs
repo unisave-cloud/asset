@@ -204,22 +204,28 @@ namespace Unisave
 		{
 			get
 			{
-				var data = UnityEditor.EditorPrefs.GetString(
-					"unisave.lastCodeUploadAt:" + KeySuffix, null
-				);
+				#if UNITY_EDITOR
+					var data = UnityEditor.EditorPrefs.GetString(
+						"unisave.lastCodeUploadAt:" + KeySuffix, null
+					);
 
-				if (String.IsNullOrEmpty(data))
+					if (String.IsNullOrEmpty(data))
+						return null;
+
+					return Serializer.FromJsonString<DateTime>(data);
+				#else
 					return null;
-
-				return Serializer.FromJsonString<DateTime>(data);
+				#endif
 			}
 
 			set
 			{
-				UnityEditor.EditorPrefs.SetString(
-					"unisave.lastCodeUploadAt:" + KeySuffix,
-					Serializer.ToJson(value).ToString()
-				);
+				#if UNITY_EDITOR
+					UnityEditor.EditorPrefs.SetString(
+						"unisave.lastCodeUploadAt:" + KeySuffix,
+						Serializer.ToJson(value).ToString()
+					);
+				#endif
 			}
 		}
 
