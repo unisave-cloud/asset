@@ -162,10 +162,10 @@ namespace Unisave
 
 		void RunManualCodeUpload()
 		{
-			Debug.Log("CodeUploader: Starting the upload...");
-			var uploader = CodeUploader.Uploader.CreateDefaultInstance();
-			uploader.Run();
-			Debug.Log("CodeUploader: Done.");
+			//Debug.Log("CodeUploader: Starting the upload...");
+			var uploader = Editor.BackendUploading.Uploader.GetDefaultInstance();
+			uploader.NewRun();
+			//Debug.Log("CodeUploader: Done.");
 		}
 	}
 }

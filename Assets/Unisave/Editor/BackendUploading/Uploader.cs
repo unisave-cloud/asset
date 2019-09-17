@@ -14,52 +14,90 @@ using Unisave.Exceptions;
 using Unisave.Utils;
 using Unisave.Serialization;
 
-namespace Unisave.CodeUploader
+namespace Unisave.Editor.BackendUploading
 {
     /// <summary>
-    /// Uploads backend code to the server
+    /// Uploads backend folder to the server
     /// </summary>
     public class Uploader
     {
-        /*
-            Uploading process
-            =================
+        private readonly UnisavePreferences preferences;
 
-            1) gather all the file paths to upload
-            2) compute hashes for all of them
-            3) upload paths with hashes to the server (also compute a global hash and store / send it)
-            4) server will tell us, which files to upload
-            5) upload those files
-            6) tell server when everything was uploaded
-                and it will try to compile it and send back compilation result
-         */
+        private readonly ApiUrl apiUrl;
 
-        private UnisavePreferences preferences;
-
-        private ApiUrl apiUrl;
-
-        public static Uploader CreateDefaultInstance()
+        /// <summary>
+        /// Creates the default instance of the uploader
+        /// that uses correct preferences.
+        /// </summary>
+        public static Uploader GetDefaultInstance()
         {
+            // NOTE: There's not an easy way to keep the value.
+            // Static field gets reset when the game is started.
+            // It would have to use editor preferences which is an overkill.
+            
             return new Uploader(
                 UnisavePreferences.LoadOrCreate()
             );
         }
 
-        public Uploader(UnisavePreferences preferences)
+        private Uploader(UnisavePreferences preferences)
         {
             this.preferences = preferences;
 
             apiUrl = new ApiUrl(preferences.ServerUrl);
         }
 
+        /// <summary>
+        /// This method gets called after recompilation by the hook.
+        /// It triggers the upload if preferences are set up that way.
+        /// </summary>
         public void RunAutomaticUpload()
         {
             if (!preferences.AutomaticCodeUploading)
                 return;
 
-            Run();
+            NewRun();
         }
 
+        /// <summary>
+        /// Performs all the uploading
+        /// </summary>
+        public void NewRun()
+        {
+            var backendFolders = new string[] {
+                "Assets/" + preferences.BackendFolder
+            };
+
+            // get list of files to be uploaded
+            var files = new List<BackendFile>();
+            files.AddRange(CSharpFile.FindFiles(backendFolders));
+            files.AddRange(SOFile.FindFiles(backendFolders));
+
+            // HERE START BACKGROUND THREAD
+
+            // compute file hashes
+            files.ForEach(f => f.ComputeHash());
+            
+            // compute backend hash
+            string backendHash = Unisave.Editor.Hash.CompositeMD5(
+                files.Select(f => f.Hash)
+            );
+            
+            Debug.Log(backendHash);
+            Debug.Log(string.Join("\n", files.Select(x => x.ToString())));
+
+            // send all file paths, hashes and global hash to the server
+            // and initiate the upload
+
+            // send individual files the server has asked for,
+            // access file.ContentForUpload()
+
+            // finish the upload and print result of the compilation
+        }
+
+        /// <summary>
+        /// Performs all the uploading
+        /// </summary>
         public void Run()
         {
             // get the list of all files to upload
@@ -91,7 +129,7 @@ namespace Unisave.CodeUploader
             // upload requested files
             var filesToUpload = Serializer.FromJson<string[]>(uploadStartResponse["filesToUpload"]);
 
-            foreach (var file in filesToUpload)
+            foreach (string file in filesToUpload)
             {
                 // NOTE: read bytes not text to make sure line endings match and hash matches the server one
                 // (ReadAllText does some fancy line ending conversions)

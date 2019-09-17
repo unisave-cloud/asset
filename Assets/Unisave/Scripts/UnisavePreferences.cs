@@ -192,13 +192,8 @@ namespace Unisave
 		[SerializeField]
 		private bool automaticCodeUploading = true;
 
-
-
-
-
-
 		/// <summary>
-		/// 
+		/// Last time code uploading took place
 		/// </summary>
 		public DateTime? LastCodeUploadAt
 		{
@@ -228,10 +223,6 @@ namespace Unisave
 				#endif
 			}
 		}
-
-
-
-
 
 		/// <summary>
 		/// Name of the emulated database to use
