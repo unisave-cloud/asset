@@ -5,6 +5,9 @@ namespace Unisave.Editor.BackendUploading
 {
     /// <summary>
     /// Represents a single backend file that will be uploaded
+    ///
+    /// WARNING: All data this class access after construction is accessed
+    /// from a background thread! Don't keep any Unity object references!
     /// </summary>
     public abstract class BackendFile
     {

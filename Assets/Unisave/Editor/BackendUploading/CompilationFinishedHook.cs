@@ -53,7 +53,7 @@ namespace Unisave.Editor.BackendUploading
         {
             Uploader
                 .GetDefaultInstance()
-                .RunAutomaticUpload();
+                .RunAutomaticUpload(isEditor: true);
         }
     }
 }

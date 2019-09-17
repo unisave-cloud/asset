@@ -5,6 +5,7 @@ using UnityEngine;
 using Unisave.Serialization;
 using LightJson;
 using LightJson.Serialization;
+using UnityEngine.Serialization;
 
 namespace Unisave
 {
@@ -75,11 +76,7 @@ namespace Unisave
 		public string ServerUrl
 		{
 			get => serverUrl;
-			
-			set
-			{
-				serverUrl = value;
-			}
+			set => serverUrl = value;
 		}
 		
 		[SerializeField]
@@ -91,11 +88,7 @@ namespace Unisave
 		public string GameToken
 		{
 			get => gameToken;
-
-			set
-			{
-				gameToken = value;
-			}
+			set => gameToken = value;
 		}
 
 		[SerializeField]
@@ -118,44 +111,49 @@ namespace Unisave
 		{
 			get
 			{
-				if (!editorKeyCacheActive)
-				{
-					#if UNITY_EDITOR
+				#if UNITY_EDITOR
+					if (!editorKeyCacheActive)
+					{
 						editorKeyCache = UnityEditor.EditorPrefs.GetString(
 							"unisave.editorKey:" + KeySuffix, null
 						);
 						editorKeyCacheActive = true;
-					#else
-						return null;
-					#endif
-				}
-
-				return editorKeyCache;
+					}
+					return editorKeyCache;
+				#else
+					return null;
+				#endif
 			}
 
 			set
 			{
-				if (value == EditorKey)
-					return;
-
 				#if UNITY_EDITOR
+					if (value == EditorKey)
+						return;
+
 					UnityEditor.EditorPrefs.SetString(
 						"unisave.editorKey:" + KeySuffix, value
 					);
+					
+					editorKeyCache = value;
+					editorKeyCacheActive = true;
 				#else
-					throw new InvalidOperationException("You cannot access editor key during runtime.");
+					throw new InvalidOperationException(
+						"You cannot access editor key during runtime."
+					);
 				#endif
-
-				editorKeyCache = value;
-				editorKeyCacheActive = true;
 			}
 		}
 		
-		[NonSerialized]
-		private string editorKeyCache;
+		#if UNITY_EDITOR
+			
+			[NonSerialized]
+			private string editorKeyCache;
 
-		[NonSerialized]
-		private bool editorKeyCacheActive = false;
+			[NonSerialized]
+			private bool editorKeyCacheActive;
+		
+		#endif
 
 		/// <summary>
 		/// Path (relative to the assets folder) to directory that contains
@@ -166,42 +164,34 @@ namespace Unisave
 		public string BackendFolder
 		{
 			get => backendFolder;
-
-			set
-			{
-				backendFolder = value;
-			}
+			set => backendFolder = value;
 		}
 
 		[SerializeField]
 		private string backendFolder = "Backend";
 
 		/// <summary>
-		/// Upload backend code automatically after compilation finishes
+		/// Upload backend automatically after compilation finishes
 		/// </summary>
-		public bool AutomaticCodeUploading
+		public bool AutomaticBackendUploading
 		{
-			get => automaticCodeUploading;
-
-			set
-			{
-				automaticCodeUploading = value;
-			}
+			get => automaticBackendUploading;
+			set => automaticBackendUploading = value;
 		}
 
 		[SerializeField]
-		private bool automaticCodeUploading = true;
+		private bool automaticBackendUploading = true;
 
 		/// <summary>
-		/// Last time code uploading took place
+		/// Last time backend uploading took place
 		/// </summary>
-		public DateTime? LastCodeUploadAt
+		public DateTime? LastBackendUploadAt
 		{
 			get
 			{
 				#if UNITY_EDITOR
 					var data = UnityEditor.EditorPrefs.GetString(
-						"unisave.lastCodeUploadAt:" + KeySuffix, null
+						"unisave.lastBackendUploadAt:" + KeySuffix, null
 					);
 
 					if (String.IsNullOrEmpty(data))
@@ -217,7 +207,7 @@ namespace Unisave
 			{
 				#if UNITY_EDITOR
 					UnityEditor.EditorPrefs.SetString(
-						"unisave.lastCodeUploadAt:" + KeySuffix,
+						"unisave.lastBackendUploadAt:" + KeySuffix,
 						Serializer.ToJson(value).ToString()
 					);
 				#endif
@@ -230,11 +220,7 @@ namespace Unisave
 		public string EmulatedDatabaseName
 		{
 			get => emulatedDatabaseName;
-
-			set
-			{
-				emulatedDatabaseName = value;
-			}
+			set => emulatedDatabaseName = value;
 		}
 		
 		[SerializeField]
@@ -246,15 +232,11 @@ namespace Unisave
 		public bool AlwaysEmulate
 		{
 			get => alwaysEmulate;
-
-			set
-			{
-				alwaysEmulate = value;
-			}
+			set => alwaysEmulate = value;
 		}
 		
 		[SerializeField]
-		private bool alwaysEmulate = false;
+		private bool alwaysEmulate;
 
 		/// <summary>
 		/// Email of the player used for autologin
@@ -262,11 +244,7 @@ namespace Unisave
 		public string AutoLoginPlayerEmail
 		{
 			get => autoLoginPlayerEmail;
-
-			set
-			{
-				autoLoginPlayerEmail = value;
-			}
+			set => autoLoginPlayerEmail = value;
 		}
 
 		[SerializeField]
@@ -278,11 +256,7 @@ namespace Unisave
 		public bool AutoRegisterPlayer
 		{
 			get => autoRegisterPlayer;
-
-			set
-			{
-				autoRegisterPlayer = value;
-			}
+			set => autoRegisterPlayer = value;
 		}
 
 		[SerializeField]
@@ -294,11 +268,7 @@ namespace Unisave
 		public JsonObject AutoRegisterArguments
 		{
 			get => JsonReader.Parse(autoRegisterArguments);
-
-			set
-			{
-				autoRegisterArguments = value.ToString();
-			}
+			set => autoRegisterArguments = value.ToString();
 		}
 
 		[SerializeField]

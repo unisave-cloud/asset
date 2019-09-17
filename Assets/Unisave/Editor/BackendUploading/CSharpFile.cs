@@ -12,10 +12,10 @@ namespace Unisave.Editor.BackendUploading
         /// <inheritdoc/>
         public override string FileType => "csharp";
         
-        /// <summary>
-        /// The underlying asset instance
-        /// </summary>
-        public MonoScript MonoScript { get; }
+        // Cannot keep reference to the MonoScript since it has to
+        // be accessed only from the main thread.
+        private readonly string scriptText;
+        private readonly byte[] scriptBytes;
         
         /// <summary>
         /// Finds all C# scripts inside backend folders
@@ -31,7 +31,10 @@ namespace Unisave.Editor.BackendUploading
 
         private CSharpFile(string assetGuid) : base(assetGuid)
         {
-            MonoScript = AssetDatabase.LoadAssetAtPath<MonoScript>(Path);
+            var m = AssetDatabase.LoadAssetAtPath<MonoScript>(Path);
+
+            scriptText = m.text;
+            scriptBytes = m.bytes;
         }
         
         /// <inheritdoc/>
@@ -43,7 +46,7 @@ namespace Unisave.Editor.BackendUploading
             
             // Normalized line endings to "\n" by removing "\r"
             // This is ok even for old macs since C# compiler ignores whitespace
-            string text = MonoScript.text.Replace("\r", "");
+            string text = scriptText.Replace("\r", "");
 
             // turn text to bytes, always use UTF-8
             byte[] bytes = System.Text.Encoding.UTF8.GetBytes(text);
@@ -57,7 +60,7 @@ namespace Unisave.Editor.BackendUploading
         {
             // Use the raw bytes of the file.
             // Server compiler will deal with that.
-            return MonoScript.bytes;
+            return scriptBytes;
         }
     }
 }

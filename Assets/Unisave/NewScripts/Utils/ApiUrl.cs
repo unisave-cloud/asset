@@ -19,6 +19,8 @@ namespace Unisave.Utils
                 this.serverUrl += "/";
         }
 
+        public string Index() => serverUrl;
+
         private string GameApiUrl(string relativeUrl)
         {
             return serverUrl + "api/game/v1.0/" + relativeUrl;
@@ -35,8 +37,11 @@ namespace Unisave.Utils
         
         public string CallFacet() => GameApiUrl("call-facet");
         
-        public string StartScriptUpload() => EditorApiUrl("upload-script/start");
-        public string UploadScript() => EditorApiUrl("upload-script");
-        public string FinishScriptUpload() => EditorApiUrl("upload-script/finish");
+        public string BackendUpload_Start()
+            => EditorApiUrl("backend-upload/start");
+        public string BackendUpload_File()
+            => EditorApiUrl("backend-upload/file");
+        public string BackendUpload_Finish()
+            => EditorApiUrl("backend-upload/finish");
     }
 }

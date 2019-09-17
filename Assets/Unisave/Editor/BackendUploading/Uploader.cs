@@ -1,18 +1,10 @@
 using System;
 using System.Collections.Generic;
-using System.IO;
-using System.Net;
-using System.Text;
-using System.Threading;
 using System.Linq;
-using System.Security.Cryptography;
-using UnityEditor;
-using UnityEngine;
+using System.Threading;
 using LightJson;
-using LightJson.Serialization;
-using Unisave.Exceptions;
 using Unisave.Utils;
-using Unisave.Serialization;
+using UnityEngine;
 
 namespace Unisave.Editor.BackendUploading
 {
@@ -51,19 +43,45 @@ namespace Unisave.Editor.BackendUploading
         /// This method gets called after recompilation by the hook.
         /// It triggers the upload if preferences are set up that way.
         /// </summary>
-        public void RunAutomaticUpload()
+        /// <param name="isEditor">
+        /// Are we uploading just an editor recompilation? (true)
+        /// Or a new build of the game? (false)
+        /// </param>
+        public void RunAutomaticUpload(bool isEditor)
         {
-            if (!preferences.AutomaticCodeUploading)
+            if (!preferences.AutomaticBackendUploading)
                 return;
 
-            NewRun();
+            Run(
+                isEditor,
+                verbose: false,
+                useAnotherThread: false // has to be FALSE! see the param. note
+            );
         }
 
         /// <summary>
         /// Performs all the uploading
         /// </summary>
-        public void NewRun()
+        /// <param name="isEditor">
+        /// Are we uploading just an editor recompilation? (true)
+        /// Or a new build of the game? (false)
+        /// </param>
+        /// <param name="verbose">Print additional info</param>
+        /// <param name="useAnotherThread">
+        /// If true, the networking will happen in a background thread so
+        /// that the UI is responsive. BUT! if I start a background thread
+        /// right after assembly compilation, it gets killed unexpectedly
+        /// for some reason. So there the execution has to be single-threaded.
+        /// </param>
+        public void Run(bool isEditor, bool verbose, bool useAnotherThread)
         {
+            if (verbose)
+                Debug.Log("Starting backend upload...");
+            
+            // store the upload time
+            preferences.LastBackendUploadAt = DateTime.Now;
+            
+            // list all backend folders
             var backendFolders = new string[] {
                 "Assets/" + preferences.BackendFolder
             };
@@ -73,235 +91,167 @@ namespace Unisave.Editor.BackendUploading
             files.AddRange(CSharpFile.FindFiles(backendFolders));
             files.AddRange(SOFile.FindFiles(backendFolders));
 
-            // HERE START BACKGROUND THREAD
+            // NOTE: Debug Methods are thread-safe
+            // https://answers.unity.com/questions/714590/
+            // thread-safety-and-debuglog.html
+            
+            // do the rest of computation involving networking in the background
+            if (useAnotherThread)
+            {
+                var backgroundThread = new Thread(() => {
+                    BackgroundJob(files, isEditor, verbose);
+                });
+                backgroundThread.Start();
+            }
+            else // well, not always in the background
+            {
+                BackgroundJob(files, isEditor, verbose);
+            }
+        }
+
+        /// <summary>
+        /// Part the of the uploading that can happen in the background
+        /// on another thread
+        /// </summary>
+        private void BackgroundJob(
+            List<BackendFile> files, bool isEditor, bool verbose
+        )
+        {
+            /*
+             * WARNING: You run in another thread, be aware of what you touch!
+             */
+            
+            // check server reachability
+            if (!Http.UrlReachable(apiUrl.Index()))
+            {
+                Debug.LogError(
+                    $"Unisave server at '{apiUrl.Index()}' is not reachable.\n"
+                    + "If you want to work offline, you can go to "
+                    + "Window/Unisave/Preferences and disable automatic "
+                    + "backend uploading."
+                );
+                return;
+            }
 
             // compute file hashes
             files.ForEach(f => f.ComputeHash());
             
             // compute backend hash
-            string backendHash = Unisave.Editor.Hash.CompositeMD5(
+            string backendHash = Hash.CompositeMD5(
                 files.Select(f => f.Hash)
             );
-            
-            Debug.Log(backendHash);
-            Debug.Log(string.Join("\n", files.Select(x => x.ToString())));
 
             // send all file paths, hashes and global hash to the server
             // and initiate the upload
-
-            // send individual files the server has asked for,
-            // access file.ContentForUpload()
-
-            // finish the upload and print result of the compilation
-        }
-
-        /// <summary>
-        /// Performs all the uploading
-        /// </summary>
-        public void Run()
-        {
-            // get the list of all files to upload
-            var files = new List<string>();
-            TraverseFolder(files, "Assets/" + preferences.BackendFolder);
-
-            // compute hashes for those files
-            Dictionary<string, string> hashes = ComputeHashesForFiles(files);
-
-            // compute global hash
-            string globalHash = ComputeGlobalHash(files, hashes);
-
-            // FUTURE FEATURE?
-            // save global hash in unisave preferences and upload it on login / registration
-            // to replace the role of buildGUID? Maybe.
-
-            // upload hashes to server and see what needs to be uploaded
-            JsonObject uploadStartResponse = HttpPostRequest(
-                apiUrl.StartScriptUpload(),
+            JsonObject startResponse = Http.Post(
+                apiUrl.BackendUpload_Start(),
                 new JsonObject()
-                    .Add("gameToken", preferences.GameToken)
-				    .Add("editorKey", preferences.EditorKey)
-                    .Add("assetVersion", UnisaveServer.AssetVersion)
-                    .Add("files", Serializer.ToJson(files))
-                    .Add("hashes", Serializer.ToJson(hashes))
-                    .Add("globalHash", globalHash)
-            );
-
-            // upload requested files
-            var filesToUpload = Serializer.FromJson<string[]>(uploadStartResponse["filesToUpload"]);
-
-            foreach (string file in filesToUpload)
-            {
-                // NOTE: read bytes not text to make sure line endings match and hash matches the server one
-                // (ReadAllText does some fancy line ending conversions)
-                string code = Encoding.UTF8.GetString(File.ReadAllBytes(file));
-
-                JsonObject uploadResponse = HttpPostRequest(
-                    apiUrl.UploadScript(),
-                    new JsonObject()
-                        .Add("gameToken", preferences.GameToken)
-				        .Add("editorKey", preferences.EditorKey)
-                        .Add("scriptPath", file)
-				        .Add("scriptCode", code)
-                );
-
-                if (uploadResponse["code"].AsString == "ok")
-                {
-                    Debug.Log("Unisave uploaded file: " + file);
-                }
-                else
-                {
-                    Debug.LogError("Unisave file upload failed: " + file);
-                }
-            }
-
-            // finish upload (let the server compile all scripts)
-            JsonObject uploadFinishResponse = HttpPostRequest(
-                apiUrl.FinishScriptUpload(),
-                new JsonObject()
-                    .Add("gameToken", preferences.GameToken)
-                    .Add("editorKey", preferences.EditorKey)
-            );
-
-            if (!uploadFinishResponse["compilationSucceeded"].AsBoolean)
-            {
-                Debug.LogError("Server compile error:\n" + uploadFinishResponse["compilationMessage"]);
-            }
-
-            // save upload time
-            preferences.LastCodeUploadAt = DateTime.Now;
-        }
-
-        /// <summary>
-        /// Searches for files to upload
-        /// </summary>
-        private void TraverseFolder(List<string> files, string path)
-        {
-            // NOTE: keep everything ordered alphabetically, because it affects the global hash
-
-            if (!Directory.Exists(path))
-                throw new UnisaveException(
-                    $"Backend folder '{path}' does not exist.\n" +
-                    "Check your Unisave preferences for the 'Backend assets folder' field. Make sure it's set up properly."
-                );
-
-            // branch on each subdirectory
-            foreach (string dirPath in Directory.GetDirectories(path).OrderBy(f => f))
-            {
-                string dir = Path.GetFileName(dirPath);
-                TraverseFolder(files, dirPath);
-            }
-
-            // select .cs files
-            foreach (string filePath in Directory.GetFiles(path).OrderBy(f => f))
-            {
-                if (Path.GetExtension(filePath) == ".cs")
-                {
-                    files.Add(filePath);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Computes hashes for all files that are going to be uploaded
-        /// </summary>
-        private Dictionary<string, string> ComputeHashesForFiles(List<string> files)
-        {
-            Dictionary<string, string> hashes = new Dictionary<string, string>();
-            
-            foreach (var file in files)
-                hashes[file] = ComputeHash(file);
-                
-            return hashes;
-        }
-
-        /// <summary>
-        /// Computes MD5 hash of a file
-        /// </summary>
-        private string ComputeHash(string file)
-        {
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = File.OpenRead(file))
-                {
-                    byte[] hash = md5.ComputeHash(stream);
-
-                    return Convert.ToBase64String(hash);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Computes global hash over all files
-        /// </summary>
-        private string ComputeGlobalHash(List<string> files, Dictionary<string, string> hashes)
-        {
-            StringBuilder hashConcatenation = new StringBuilder();
-            
-            foreach (string file in files)
-                hashConcatenation.Append(hashes[file]);
-
-            using (var md5 = MD5.Create())
-            {
-                using (var stream = new MemoryStream(Encoding.UTF8.GetBytes(hashConcatenation.ToString())))
-                {
-                    byte[] hash = md5.ComputeHash(stream);
-                    return Convert.ToBase64String(hash);
-                }
-            }
-        }
-
-        /// <summary>
-        /// Blocking HTTP request via .NET framework
-        /// </summary>
-        private JsonObject HttpPostRequest(string url, JsonObject payload)
-        {
-            byte[] payloadBytes = new UTF8Encoding().GetBytes(payload.ToString());
-
-            HttpWebRequest request = (HttpWebRequest)HttpWebRequest.Create(url);
-            request.Method = "POST";
-            request.ContentType = "application/json";
-            request.Accept = "application/json";
-            request.ContentLength = payloadBytes.LongLength;
-            request.GetRequestStream().Write(payloadBytes, 0, payloadBytes.Length);
-
-            string responseString = null;
-
-            try
-            {
-                using (HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-                {
-                    using (var sr = new StreamReader(response.GetResponseStream()))
-                        responseString = sr.ReadToEnd();
-
-                    if ((int)response.StatusCode != 200)
-                        throw new UnisaveException(
-                            "Server responded with non 200 response:\n" +
-                            responseString
-                        );
+                    .Add("game_token", preferences.GameToken)
+                    .Add("editor_key", preferences.EditorKey)
                     
-                    return JsonReader.Parse(responseString);
-                }
-            }
-            catch (Exception e)
+                    .Add("backend_hash", backendHash)
+                    .Add("framework_version", GetFrameworkVersion())
+                    .Add("asset_version", UnisaveServer.AssetVersion)
+                    .Add("is_editor", isEditor)
+                    .Add(
+                        "backend_folder_path",
+                        "Assets/" + preferences.BackendFolder
+                    )
+                    .Add("files", new JsonArray(
+                        files.Select(f => (JsonValue) new JsonObject()
+                            .Add("path", f.Path)
+                            .Add("hash", f.Hash)
+                        ).ToArray()
+                    ))
+            );
+
+            // finish upload if requested
+            if (startResponse["upload_has_finished"].AsBoolean)
             {
-                if (e is WebException)
+                if (verbose)
                 {
-                    if ((int)((HttpWebResponse)((WebException)e).Response).StatusCode == 401)
-                        throw new UnisaveException(
-                            "Server response to code uploader was 401 unauthorized.\n"
-                            + "Check that your game token and editor key are correctly set up."
-                        );
-
-                    if ((int)((HttpWebResponse)((WebException)e).Response).StatusCode == 429)
-                        throw new UnisaveException(
-                            "Server refuses code uploader requests due to their amount. This happens when Unity editor does a lot of recompiling.\n"
-                            + "Simply wait for a while and this problem will go away."
-                        );
+                    Debug.Log(
+                        "Backend upload done, this backend " +
+                        "has already been uploaded."
+                    );
                 }
 
-                Debug.LogError("Server sent:\n" + responseString);
-                throw e;
+                return;
+            }
+
+            var filePathsToUpload = new HashSet<string>(
+                startResponse["files_to_upload"]
+                    .AsJsonArray
+                    .Select(x => x.AsString)
+            );
+            
+            // filter out files that needn't be uploaded
+            IEnumerable<BackendFile> filteredFiles = files.Where(
+                f => filePathsToUpload.Contains(f.Path)
+            );
+
+            // send individual files the server has asked for
+            foreach (var file in filteredFiles)
+            {
+                Http.Post(
+                    apiUrl.BackendUpload_File(),
+                    new JsonObject()
+                        .Add("game_token", preferences.GameToken)
+                        .Add("editor_key", preferences.EditorKey)
+                    
+                        .Add("backend_hash", backendHash)
+                        .Add("file", new JsonObject()
+                            .Add("path", file.Path)
+                            .Add("hash", file.Hash)
+                            .Add("file_type", file.FileType)
+                            .Add(
+                                "content",
+                                Convert.ToBase64String(
+                                    file.ContentForUpload())
+                                )
+                            )
+                );
+                
+                if (verbose)
+                    Debug.Log($"Uploaded '{file.Path}'");
+            }
+
+            // finish the upload
+            JsonObject finishResponse = Http.Post(
+                apiUrl.BackendUpload_Finish(),
+                new JsonObject()
+                    .Add("game_token", preferences.GameToken)
+                    .Add("editor_key", preferences.EditorKey)
+                
+                    .Add("backend_hash", backendHash)
+            );
+
+            if (verbose)
+            {
+                Debug.Log(
+                    "Backend upload done, starting server compilation..."
+                );
+            }
+
+            // print result of the compilation
+            if (!finishResponse["compiler_success"].AsBoolean)
+            {
+                Debug.LogError(
+                    "Server compile error:\n" +
+                    finishResponse["compiler_output"].AsString
+                );
+            }
+            else
+            {
+                if (verbose)
+                    Debug.Log("Server compilation done.");
             }
         }
+
+        /// <summary>
+        /// Obtains version of the unisave framework present
+        /// </summary>
+        private string GetFrameworkVersion()
+            => typeof(Entity).Assembly.GetName().Version.ToString(3);
     }
 }

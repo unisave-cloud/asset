@@ -1,5 +1,6 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using Unisave.Editor.BackendUploading;
 using UnityEngine;
 using UnityEditor;
 using Unisave.Serialization;
@@ -104,9 +105,9 @@ namespace Unisave
 			preferences.GameToken = EditorGUILayout.TextField("Game token", preferences.GameToken);
 			preferences.EditorKey = EditorGUILayout.TextField("Editor key", preferences.EditorKey);
 
-			GUILayout.Label("Code uploading", EditorStyles.boldLabel);
+			GUILayout.Label("Backend folder uploading", EditorStyles.boldLabel);
 			preferences.BackendFolder = EditorGUILayout.TextField("Backend assets folder", preferences.BackendFolder);
-			preferences.AutomaticCodeUploading = EditorGUILayout.Toggle("Automatic", preferences.AutomaticCodeUploading);
+			preferences.AutomaticBackendUploading = EditorGUILayout.Toggle("Automatic", preferences.AutomaticBackendUploading);
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Manual", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
 			if (GUILayout.Button("Upload", GUILayout.Width(50f)))
@@ -114,7 +115,7 @@ namespace Unisave
 			EditorGUILayout.EndHorizontal();
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Last upload at", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
-			EditorGUILayout.LabelField(preferences.LastCodeUploadAt?.ToString("yyyy-MM-dd H:mm:ss") ?? "Never");
+			EditorGUILayout.LabelField(preferences.LastBackendUploadAt?.ToString("yyyy-MM-dd H:mm:ss") ?? "Never");
 			EditorGUILayout.EndHorizontal();
 
 			GUILayout.Label("Database emulation", EditorStyles.boldLabel);
@@ -162,10 +163,13 @@ namespace Unisave
 
 		void RunManualCodeUpload()
 		{
-			//Debug.Log("CodeUploader: Starting the upload...");
-			var uploader = Editor.BackendUploading.Uploader.GetDefaultInstance();
-			uploader.NewRun();
-			//Debug.Log("CodeUploader: Done.");
+			Uploader
+				.GetDefaultInstance()
+				.Run(
+					isEditor: true,
+					verbose: true,
+					useAnotherThread: true // yes, here we can run in background
+				);
 		}
 	}
 }
