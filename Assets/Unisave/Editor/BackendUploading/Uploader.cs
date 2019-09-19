@@ -151,7 +151,7 @@ namespace Unisave.Editor.BackendUploading
                     
                     .Add("backend_hash", backendHash)
                     .Add("framework_version", GetFrameworkVersion())
-                    .Add("asset_version", UnisaveServer.AssetVersion)
+                    .Add("asset_version", AssetMeta.Version)
                     .Add("is_editor", isEditor)
                     .Add(
                         "backend_folder_path",

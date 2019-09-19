@@ -50,12 +50,7 @@ namespace Unisave
             Emulation can never take place in a built game. It only happens, when running
             inside the unity editor.
          */
-
-        /// <summary>
-        /// Version of this unisave asset
-        /// </summary>
-        public const string AssetVersion = "0.6.0";
-
+        
         /// <summary>
         /// The default instance used by all the facades
         /// </summary>

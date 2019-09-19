@@ -20,8 +20,6 @@ namespace Unisave
 		// editor for autoreg arguments
 		private JsonEditor autoRegistrationArguments;
 
-		private readonly string frameworkVersion = typeof(Entity).Assembly.GetName().Version.ToString(3);
-
 		private Vector2 windowScroll = Vector3.zero;
 
 		[MenuItem("Window/Unisave/Preferences")]
@@ -136,8 +134,8 @@ namespace Unisave
 
 			GUILayout.Space(30f);
 
-			GUILayout.Label("Unisave asset version: " + UnisaveServer.AssetVersion);
-			GUILayout.Label("Unisave framework version: " + frameworkVersion);
+			GUILayout.Label("Unisave asset version: " + AssetMeta.Version);
+			GUILayout.Label("Unisave framework version: " + FrameworkMeta.Version);
 
 			GUILayout.EndScrollView();
 
