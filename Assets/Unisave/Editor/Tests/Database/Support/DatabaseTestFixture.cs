@@ -17,7 +17,7 @@ namespace Unisave.Editor.Tests.Database.Support
         /// <summary>
         /// Connection to the database proxy for implementing IDatabase
         /// </summary>
-        private UnisaveDatabase proxyConnection;
+        private DatabaseProxyConnection proxyConnection;
 
         /// <summary>
         /// Interface to the underlying database
@@ -41,9 +41,8 @@ namespace Unisave.Editor.Tests.Database.Support
                 string execId = MySqlDatabase.PrepareDatabase(MySqlConnection);
                 
                 // setup proxy connection
-                //proxyConnection = new DatabaseProxyConnection();
-                proxyConnection = new UnisaveDatabase();
-                proxyConnection.Connect(
+                proxyConnection = new DatabaseProxyConnection();
+                proxyConnection.Open(
                     execId,
                     Config.DatabaseProxyIp,
                     Config.DatabaseProxyPort
@@ -62,7 +61,7 @@ namespace Unisave.Editor.Tests.Database.Support
                 MySqlConnection = null;
 
                 // disconnect from proxy
-                proxyConnection?.Disconnect();
+                proxyConnection?.Close();
                 proxyConnection = null;
             }
         }
