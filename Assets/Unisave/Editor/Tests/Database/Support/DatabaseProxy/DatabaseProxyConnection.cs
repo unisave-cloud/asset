@@ -50,7 +50,9 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             client.SendTextMessage(201, entity.ToJson().ToString());
 
             // save entity response
-            JsonObject response = JsonReader.Parse(client.ReceiveTextMessageType(202)).AsJsonObject;
+            JsonObject response = JsonReader.Parse(
+                client.ReceiveTextMessageType(202)
+            ).AsJsonObject;
 
             if (entity.id == null)
             {
@@ -64,6 +66,14 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
         public RawEntity LoadEntity(string id)
         {
             throw new System.NotImplementedException();
+        }
+
+        public IEnumerable<string> GetEntityOwners(string entityId)
+        {
+            if (entityId == null)
+                throw new ArgumentNullException();
+            
+            return new EntityOwnersRequest(entityId, client);
         }
 
         public bool DeleteEntity(string id)

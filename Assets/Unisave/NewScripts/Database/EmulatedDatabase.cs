@@ -285,6 +285,12 @@ namespace Unisave.Database
         }
 
         /// <inheritdoc/>
+        IEnumerable<string> IDatabase.GetEntityOwners(string entityId)
+        {
+            return GetEntityOwners(entityId);
+        }
+
+        /// <inheritdoc/>
         public bool DeleteEntity(string id)
         {
             GuardClientSide();

@@ -15,9 +15,10 @@ namespace Unisave.Database
         public static void NotifyDeveloper()
         {
             throw new UnisaveException(
-                "You cannot query, load or save entities from client-side code. " +
-                "This can only be done from inside facets.\n" +
-                "You can however return entities from facets, so you can work with them on the client side."
+                "You cannot query, load or save entities from client-side " +
+                "code. This can only be done from inside facets.\n" +
+                "You can however return entities from facets, " +
+                "so you can work with them on the client side."
             );
         }
 
@@ -35,6 +36,13 @@ namespace Unisave.Database
         }
 
         /// <inheritdoc/>
+        public IEnumerable<string> GetEntityOwners(string entityId)
+        {
+            NotifyDeveloper();
+            return new string[0];
+        }
+
+        /// <inheritdoc/>
         public bool DeleteEntity(string id)
         {
             NotifyDeveloper();
@@ -42,7 +50,9 @@ namespace Unisave.Database
         }
 
         /// <inheritdoc/>
-        public IEnumerable<RawEntity> QueryEntities(string entityType, EntityQuery query)
+        public IEnumerable<RawEntity> QueryEntities(
+            string entityType, EntityQuery query
+        )
         {
             NotifyDeveloper();
             yield break;

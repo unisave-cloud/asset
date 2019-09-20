@@ -48,7 +48,7 @@ namespace Unisave.Editor.Tests.Database
             string peter = CreatePlayer();
             
             var entity = new RawEntity {
-                type = "GameEntity",
+                type = "PlayerEntity",
                 data = new JsonObject()
                     .Add("foo", "bar")
             };
@@ -70,7 +70,7 @@ namespace Unisave.Editor.Tests.Database
             string peter = CreatePlayer();
             
             var entity = new RawEntity {
-                type = "GameEntity",
+                type = "SharedEntity",
                 data = new JsonObject()
                     .Add("foo", "bar")
             };
