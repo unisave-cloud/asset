@@ -11,12 +11,6 @@ namespace Unisave.Editor.Tests.Database
      * - načítání vlastníků vyřeš na LoadEntity dotazu
      * - takže na něj napiš testy a pak pořeš dotazování
      * - pro dotazování entit se to pak bude chovat stejně
-     * - ještě si na dotazování hráčů můžeš rovnou vyzkoušet block fetch cursor
-     *
-     * TODO: THIS:
-     * - Čili ÚPLNĚ NEJDŘÍV vlastně naimplementuj nějaký dotaz, co dokáže
-     *     iterovat přes vlastníky nějaké entity
-     *     (pokud entita neexistuje, iteruju prázný pole, což udělá už datbáze)
      */
     
     

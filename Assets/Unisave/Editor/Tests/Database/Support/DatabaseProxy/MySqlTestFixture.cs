@@ -25,6 +25,11 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
         private string databaseId;
 
         /// <summary>
+        /// ID of the game we are working in
+        /// </summary>
+        private string gameId;
+
+        /// <summary>
         /// Database interface
         /// </summary>
         public IDatabase Database => proxyConnection;
@@ -39,7 +44,7 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             // prepare database content
             MySqlDatabase.PrepareDatabase(
                 databaseConnection,
-                out string _, out string _,
+                out string _, out gameId,
                 out databaseId, out string executionId
             );
                 
@@ -92,6 +97,46 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             }
 
             return playerId;
+        }
+        
+        /// <summary>
+        /// Creates new entity in a new database and returns the entity id
+        /// </summary>
+        public string CreateEntityInAnotherDatabase()
+        {
+            // create database
+            string newDatabaseId = Str.Random(8);
+            using (var command = databaseConnection.CreateCommand())
+            {
+                command.CommandText = @"
+                    INSERT INTO `databases` (
+                        id, game_id, title
+                    ) 
+                    VALUES (
+                        @id, @game_id, 'AnotherDatabase'
+                    );
+                ";
+                command.Parameters.AddWithValue("id", newDatabaseId);
+                command.Parameters.AddWithValue("game_id", gameId);
+                command.ExecuteNonQuery();
+            }
+
+            string entityId = Str.Random(16);
+            using (var command = databaseConnection.CreateCommand())
+            {
+                command.CommandText = @"
+                    INSERT INTO entities (
+                        id, database_id, type, data, created_at, updated_at
+                    ) VALUES (
+                        @id, @database_id, 'SomeType', '{}', NOW(), NOW()
+                    );
+                ";
+                command.Parameters.AddWithValue("id", entityId);
+                command.Parameters.AddWithValue("database_id", newDatabaseId);
+                command.ExecuteNonQuery();
+            }
+
+            return entityId;
         }
         
         ////////////////

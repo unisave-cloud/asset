@@ -81,7 +81,7 @@ namespace Unisave.Editor.Tests.Database.Support
 
             throw new NotImplementedException();
         }
-        
+
         ///////////////////////
         // Shared assertions //
         ///////////////////////

@@ -47,7 +47,12 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
                 throw new ArgumentNullException();
 
             // save entity
-            client.SendTextMessage(201, entity.ToJson().ToString());
+            client.SendTextMessage(
+                201,
+                new JsonObject()
+                    .Add("entity", entity.ToJson())
+                    .ToString()
+            );
 
             // save entity response
             JsonObject response = JsonReader.Parse(
@@ -65,7 +70,24 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
 
         public RawEntity LoadEntity(string id)
         {
-            throw new System.NotImplementedException();
+            if (id == null)
+                throw new ArgumentNullException();
+            
+            client.SendTextMessage(
+                203,
+                new JsonObject()
+                    .Add("entity_id", id)
+                    .ToString()
+            );
+            
+            JsonObject response = JsonReader.Parse(
+                client.ReceiveTextMessageType(204)
+            ).AsJsonObject;
+
+            if (response["entity"].IsNull)
+                return null;
+
+            return RawEntity.FromJson(response["entity"].AsJsonObject);
         }
 
         public IEnumerable<string> GetEntityOwners(string entityId)
