@@ -2,7 +2,7 @@ using System;
 using MySql.Data.MySqlClient;
 using Unisave.Utils;
 
-namespace Unisave.Editor.Tests.Database.Support
+namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
 {
     /// <summary>
     /// Contains helper methods for working with the MySql connection
@@ -33,13 +33,17 @@ namespace Unisave.Editor.Tests.Database.Support
         /// Sets up the testing database
         /// Returns execution ID for the proxy connection
         /// </summary>
-        public static string PrepareDatabase(MySqlConnection connection)
+        public static void PrepareDatabase(
+            MySqlConnection connection,
+            out string developerId, out string gameId, out string databaseId,
+            out string executionId
+        )
         {
             // clear first
             ClearDatabase(connection);
             
             // create developer
-            string developerId = Str.Random(16);
+            developerId = Str.Random(16);
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"
@@ -52,7 +56,7 @@ namespace Unisave.Editor.Tests.Database.Support
             }
             
             // create game
-            string gameId = Str.Random(16);
+            gameId = Str.Random(16);
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"
@@ -68,8 +72,25 @@ namespace Unisave.Editor.Tests.Database.Support
                 command.ExecuteNonQuery();
             }
             
+            // create database
+            databaseId = Str.Random(8);
+            using (var command = connection.CreateCommand())
+            {
+                command.CommandText = @"
+                    INSERT INTO `databases` (
+                        id, game_id, title
+                    ) 
+                    VALUES (
+                        @id, @game_id, 'SomeDatabase'
+                    );
+                ";
+                command.Parameters.AddWithValue("id", databaseId);
+                command.Parameters.AddWithValue("game_id", gameId);
+                command.ExecuteNonQuery();
+            }
+            
             // script executions
-            string executionId = Str.Random(16);
+            executionId = Str.Random(16);
             using (var command = connection.CreateCommand())
             {
                 command.CommandText = @"
@@ -81,12 +102,10 @@ namespace Unisave.Editor.Tests.Database.Support
                     );
                 ";
                 command.Parameters.AddWithValue("id", executionId);
-                command.Parameters.AddWithValue("game_id", gameId);
+                command.Parameters.AddWithValue("game_id", databaseId);
                 command.Parameters.AddWithValue("now", DateTime.UtcNow);
                 command.ExecuteNonQuery();
             }
-
-            return executionId;
         }
 
         private static void ClearDatabase(MySqlConnection connection)
@@ -97,6 +116,7 @@ namespace Unisave.Editor.Tests.Database.Support
                     DELETE FROM script_executions;
                     DELETE FROM entities_players;
                     DELETE FROM entities;
+                    DELETE FROM `databases`;
                     DELETE FROM games;
                     DELETE FROM developers;
                 ";

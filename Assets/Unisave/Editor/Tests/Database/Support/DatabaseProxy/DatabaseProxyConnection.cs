@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
-using Unisave.Database;
-using Parrot;
 using LightJson;
 using LightJson.Serialization;
+using Parrot;
+using Unisave.Database;
 
-namespace Unisave.Editor.Tests.Database.Support
+namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
 {
     /// <summary>
     /// Connection to the database proxy
@@ -14,8 +14,6 @@ namespace Unisave.Editor.Tests.Database.Support
     public class DatabaseProxyConnection : IDatabase
     {
         private Client client;
-
-        public DatabaseProxyConnection() { }
 
         public void Open(string executionId, string ipAddress, int port)
         {
