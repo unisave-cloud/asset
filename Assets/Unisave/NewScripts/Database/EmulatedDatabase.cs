@@ -256,7 +256,7 @@ namespace Unisave.Database
 
             entities.Add(entity.id, RawEntity.FromJson(entity.ToJson()));
 
-            AddOwners(entity.id, entity.ownerIds);
+            AddOwners(entity.id, new HashSet<string>(entity.ownerIds));
         }
 
         private void UpdateEntity(RawEntity entity)
@@ -266,7 +266,7 @@ namespace Unisave.Database
             entities[entity.id] = RawEntity.FromJson(entity.ToJson());
 
             RemoveAllOwners(entity.id);
-            AddOwners(entity.id, entity.ownerIds);
+            AddOwners(entity.id, new HashSet<string>(entity.ownerIds));
         }
 
         /// <inheritdoc/>
@@ -279,7 +279,10 @@ namespace Unisave.Database
 
             var entity = RawEntity.FromJson(entities[id].ToJson());
 
-            entity.ownerIds = new HashSet<string>(GetEntityOwners(id));
+            entity.ownerIds = new EntityOwnerIds(
+                GetEntityOwners(id),
+                true
+            );
 
             return entity;
         }

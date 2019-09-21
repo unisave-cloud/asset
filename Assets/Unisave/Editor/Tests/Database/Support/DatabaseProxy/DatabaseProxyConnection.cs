@@ -66,6 +66,7 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             }
 
             entity.updatedAt = DateTime.Parse(response["updated_at"].AsString);
+            entity.ownerIds = EntityOwnerIds.FromJson(response["owner_ids"]);
         }
 
         public RawEntity LoadEntity(string id)
@@ -101,11 +102,33 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
         public bool DeleteEntity(string id)
         {
             throw new System.NotImplementedException();
+            
+//            client.SendJsonMessage(
+//                (int)ProxyMessage.DeleteEntity,
+//                new JsonObject().Add("entityId", id)
+//            );
+//
+//            return client.ReceiveJsonMessageAndExpectType(
+//                (int)ProxyMessage.DeleteEntityResponse
+//            ).AsBoolean;
         }
 
         public IEnumerable<RawEntity> QueryEntities(string entityType, EntityQuery query)
         {
             throw new System.NotImplementedException();
+            
+//            client.SendJsonMessage(
+//                (int)ProxyMessage.QueryEntities,
+//                new JsonObject()
+//                    .Add("entityType", entityType)
+//                    .Add("query", query.ToJson())
+//            );
+//
+//            JsonArray response = client.ReceiveJsonMessageAndExpectType(
+//                (int)ProxyMessage.QueryEntitiesResponse
+//            );
+//
+//            return response.Select(x => RawEntity.FromJson(x));
         }
     }
 }
