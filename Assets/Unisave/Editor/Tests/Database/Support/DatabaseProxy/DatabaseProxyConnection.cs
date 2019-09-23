@@ -99,6 +99,26 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             return new EntityOwnersRequest(entityId, client);
         }
 
+        public bool IsEntityOwner(string entityId, string playerId)
+        {
+            if (entityId == null || playerId == null)
+                throw new ArgumentNullException();
+            
+            client.SendTextMessage(
+                209,
+                new JsonObject()
+                    .Add("entity_id", entityId)
+                    .Add("player_id", playerId)
+                    .ToString()
+            );
+                
+            JsonObject response = JsonReader.Parse(
+                client.ReceiveTextMessageType(210)
+            ).AsJsonObject;
+
+            return response["is_owner"].AsBoolean;
+        }
+
         public bool DeleteEntity(string id)
         {
             throw new System.NotImplementedException();

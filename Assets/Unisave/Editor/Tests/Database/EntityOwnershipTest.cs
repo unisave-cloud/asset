@@ -263,5 +263,23 @@ namespace Unisave.Editor.Tests.Database
             entity.ownerIds.Remove(owner);
             Database.SaveEntity(entity);
         }
+
+        [Test]
+        public void DatabaseCanBeQueriedForEntityOwnership()
+        {
+            string owner = CreatePlayer();
+            
+            var entity = new RawEntity {
+                type = "MyEntity",
+                data = new JsonObject()
+                    .Add("foo", "bar")
+            };
+            entity.ownerIds.Add(owner);
+            Database.SaveEntity(entity);
+            
+            // query and get correct results
+            Assert.IsTrue(Database.IsEntityOwner(entity.id, owner));
+            Assert.IsFalse(Database.IsEntityOwner(entity.id, CreatePlayer()));
+        }
     }
 }

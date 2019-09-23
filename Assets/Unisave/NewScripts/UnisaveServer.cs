@@ -10,6 +10,7 @@ using Unisave.Utils;
 using Unisave.Exceptions;
 using RSG;
 using LightJson;
+using Unisave.Services;
 
 namespace Unisave
 {
@@ -82,8 +83,9 @@ namespace Unisave
                 GetDefaultPreferencesWithOverriding()
             );
 
-            // register framework endpoints
-            Endpoints.DatabaseResolver = () => instance.Database;
+            // register framework services
+            ServiceContainer.Default = new ServiceContainer();
+            ServiceContainer.Default.Register<IDatabase>(instance.Database);
 
             return instance;
         }

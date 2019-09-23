@@ -294,6 +294,12 @@ namespace Unisave.Database
         }
 
         /// <inheritdoc/>
+        public bool IsEntityOwner(string entityId, string playerId)
+        {
+            return GetEntityOwners(entityId).Contains(playerId);
+        }
+
+        /// <inheritdoc/>
         public bool DeleteEntity(string id)
         {
             GuardClientSide();

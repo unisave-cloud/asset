@@ -7,6 +7,7 @@ using LightJson.Serialization;
 using Unisave.Serialization;
 using Unisave.Exceptions;
 using Unisave.Database;
+using Unisave.Services;
 
 namespace Unisave.Runtime
 {
@@ -18,12 +19,12 @@ namespace Unisave.Runtime
     {
         public static ScriptExecutionResult ExecuteScript(string method, JsonObject methodParameters)
         {
-            if (!(Endpoints.Database is EmulatedDatabase))
+            if (!(ServiceContainer.Default.Resolve<IDatabase>() is EmulatedDatabase))
                 throw new UnisaveException(
                     "Emulating script execution, but framework database endpoint is not an emulated database."
                 );
 
-            var db = (EmulatedDatabase)Endpoints.Database;
+            var db = (EmulatedDatabase)ServiceContainer.Default.Resolve<IDatabase>();
 
             JsonObject executionParameters = new JsonObject()
                 .Add("executionId", "emulated-execution")

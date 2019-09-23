@@ -41,6 +41,13 @@ namespace Unisave.Database
             NotifyDeveloper();
             return new string[0];
         }
+        
+        /// <inheritdoc/>
+        public bool IsEntityOwner(string entityId, string playerId)
+        {
+            NotifyDeveloper();
+            return false;
+        }
 
         /// <inheritdoc/>
         public bool DeleteEntity(string id)
