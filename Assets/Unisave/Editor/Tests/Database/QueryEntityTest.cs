@@ -37,6 +37,24 @@ namespace Unisave.Editor.Tests.Database
             return entity;
         }
         
+        public RawEntity CreateSharedEntity(
+            string type = "PlayerEntity",
+            string owner = null
+        )
+        {
+            owner = owner ?? CreatePlayer();
+            var entity = new RawEntity {
+                type = type,
+                data = new JsonObject()
+                    .Add("foo", "bar")
+            };
+            entity.ownerIds.Add(owner);
+            entity.ownerIds.Add(CreatePlayer());
+            entity.ownerIds.Add(CreatePlayer());
+            Database.SaveEntity(entity);
+            return entity;
+        }
+        
         //////////////////
         // Test methods //
         ////////////////// 
@@ -90,6 +108,107 @@ namespace Unisave.Editor.Tests.Database
             Assert.IsFalse(q.Any(x => x.id == a));
             Assert.IsTrue(q.Any(x => x.id == b));
             Assert.AreEqual(1, q.Count);
+        }
+
+        [Test]
+        public void NonExactPlayerEntities()
+        {
+            CreatePlayerEntity();
+            string player = CreatePlayer();
+            string a = CreatePlayerEntity("TargetEntity", player).id;
+            string b = CreateSharedEntity("TargetEntity", player).id;
+            
+            string c = CreatePlayerEntity("TargetEntity").id;
+            string d = CreateSharedEntity("TargetEntity").id;
+            
+            var q = Database.QueryEntities(new EntityQuery {
+                entityType = "TargetEntity",
+                requireOwnersExactly = false,
+                requiredOwners = new HashSet<UnisavePlayer>(
+                    new UnisavePlayer[] {
+                        new UnisavePlayer(player)
+                    }
+                )
+            }).ToList();
+            
+            Assert.AreEqual(2, q.Count);
+            Assert.IsTrue(q.Any(x => x.id == a));
+            Assert.IsTrue(q.Any(x => x.id == b));
+            Assert.IsFalse(q.Any(x => x.id == c));
+            Assert.IsFalse(q.Any(x => x.id == d));
+        }
+        
+        [Test]
+        public void ExactPlayerEntities()
+        {
+            CreatePlayerEntity();
+            string player = CreatePlayer();
+            string a = CreatePlayerEntity("TargetEntity", player).id;
+            string b = CreateSharedEntity("TargetEntity", player).id;
+            
+            string c = CreatePlayerEntity("TargetEntity").id;
+            string d = CreateSharedEntity("TargetEntity").id;
+            
+            var q = Database.QueryEntities(new EntityQuery {
+                entityType = "TargetEntity",
+                requireOwnersExactly = true,
+                requiredOwners = new HashSet<UnisavePlayer>(
+                    new UnisavePlayer[] {
+                        new UnisavePlayer(player)
+                    }
+                )
+            }).ToList();
+            
+            Assert.AreEqual(1, q.Count);
+            Assert.IsTrue(q.Any(x => x.id == a));
+            Assert.IsFalse(q.Any(x => x.id == b));
+            Assert.IsFalse(q.Any(x => x.id == c));
+            Assert.IsFalse(q.Any(x => x.id == d));
+        }
+        
+        [Test]
+        public void NonExactSharedEntities()
+        {
+            CreateGameEntity();
+            CreatePlayerEntity();
+            CreateSharedEntity("TargetEntity");
+            RawEntity target = CreateSharedEntity("TargetEntity");
+            
+            var q = Database.QueryEntities(new EntityQuery {
+                entityType = "TargetEntity",
+                requireOwnersExactly = false,
+                requiredOwners = new HashSet<UnisavePlayer>(
+                    new UnisavePlayer[] {
+                        new UnisavePlayer(target.ownerIds.First()),
+                        new UnisavePlayer(target.ownerIds.Skip(1).First())
+                    }
+                )
+            }).ToList();
+            
+            Assert.AreEqual(1, q.Count);
+            Assert.IsTrue(q[0].id == target.id);
+        }
+        
+        [Test]
+        public void ExactSharedEntities()
+        {
+            CreateGameEntity();
+            CreatePlayerEntity();
+            CreateSharedEntity("TargetEntity");
+            RawEntity target = CreateSharedEntity("TargetEntity");
+            
+            var q = Database.QueryEntities(new EntityQuery {
+                entityType = "TargetEntity",
+                requireOwnersExactly = true,
+                requiredOwners = new HashSet<UnisavePlayer>(
+                    new UnisavePlayer[] {
+                        new UnisavePlayer(target.ownerIds.First()),
+                        new UnisavePlayer(target.ownerIds.Skip(1).First())
+                    }
+                )
+            }).ToList();
+            
+            Assert.AreEqual(0, q.Count);
         }
     }
 }
