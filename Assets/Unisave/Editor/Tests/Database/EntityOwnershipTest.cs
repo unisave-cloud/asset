@@ -163,8 +163,46 @@ namespace Unisave.Editor.Tests.Database
             
             // also check that we can stop iteration during iteration
             // ReSharper disable once PossibleMultipleEnumeration
-            foreach (string queriedOwner in queriedOwners)
+            foreach (string _ in queriedOwners)
                 break;
+        }
+
+        [Test]
+        public void OwnersCanBeQueriedWithMultipleOpenCursors()
+        {
+            var entity = new RawEntity {
+                type = "MyEntity",
+                data = new JsonObject()
+                    .Add("foo", "bar")
+            };
+            for (var i = 0; i < 100; i++) // has to be more than batch-size
+                entity.ownerIds.Add(CreatePlayer());
+            Database.SaveEntity(entity);
+            
+            IEnumerable<string> query = Database.GetEntityOwners(
+                entity.id
+            );
+
+            // ReSharper disable once PossibleMultipleEnumeration
+            int j = 0;
+            foreach (string _ in query)
+            {
+                int k = 0;
+                
+                // ReSharper disable once PossibleMultipleEnumeration
+                foreach (string __ in query)
+                {
+                    if (k > 5)
+                        break;
+                    
+                    k++;
+                }
+
+                if (j > 5)
+                    break;
+
+                j++;
+            }
         }
 
         [Test]

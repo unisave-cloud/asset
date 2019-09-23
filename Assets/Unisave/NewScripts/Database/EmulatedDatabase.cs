@@ -317,8 +317,10 @@ namespace Unisave.Database
         }
 
         /// <inheritdoc/>
-        public IEnumerable<RawEntity> QueryEntities(string entityType, EntityQuery query)
+        public IEnumerable<RawEntity> QueryEntities(EntityQuery query)
         {
+            string entityType = query.entityType;
+            
             /*
                 This implementation is really not the best possible, but I didn't want to waste
                 time by overly optimizing a database, that is going to have hundreds of items at most.

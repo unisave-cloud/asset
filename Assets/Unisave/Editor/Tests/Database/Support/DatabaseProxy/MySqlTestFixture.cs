@@ -102,7 +102,7 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
         /// <summary>
         /// Creates new entity in a new database and returns the entity id
         /// </summary>
-        public string CreateEntityInAnotherDatabase()
+        public string CreateEntityInAnotherDatabase(string type = "SomeType")
         {
             // create database
             string newDatabaseId = Str.Random(8);
@@ -121,6 +121,7 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
                 command.ExecuteNonQuery();
             }
 
+            // create entity
             string entityId = Str.Random(16);
             using (var command = databaseConnection.CreateCommand())
             {
@@ -128,11 +129,12 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
                     INSERT INTO entities (
                         id, database_id, type, data, created_at, updated_at
                     ) VALUES (
-                        @id, @database_id, 'SomeType', '{}', NOW(), NOW()
+                        @id, @database_id, @type, '{}', NOW(), NOW()
                     );
                 ";
                 command.Parameters.AddWithValue("id", entityId);
                 command.Parameters.AddWithValue("database_id", newDatabaseId);
+                command.Parameters.AddWithValue("type", type);
                 command.ExecuteNonQuery();
             }
 

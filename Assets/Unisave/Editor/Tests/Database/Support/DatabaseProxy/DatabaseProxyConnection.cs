@@ -135,22 +135,12 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             return response["deleted"].AsBoolean;
         }
 
-        public IEnumerable<RawEntity> QueryEntities(string entityType, EntityQuery query)
+        public IEnumerable<RawEntity> QueryEntities(EntityQuery query)
         {
-            throw new System.NotImplementedException();
+            if (query == null)
+                throw new ArgumentNullException();
             
-//            client.SendJsonMessage(
-//                (int)ProxyMessage.QueryEntities,
-//                new JsonObject()
-//                    .Add("entityType", entityType)
-//                    .Add("query", query.ToJson())
-//            );
-//
-//            JsonArray response = client.ReceiveJsonMessageAndExpectType(
-//                (int)ProxyMessage.QueryEntitiesResponse
-//            );
-//
-//            return response.Select(x => RawEntity.FromJson(x));
+            return new EntityQueryRequest(query, client);
         }
     }
 }
