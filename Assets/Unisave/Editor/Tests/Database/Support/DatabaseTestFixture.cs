@@ -91,11 +91,20 @@ namespace Unisave.Editor.Tests.Database.Support
         /// </summary>
         public void AssertDatabaseHasEntity(string id)
         {
-            GetEntityRow(id);
+            Assert.IsFalse(((JsonValue)GetEntityRow(id)).IsNull);
+        }
+        
+        /// <summary>
+        /// Asserts that the database is missing an entity with a given id
+        /// </summary>
+        public void AssertDatabaseMissingEntity(string id)
+        {
+            Assert.IsTrue(((JsonValue)GetEntityRow(id)).IsNull);
         }
 
         /// <summary>
         /// Retrieves a given entity row from the database as a json object
+        /// Or returns JSON null if row not present
         /// </summary>
         public JsonObject GetEntityRow(string id)
         {

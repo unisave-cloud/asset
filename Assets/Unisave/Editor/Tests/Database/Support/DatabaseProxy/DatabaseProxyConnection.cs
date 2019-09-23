@@ -121,16 +121,18 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
 
         public bool DeleteEntity(string id)
         {
-            throw new System.NotImplementedException();
-            
-//            client.SendJsonMessage(
-//                (int)ProxyMessage.DeleteEntity,
-//                new JsonObject().Add("entityId", id)
-//            );
-//
-//            return client.ReceiveJsonMessageAndExpectType(
-//                (int)ProxyMessage.DeleteEntityResponse
-//            ).AsBoolean;
+            client.SendTextMessage(
+                211,
+                new JsonObject()
+                    .Add("entity_id", id)
+                    .ToString()
+            );
+
+            JsonObject response = JsonReader.Parse(
+                client.ReceiveTextMessageType(212)
+            ).AsJsonObject;
+
+            return response["deleted"].AsBoolean;
         }
 
         public IEnumerable<RawEntity> QueryEntities(string entityType, EntityQuery query)

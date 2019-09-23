@@ -145,6 +145,7 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
 
         /// <summary>
         /// Retrieves a given entity row from the database as a json object
+        /// Or returns JSON null if row not present
         /// </summary>
         public JsonObject GetEntityRow(string id)
         {
@@ -166,9 +167,7 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
                 using (var reader = command.ExecuteReader())
                 {
                     if (!reader.Read())
-                        Assert.Fail(
-                            $"MySql DB doesn't contain entity with id '{id}'."
-                        );
+                        return JsonValue.Null;
 
                     return JsonReader.Parse(reader.GetString("row")).AsJsonObject;
                 }
