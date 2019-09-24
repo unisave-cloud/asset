@@ -174,6 +174,8 @@ namespace Unisave.Editor.Tests.Database
             CreateSharedEntity("TargetEntity");
             RawEntity target = CreateSharedEntity("TargetEntity");
             
+            CreateSharedEntity("TargetEntity", target.ownerIds.First());
+            
             var q = Database.QueryEntities(new EntityQuery {
                 entityType = "TargetEntity",
                 requireOwnersExactly = false,
@@ -196,6 +198,7 @@ namespace Unisave.Editor.Tests.Database
             CreatePlayerEntity();
             CreateSharedEntity("TargetEntity");
             RawEntity target = CreateSharedEntity("TargetEntity");
+            CreateSharedEntity("TargetEntity", target.ownerIds.First());
             
             var q = Database.QueryEntities(new EntityQuery {
                 entityType = "TargetEntity",
@@ -203,12 +206,14 @@ namespace Unisave.Editor.Tests.Database
                 requiredOwners = new HashSet<UnisavePlayer>(
                     new UnisavePlayer[] {
                         new UnisavePlayer(target.ownerIds.First()),
-                        new UnisavePlayer(target.ownerIds.Skip(1).First())
+                        new UnisavePlayer(target.ownerIds.Skip(1).First()),
+                        new UnisavePlayer(target.ownerIds.Skip(2).First())
                     }
                 )
             }).ToList();
             
-            Assert.AreEqual(0, q.Count);
+            Assert.AreEqual(1, q.Count);
+            Assert.AreEqual(target.id, q[0].id);
         }
     }
 }
