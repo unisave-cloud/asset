@@ -1,3 +1,4 @@
+using DatabaseProxy;
 using LightJson;
 using LightJson.Serialization;
 using MySql.Data.MySqlClient;
