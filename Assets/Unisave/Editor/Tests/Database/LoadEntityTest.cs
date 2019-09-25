@@ -45,5 +45,13 @@ namespace Unisave.Editor.Tests.Database
                 Database.LoadEntity(entityId)
             );
         }
+
+        [Test]
+        public void NonExistingEntityLoadsAsNull()
+        {
+            RawEntity loadedEntity = Database.LoadEntity("foo");
+            
+            Assert.IsNull(loadedEntity);
+        }
     }
 }
