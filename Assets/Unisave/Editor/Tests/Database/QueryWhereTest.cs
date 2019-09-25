@@ -2,6 +2,7 @@ using System.Linq;
 using LightJson;
 using NUnit.Framework;
 using Unisave.Database;
+using Unisave.Database.Query;
 using Unisave.Editor.Tests.Database.Support;
 
 namespace Unisave.Editor.Tests.Database
@@ -36,12 +37,11 @@ namespace Unisave.Editor.Tests.Database
             };
             query.requiredOwners.Add(new UnisavePlayer(player));
             query.whereClauses.Add(
-                new JsonObject()
-                    .Add("type", "Basic")
-                    .Add("path", "Name")
-                    .Add("operator", "=")
-                    .Add("value", "John")
-                    .Add("boolean", "and")
+                new BasicWhereClause(
+                    JsonPath.Parse("Name"),
+                    "=",
+                    "John"
+                )
             );
             var q = Database.QueryEntities(query).ToList();
             
@@ -81,12 +81,11 @@ namespace Unisave.Editor.Tests.Database
             };
             query.requiredOwners.Add(new UnisavePlayer(player));
             query.whereClauses.Add(
-                new JsonObject()
-                    .Add("type", "Basic")
-                    .Add("path", "Foo.Bar")
-                    .Add("operator", "<")
-                    .Add("value", 50)
-                    .Add("boolean", "and")
+                new BasicWhereClause(
+                    JsonPath.Parse("Foo.Bar"),
+                    "<",
+                    50
+                )
             );
             var q = Database.QueryEntities(query).ToList();
             

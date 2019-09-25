@@ -4,6 +4,7 @@ using LightJson;
 using LightJson.Serialization;
 using Parrot;
 using Unisave.Database;
+using Unisave.Database.Query;
 
 namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
 {

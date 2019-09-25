@@ -3,6 +3,7 @@ using System.Linq;
 using LightJson;
 using NUnit.Framework;
 using Unisave.Database;
+using Unisave.Database.Query;
 using Unisave.Editor.Tests.Database.Support;
 using UnityEngine;
 

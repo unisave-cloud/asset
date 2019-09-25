@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unisave.Database;
+using Unisave.Database.Query;
 using Unisave.Exceptions;
 
 namespace Unisave.Database
