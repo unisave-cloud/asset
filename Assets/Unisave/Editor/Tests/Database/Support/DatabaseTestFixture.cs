@@ -30,7 +30,7 @@ namespace Unisave.Editor.Tests.Database.Support
         protected IDatabase Database =>
             Mode == TestMode.DatabaseProxy
                 ? mySqlTestFixture.Database
-                : null;
+                : emulatedTestFixture.Database;
 
         [SetUp]
         public void SetUp()

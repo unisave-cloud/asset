@@ -3,6 +3,7 @@ using LightJson;
 using NUnit.Framework;
 using Unisave.Database;
 using Unisave.Editor.Tests.Database.Support;
+using UnityEngine;
 
 namespace Unisave.Editor.Tests.Database
 {

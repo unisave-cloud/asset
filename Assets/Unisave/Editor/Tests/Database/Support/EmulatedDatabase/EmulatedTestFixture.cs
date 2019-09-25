@@ -1,18 +1,33 @@
 using System;
+using System.Linq;
 using LightJson;
+using NUnit.Framework;
+using Unisave.Database;
+using Unisave.Utils;
 
 namespace Unisave.Editor.Tests.Database.Support.EmulatedDatabase
 {
     public class EmulatedTestFixture
     {
+        private Unisave.Database.EmulatedDatabase database;
+
+        private string databaseName = "test";
+        
+        /// <summary>
+        /// Database interface
+        /// </summary>
+        public IDatabase Database => database;
+        
         public void SetUp()
         {
-            throw new NotImplementedException();
+            databaseName = "test";
+            database = new Unisave.Database.EmulatedDatabase(databaseName);
         }
 
         public void TearDown()
         {
-            throw new NotImplementedException();
+            databaseName = null;
+            database = null;
         }
         
         /////////////////////////
@@ -24,7 +39,7 @@ namespace Unisave.Editor.Tests.Database.Support.EmulatedDatabase
         /// </summary>
         public string CreatePlayer()
         {
-            throw new NotImplementedException();
+            return database.AddPlayer(Str.Random(6) + "@unisave.cloud");
         }
         
         ////////////////
@@ -36,9 +51,18 @@ namespace Unisave.Editor.Tests.Database.Support.EmulatedDatabase
         /// </summary>
         public JsonObject GetEntityRow(string id)
         {
-            // provide some fake data for the "database_id" column
+            var entity = database.LoadEntity(id);
+
+            if (entity == null)
+                return JsonValue.Null;
             
-            throw new NotImplementedException();
+            return new JsonObject()
+                .Add("id", entity.id)
+                .Add("database_id", databaseName)
+                .Add("type", entity.type)
+                .Add("data", entity.data)
+                .Add("created_at", entity.createdAt)
+                .Add("updated_at", entity.updatedAt);
         }
 
         /// <summary>
@@ -55,7 +79,9 @@ namespace Unisave.Editor.Tests.Database.Support.EmulatedDatabase
         /// </summary>
         public void AssertPlayerOwns(string playerId, string entityId)
         {
-            throw new NotImplementedException();
+            Assert.IsTrue(
+                database.GetEntityOwners(entityId).Contains(playerId)
+            );
         }
 
         /// <summary>
@@ -63,7 +89,9 @@ namespace Unisave.Editor.Tests.Database.Support.EmulatedDatabase
         /// </summary>
         public void AssertPlayerNotOwns(string playerId, string entityId)
         {
-            throw new NotImplementedException();
+            Assert.IsFalse(
+                database.GetEntityOwners(entityId).Contains(playerId)
+            );
         }
     }
 }

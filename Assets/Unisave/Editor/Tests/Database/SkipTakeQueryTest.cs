@@ -10,6 +10,7 @@ namespace Unisave.Editor.Tests.Database
     public class SkipTakeQueryTest : DatabaseTestFixture
     {
         [Test]
+        [Ignore("Not implemented yet")]
         public void ItTakesOneResult()
         {
             var a = new RawEntity {

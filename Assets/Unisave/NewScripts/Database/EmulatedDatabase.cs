@@ -86,7 +86,7 @@ namespace Unisave.Database
             entityOwnerships.Clear();
 
             if (raiseChangeEvent)
-                OnChange(this);
+                OnChange?.Invoke(this);
         }
 
         /// <summary>
@@ -205,7 +205,7 @@ namespace Unisave.Database
                 email = email
             });
 
-            OnChange(this);
+            OnChange?.Invoke(this);
 
             return id;
         }
@@ -222,7 +222,7 @@ namespace Unisave.Database
 
             players.Remove(player);
 
-            OnChange(this);
+            OnChange?.Invoke(this);
             
             return true;
         }
@@ -247,27 +247,47 @@ namespace Unisave.Database
             else
                 UpdateEntity(entity);
 
-            OnChange(this);
+            OnChange?.Invoke(this);
         }
 
         private void InsertEntity(RawEntity entity)
         {
+            // without ms
+            var now = DateTime.UtcNow;
+            now = new DateTime(
+                now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second
+            );
+            
             entity.id = Str.Random(16);
-            entity.updatedAt = entity.createdAt = DateTime.UtcNow;
+            entity.updatedAt = entity.createdAt = now;
 
             entities.Add(entity.id, RawEntity.FromJson(entity.ToJson()));
 
-            AddOwners(entity.id, new HashSet<string>(entity.ownerIds));
+            AddOwners(entity.id, new HashSet<string>(entity.ownerIds.GetKnownOwners()));
+            entity.ownerIds.CommitChanges();
         }
 
         private void UpdateEntity(RawEntity entity)
         {
-            entity.updatedAt = DateTime.UtcNow;
+            // without ms
+            var now = DateTime.UtcNow;
+            now = new DateTime(
+                now.Year, now.Month, now.Day, now.Hour, now.Minute, now.Second
+            );
+            
+            entity.updatedAt = now;
 
             entities[entity.id] = RawEntity.FromJson(entity.ToJson());
 
+            // edit owner set
+            ISet<string> ownerIds = new HashSet<string>(GetEntityOwners(entity.id));
+            ownerIds.UnionWith(entity.ownerIds.GetAddedOwners());
+            foreach (string o in entity.ownerIds.GetRemovedOwners())
+                ownerIds.Remove(o);
+            entity.ownerIds.CommitChanges();
+            
             RemoveAllOwners(entity.id);
-            AddOwners(entity.id, new HashSet<string>(entity.ownerIds));
+            AddOwners(entity.id, ownerIds);
         }
 
         /// <inheritdoc/>
@@ -280,9 +300,10 @@ namespace Unisave.Database
 
             var entity = RawEntity.FromJson(entities[id].ToJson());
 
+            var ownerIds = GetEntityOwners(id).ToList();
             entity.ownerIds = new EntityOwnerIds(
-                GetEntityOwners(id),
-                true
+                ownerIds.Take(1),
+                ownerIds.Count < 2
             );
 
             return entity;
@@ -312,7 +333,7 @@ namespace Unisave.Database
 
             entities.Remove(id);
             
-            OnChange(this);
+            OnChange?.Invoke(this);
 
             return true;
         }
@@ -366,7 +387,11 @@ namespace Unisave.Database
 
             // if exact, remove those owned by too many players
             if (query.requireOwnersExactly)
-                loadedEntities = loadedEntities.Where(e => e.ownerIds.Count == query.requiredOwners.Count);
+            {
+                loadedEntities = loadedEntities.Where(
+                    e => GetEntityOwners(e.id).Count() == query.requiredOwners.Count
+                );
+            }
 
             // take only a given number or items
             if (query.take != -1)
@@ -380,74 +405,7 @@ namespace Unisave.Database
         /// </summary>
         private bool WhereClausesMatch(RawEntity e, EntityQuery query)
         {
-            // TODO: fix this
-            return true;
-
-//            foreach (var clause in query.whereClauses)
-//            {
-//                switch (clause["type"].AsString)
-//                {
-//                    case "Basic":
-//                        var extracted = JsonExtract(e.data, clause["path"]);
-//                        var value = clause["value"];
-//                        switch (clause["operator"].AsString)
-//                        {
-//                            case "=":
-//                                if (extracted != value)
-//                                    return false;
-//                                break;
-//
-//                            case "!=":
-//                            case "<>":
-//                                if (extracted == value)
-//                                    return false;
-//                                break;
-//
-//                            case ">":
-//                            case ">=":
-//                            case "<":
-//                            case "<=":
-//                                if (value.IsNumber)
-//                                {
-//                                    if (clause["operator"].AsString == ">" && !(extracted.AsNumber > value.AsNumber))
-//                                        return false;
-//                                    if (clause["operator"].AsString == ">=" && !(extracted.AsNumber >= value.AsNumber))
-//                                        return false;
-//                                    if (clause["operator"].AsString == "<" && !(extracted.AsNumber < value.AsNumber))
-//                                        return false;
-//                                    if (clause["operator"].AsString == "<=" && !(extracted.AsNumber <= value.AsNumber))
-//                                        return false;
-//                                }
-//                                else
-//                                {
-//                                    int c = extracted.AsString.CompareTo(value.AsString);
-//
-//                                    if (clause["operator"].AsString == ">" && !(c > 0))
-//                                        return false;
-//                                    if (clause["operator"].AsString == ">=" && !(c >= 0))
-//                                        return false;
-//                                    if (clause["operator"].AsString == "<" && !(c < 0))
-//                                        return false;
-//                                    if (clause["operator"].AsString == "<=" && !(c <= 0))
-//                                        return false;
-//                                }
-//                                break;
-//
-//                            default:
-//                                throw new UnisaveException(
-//                                    $"Unknown where clause operator: " + clause["operator"]
-//                                );
-//                        }
-//                        break;
-//
-//                    default:
-//                        throw new UnisaveException(
-//                            $"Unknown where clause type: " + clause["type"]
-//                        );
-//                }
-//            }
-//
-//            return true;
+            return WhereClause.ClausesMatchEntity(query.whereClauses, e);
         }
 
         private JsonValue JsonExtract(JsonValue subject, string pathString)
@@ -479,7 +437,7 @@ namespace Unisave.Database
         /// <summary>
         /// Returns a set of owners of a given entity
         /// </summary>
-        private IEnumerable<string> GetEntityOwners(string entityId)
+        public IEnumerable<string> GetEntityOwners(string entityId)
         {
             return entityOwnerships.Where(t => t.Item1 == entityId).Select(t => t.Item2);
         }
