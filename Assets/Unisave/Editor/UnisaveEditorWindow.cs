@@ -115,6 +115,10 @@ namespace Unisave
 			EditorGUILayout.LabelField("Last upload at", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
 			EditorGUILayout.LabelField(preferences.LastBackendUploadAt?.ToString("yyyy-MM-dd H:mm:ss") ?? "Never");
 			EditorGUILayout.EndHorizontal();
+			EditorGUILayout.BeginHorizontal();
+			EditorGUILayout.LabelField("Backend hash", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
+			EditorGUILayout.LabelField(preferences.BackendHash ?? "<not computed yet>");
+			EditorGUILayout.EndHorizontal();
 
 			GUILayout.Label("Database emulation", EditorStyles.boldLabel);
 			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);

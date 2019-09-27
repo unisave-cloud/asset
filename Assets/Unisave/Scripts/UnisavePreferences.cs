@@ -213,6 +213,19 @@ namespace Unisave
 				#endif
 			}
 		}
+		
+		/// <summary>
+		/// Hash of the backend folder
+		/// Important, it's used to identify clients
+		/// </summary>
+		public string BackendHash
+		{
+			get => backendHash;
+			set => backendHash = value;
+		}
+
+		[SerializeField]
+		private string backendHash;
 
 		/// <summary>
 		/// Name of the emulated database to use

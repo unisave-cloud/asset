@@ -90,6 +90,17 @@ namespace Unisave.Editor.BackendUploading
             var files = new List<BackendFile>();
             files.AddRange(CSharpFile.FindFiles(backendFolders));
             files.AddRange(SOFile.FindFiles(backendFolders));
+            
+            // compute file hashes
+            files.ForEach(f => f.ComputeHash());
+            
+            // compute backend hash
+            string backendHash = Hash.CompositeMD5(
+                files.Select(f => f.Hash)
+            );
+            
+            // store the backend hash
+            preferences.BackendHash = backendHash;
 
             // NOTE: Debug Methods are thread-safe
             // https://answers.unity.com/questions/714590/
@@ -99,13 +110,13 @@ namespace Unisave.Editor.BackendUploading
             if (useAnotherThread)
             {
                 var backgroundThread = new Thread(() => {
-                    BackgroundJob(files, isEditor, verbose);
+                    BackgroundJob(files, backendHash, isEditor, verbose);
                 });
                 backgroundThread.Start();
             }
             else // well, not always in the background
             {
-                BackgroundJob(files, isEditor, verbose);
+                BackgroundJob(files, backendHash, isEditor, verbose);
             }
         }
 
@@ -114,7 +125,8 @@ namespace Unisave.Editor.BackendUploading
         /// on another thread
         /// </summary>
         private void BackgroundJob(
-            List<BackendFile> files, bool isEditor, bool verbose
+            List<BackendFile> files, string backendHash,
+            bool isEditor, bool verbose
         )
         {
             /*
@@ -132,14 +144,6 @@ namespace Unisave.Editor.BackendUploading
                 );
                 return;
             }
-
-            // compute file hashes
-            files.ForEach(f => f.ComputeHash());
-            
-            // compute backend hash
-            string backendHash = Hash.CompositeMD5(
-                files.Select(f => f.Hash)
-            );
 
             // send all file paths, hashes and global hash to the server
             // and initiate the upload

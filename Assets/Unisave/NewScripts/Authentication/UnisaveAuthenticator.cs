@@ -74,16 +74,20 @@ namespace Unisave.Authentication
 				new JsonObject()
 					.Add("email", email)
 					.Add("password", password)
-					.Add("gameToken", gameToken)
-					.Add("buildGUID", Application.buildGUID)
-					.Add("version", Application.version)
-					.Add("editorKey", editorKey)
+					.Add("game_token", gameToken)
+					.Add("client", new JsonObject()
+						.Add("backend_hash", UnisavePreferences.LoadOrCreate().BackendHash)
+						.Add("framework_version", FrameworkMeta.Version)
+						.Add("asset_version", AssetMeta.Version)
+						.Add("build_guid", Application.buildGUID)
+						.Add("version_string", Application.version)
+					)
 			).Then((JsonValue jsonValue) => {
 				JsonObject response = jsonValue;
 				switch (response["code"].AsString)
 				{
 					case "ok":
-						AccessToken = response["accessToken"].AsString;
+						AccessToken = response["access_token"].AsString;
 						Player = new UnisavePlayer(response["player"].AsJsonObject["id"]);
 						promise.Resolve();
 						break;
@@ -110,6 +114,15 @@ namespace Unisave.Authentication
 						break;
 
 					case "client-outdated":
+						promise.Reject(new LoginFailure {
+							type = LoginFailureType.GameClientOutdated,
+							message = response["message"].AsString
+						});
+						break;
+					
+					case "unknown-client":
+						// hack, make it look like outdated client,
+						// but with a different message
 						promise.Reject(new LoginFailure {
 							type = LoginFailureType.GameClientOutdated,
 							message = response["message"].AsString
@@ -251,11 +264,15 @@ namespace Unisave.Authentication
 				new JsonObject()
 					.Add("email", email)
 					.Add("password", password)
-					.Add("gameToken", gameToken)
-					.Add("buildGUID", Application.buildGUID)
-					.Add("version", Application.version)
-					.Add("editorKey", editorKey)
-					.Add("hookArguments", Serializer.ToJson(hookArguments))
+					.Add("hook_arguments", Serializer.ToJson(hookArguments))
+					.Add("game_token", gameToken)
+					.Add("client", new JsonObject()
+						.Add("backend_hash", UnisavePreferences.LoadOrCreate().BackendHash)
+						.Add("framework_version", FrameworkMeta.Version)
+						.Add("asset_version", AssetMeta.Version)
+						.Add("build_guid", Application.buildGUID)
+						.Add("version_string", Application.version)
+					)
 			).Then((JsonValue jsonValue) => {
 				JsonObject response = jsonValue;
 				switch (response["code"].AsString)
