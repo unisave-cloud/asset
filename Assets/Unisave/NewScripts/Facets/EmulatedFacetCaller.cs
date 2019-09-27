@@ -14,10 +14,15 @@ namespace Unisave.Facets
     public class EmulatedFacetCaller : FacetCaller
     {
         private Func<UnisavePlayer> GetAuthorizedPlayer;
+        private Func<EmulatedDatabase> GetEmulatedDatabase;
 
-        public EmulatedFacetCaller(Func<UnisavePlayer> GetAuthorizedPlayer)
+        public EmulatedFacetCaller(
+            Func<UnisavePlayer> GetAuthorizedPlayer,
+            Func<EmulatedDatabase> GetEmulatedDatabase
+        )
         {
             this.GetAuthorizedPlayer = GetAuthorizedPlayer;
+            this.GetEmulatedDatabase = GetEmulatedDatabase;
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
@@ -25,6 +30,7 @@ namespace Unisave.Facets
         )
 		{
             ScriptExecutionResult result = EmulatedScriptRunner.ExecuteScript(
+                GetEmulatedDatabase(),
                 "facet",
                 new JsonObject()
                     .Add("facetName", facetName)

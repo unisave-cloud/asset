@@ -71,6 +71,8 @@ namespace Unsiave.Uniarchy
 				}
 				
 				jsonEditor.OnGUI();
+				
+				DrawInspectorTitle("READ ONLY!\nchanges cannot be saved yet\nplanned feature");
 			}
         }
 

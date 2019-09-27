@@ -441,7 +441,8 @@ namespace Unisave
                 if (emulatedFacetCaller == null)
                 {
                     emulatedFacetCaller = new EmulatedFacetCaller(
-                        () => EmulatedAuthenticator.Player
+                        () => EmulatedAuthenticator.Player,
+                        () => EmulatedDatabase
                     );
                 }
 

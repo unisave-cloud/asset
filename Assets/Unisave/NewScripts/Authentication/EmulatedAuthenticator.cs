@@ -133,6 +133,7 @@ namespace Unisave.Authentication
 
             // run hooks
             ScriptExecutionResult result = EmulatedScriptRunner.ExecuteScript(
+                database,
                 "player-registration-hook",
                 new JsonObject()
                     .Add("arguments", hookArguments)

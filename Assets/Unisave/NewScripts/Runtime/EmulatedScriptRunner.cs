@@ -17,19 +17,18 @@ namespace Unisave.Runtime
     /// </summary>
     public static class EmulatedScriptRunner
     {
-        public static ScriptExecutionResult ExecuteScript(string method, JsonObject methodParameters)
+        public static ScriptExecutionResult ExecuteScript(
+            EmulatedDatabase db,
+            string method,
+            JsonObject methodParameters
+        )
         {
-            if (!(ServiceContainer.Default.Resolve<IDatabase>() is EmulatedDatabase))
-                throw new UnisaveException(
-                    "Emulating script execution, but framework database endpoint is not an emulated database."
-                );
-
-            var db = (EmulatedDatabase)ServiceContainer.Default.Resolve<IDatabase>();
+            // setup service container
+            ServiceContainer.Default = new ServiceContainer();
+            ServiceContainer.Default.Register<IDatabase>(db);
 
             JsonObject executionParameters = new JsonObject()
                 .Add("executionId", "emulated-execution")
-                .Add("databaseProxyIp", JsonValue.Null) // database endpoint is already setup
-                .Add("databaseProxyPort", 0)
                 .Add("executionMethod", method)
                 .Add("methodParameters", methodParameters);
 
@@ -44,6 +43,9 @@ namespace Unisave.Runtime
             JsonObject response = JsonReader.Parse(responseString);
 
             db.PreventAccess = wasAccessPrevented;
+            
+            // tear down service container
+            ServiceContainer.Default = null;
 
             switch (response["result"].AsString)
             {

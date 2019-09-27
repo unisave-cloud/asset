@@ -150,7 +150,7 @@ namespace Unisave.Editor.BackendUploading
                     .Add("editor_key", preferences.EditorKey)
                     
                     .Add("backend_hash", backendHash)
-                    .Add("framework_version", GetFrameworkVersion())
+                    .Add("framework_version", FrameworkMeta.Version)
                     .Add("asset_version", AssetMeta.Version)
                     .Add("is_editor", isEditor)
                     .Add(
@@ -247,11 +247,5 @@ namespace Unisave.Editor.BackendUploading
                     Debug.Log("Server compilation done.");
             }
         }
-
-        /// <summary>
-        /// Obtains version of the unisave framework present
-        /// </summary>
-        private string GetFrameworkVersion()
-            => typeof(Entity).Assembly.GetName().Version.ToString(3);
     }
 }
