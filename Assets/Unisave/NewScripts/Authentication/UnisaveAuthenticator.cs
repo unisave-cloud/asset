@@ -82,8 +82,7 @@ namespace Unisave.Authentication
 						.Add("build_guid", Application.buildGUID)
 						.Add("version_string", Application.version)
 					)
-			).Then((JsonValue jsonValue) => {
-				JsonObject response = jsonValue;
+			).Then(response => {
 				switch (response["code"].AsString)
 				{
 					case "ok":
@@ -151,7 +150,7 @@ namespace Unisave.Authentication
 					case HttpException.ExceptionType.NetworkError:
 						promise.Reject(new LoginFailure {
 							type = LoginFailureType.NetworkError,
-							message = he.Request.error
+							message = he.Response.ErrorMessage
 						});
 						break;
 
@@ -227,7 +226,7 @@ namespace Unisave.Authentication
 					case HttpException.ExceptionType.NetworkError:
 						promise.Reject(new LogoutFailure {
 							type = LogoutFailureType.NetworkError,
-							message = he.Request.error
+							message = he.Response.ErrorMessage
 						});
 						break;
 
@@ -347,7 +346,7 @@ namespace Unisave.Authentication
 				HttpException he = (HttpException)e;
 
 				promise.Reject(new ServerConnectionException(
-					he.Request.error
+					he.Response.ErrorMessage
 				));
 			})
 			.Finally(() => {

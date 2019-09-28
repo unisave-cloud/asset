@@ -117,7 +117,11 @@ namespace Unisave
 			EditorGUILayout.EndHorizontal();
 			EditorGUILayout.BeginHorizontal();
 			EditorGUILayout.LabelField("Backend hash", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
-			EditorGUILayout.LabelField(preferences.BackendHash ?? "<not computed yet>");
+			EditorGUILayout.LabelField(
+				string.IsNullOrWhiteSpace(preferences.BackendHash)
+					? "<not computed yet>"
+					: preferences.BackendHash
+			);
 			EditorGUILayout.EndHorizontal();
 
 			GUILayout.Label("Database emulation", EditorStyles.boldLabel);

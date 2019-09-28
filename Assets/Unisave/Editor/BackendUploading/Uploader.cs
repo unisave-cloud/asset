@@ -78,9 +78,6 @@ namespace Unisave.Editor.BackendUploading
             if (verbose)
                 Debug.Log("Starting backend upload...");
             
-            // store the upload time
-            preferences.LastBackendUploadAt = DateTime.Now;
-            
             // list all backend folders
             var backendFolders = new string[] {
                 "Assets/" + preferences.BackendFolder
@@ -99,8 +96,10 @@ namespace Unisave.Editor.BackendUploading
                 files.Select(f => f.Hash)
             );
             
-            // store the backend hash
+            // store the upload time and backend hash
+            preferences.LastBackendUploadAt = DateTime.Now;
             preferences.BackendHash = backendHash;
+            preferences.Save();
 
             // NOTE: Debug Methods are thread-safe
             // https://answers.unity.com/questions/714590/
