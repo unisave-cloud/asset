@@ -6,7 +6,6 @@ using System.Linq;
 using UnityEngine.Networking;
 using LightJson;
 using LightJson.Serialization;
-using Org.BouncyCastle.Asn1.Ocsp;
 using RSG;
 
 namespace Unisave.Utils
@@ -19,7 +18,7 @@ namespace Unisave.Utils
         /// <summary>
         /// When true, request times are logged into the console
         /// </summary>
-        public static bool LogRequestDuration { get; set; } = true;
+        public static bool LogRequestDuration { get; set; }
         
         /// <summary>
         /// Makes a JSON POST request and expects a JSON response.
