@@ -21,7 +21,7 @@ namespace Unisave.Editor.Tests.Database.Support
 
         public const string DatabaseProxyIp = "127.0.0.1";
 
-        public const int DatabaseProxyPort = 7777;
+        public const int DatabaseProxyPort = 16_000;
     }
 
     public enum TestMode

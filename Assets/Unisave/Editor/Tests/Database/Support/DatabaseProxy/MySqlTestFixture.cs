@@ -28,6 +28,11 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
         /// ID of the game we are working in
         /// </summary>
         private string gameId;
+        
+        /// <summary>
+        /// Execution ID of this run
+        /// </summary>
+        public string ExecutionId { get; private set; }
 
         /// <summary>
         /// Database interface
@@ -47,7 +52,10 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
                 out string _, out gameId,
                 out databaseId, out string executionId
             );
-                
+
+            // store exec ID
+            ExecutionId = executionId;
+            
             // setup proxy connection
             proxyConnection = new DatabaseProxyConnection();
             proxyConnection.Open(

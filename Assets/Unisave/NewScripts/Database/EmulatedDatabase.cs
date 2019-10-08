@@ -130,31 +130,40 @@ namespace Unisave.Database
         {
             var database = new EmulatedDatabase(name);
 
-            database.players.UnionWith(
-                json["players"]
-                    .AsJsonArray
-                    .Select(
-                        x => new PlayerRecord {
-                            id = x.AsJsonObject["id"].AsString,
-                            email = x.AsJsonObject["email"].AsString
-                        }
-                    )
-            );
-
-            var enumerable = json["entities"].AsJsonArray.Select(x => RawEntity.FromJson(x));
-            foreach (RawEntity e in enumerable)
-                database.entities.Add(e.id, e);
-
-            database.entityOwnerships.AddRange(
-                json["entityOwnerships"]
-                    .AsJsonArray
-                    .Select(
-                        x => new Tuple<string, string>(
-                            x.AsJsonObject["entityId"],
-                            x.AsJsonObject["playerId"]
+            try
+            {
+                database.players.UnionWith(
+                    json["players"]
+                        .AsJsonArray
+                        .Select(
+                            x => new PlayerRecord {
+                                id = x.AsJsonObject["id"].AsString,
+                                email = x.AsJsonObject["email"].AsString
+                            }
                         )
-                    )
-            );
+                );
+
+                var enumerable = json["entities"].AsJsonArray
+                    .Select(x => RawEntity.FromJson(x));
+                foreach (RawEntity e in enumerable)
+                    database.entities.Add(e.id, e);
+
+                database.entityOwnerships.AddRange(
+                    json["entityOwnerships"]
+                        .AsJsonArray
+                        .Select(
+                            x => new Tuple<string, string>(
+                                x.AsJsonObject["entityId"],
+                                x.AsJsonObject["playerId"]
+                            )
+                        )
+                );
+            }
+            catch (Exception e)
+            {
+                // will log exception, but continue with the loading
+                Debug.LogException(e);
+            }
 
             return database;
         }
@@ -291,8 +300,11 @@ namespace Unisave.Database
         }
 
         /// <inheritdoc/>
-        public RawEntity LoadEntity(string id)
+        public RawEntity LoadEntity(string id, string lockType = null)
         {
+            // NOTE: lockType is ignored in emulated database,
+            // because no concurrency happens here.
+            
             GuardClientSide();
 
             if (!entities.ContainsKey(id))
@@ -408,32 +420,6 @@ namespace Unisave.Database
             return WhereClause.ClausesMatchEntity(query.whereClauses, e);
         }
 
-        private JsonValue JsonExtract(JsonValue subject, string pathString)
-        {
-            foreach (string step in pathString.Split(new string[] {"->"}, StringSplitOptions.RemoveEmptyEntries))
-            {
-                if (subject.IsJsonArray)
-                {
-                    if (int.TryParse(step, out int index))
-                        subject = subject.AsJsonArray[index];
-                    else
-                        subject = JsonValue.Null;
-
-                    continue;
-                }
-
-                if (subject.IsJsonObject)
-                {
-                    subject = subject.AsJsonObject[step];
-                    continue;
-                }
-
-                subject = JsonValue.Null;
-            }
-
-            return subject;
-        }
-
         /// <summary>
         /// Returns a set of owners of a given entity
         /// </summary>
@@ -458,6 +444,40 @@ namespace Unisave.Database
         {
             foreach (string ownerId in ownerIds)
                 entityOwnerships.Add(new Tuple<string, string>(entityId, ownerId));
+        }
+        
+        //////////////////////////
+        // Transaction handling //
+        //////////////////////////
+        
+        /*
+         * Dummy implementation that only keeps track of transaction level.
+         * Emulated database does not support rollbacks
+         * and other transaction features.
+         */
+
+        private int transactionLevel = 0;
+        
+        public void StartTransaction()
+        {
+            transactionLevel++;
+        }
+
+        public void RollbackTransaction()
+        {
+            if (transactionLevel > 0)
+                transactionLevel--;
+        }
+
+        public void CommitTransaction()
+        {
+            if (transactionLevel > 0)
+                transactionLevel--;
+        }
+
+        public int TransactionLevel()
+        {
+            return transactionLevel;
         }
     }
 }

@@ -30,7 +30,7 @@ namespace Unisave.Database
         }
 
         /// <inheritdoc/>
-        public RawEntity LoadEntity(string id)
+        public RawEntity LoadEntity(string id, string lockType = null)
         {
             NotifyDeveloper();
             return null;
@@ -62,6 +62,31 @@ namespace Unisave.Database
         {
             NotifyDeveloper();
             yield break;
+        }
+
+        /// <inheritdoc/>
+        public void StartTransaction()
+        {
+            NotifyDeveloper();
+        }
+
+        /// <inheritdoc/>
+        public void RollbackTransaction()
+        {
+            NotifyDeveloper();
+        }
+
+        /// <inheritdoc/>
+        public void CommitTransaction()
+        {
+            NotifyDeveloper();
+        }
+
+        /// <inheritdoc/>
+        public int TransactionLevel()
+        {
+            NotifyDeveloper();
+            return 0;
         }
     }
 }

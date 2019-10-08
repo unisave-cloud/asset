@@ -95,14 +95,14 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             {
                 command.CommandText = @"
                     INSERT INTO script_executions (
-                        id, game_id, release_id, created_at
+                        id, database_id, created_at
                     ) 
                     VALUES (
-                        @id, @game_id, -1, @now
+                        @id, @database_id, @now
                     );
                 ";
                 command.Parameters.AddWithValue("id", executionId);
-                command.Parameters.AddWithValue("game_id", databaseId);
+                command.Parameters.AddWithValue("database_id", databaseId);
                 command.Parameters.AddWithValue("now", DateTime.UtcNow);
                 command.ExecuteNonQuery();
             }

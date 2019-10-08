@@ -4,6 +4,8 @@ using System.Linq;
 using LightJson;
 using Unisave.Database;
 using Unisave.Database.Query;
+using Unisave.Exceptions;
+using UnityEngine;
 
 namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
 {
@@ -13,13 +15,18 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
     ///
     /// (database proxy client cannot use framework classes)
     /// </summary>
-    public class DatabaseProxyConnection : IDatabase
+    public class DatabaseProxyConnection : IDatabase, IDisposable
     {
-        private global::DatabaseProxy.DatabaseProxyConnection client;
+        private readonly global::DatabaseProxy.DatabaseProxyConnection client;
 
         public DatabaseProxyConnection()
         {
             client = new global::DatabaseProxy.DatabaseProxyConnection();
+        }
+
+        public global::DatabaseProxy.DatabaseProxyConnection GetUnderlyingConnection()
+        {
+            return client;
         }
 
         public void Open(string executionId, string ipAddress, int port)
@@ -31,6 +38,8 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
         {
             client.Close();
         }
+
+        public void Dispose() => Close();
 
         public void SaveEntity(RawEntity entity)
         {
@@ -50,14 +59,24 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
             entity.updatedAt = DateTime.Parse(jsonEntity["updatedAt"].AsString);
             entity.ownerIds = EntityOwnerIds.FromJson(jsonEntity["ownerIds"]);
         }
-
-        public RawEntity LoadEntity(string id)
+        
+        public RawEntity LoadEntity(string id, string lockType = null)
         {
             if (id == null)
                 throw new ArgumentNullException();
+
+            JsonObject response = client.LoadEntity(id, lockType);
+            
+            if (response.ContainsKey("exception"))
+            {
+                if (response["exception"].AsString == "deadlock")
+                    throw new DatabaseDeadlockException();
+                
+                throw new UnisaveException("Entity loading failed.");
+            }
             
             return RawEntity.FromJson(
-                client.LoadEntity(id)
+                response["entity"].AsJsonObject
             );
         }
 
@@ -88,7 +107,27 @@ namespace Unisave.Editor.Tests.Database.Support.DatabaseProxy
                 throw new ArgumentNullException();
 
             return client.QueryEntities(query.ToJson())
-                .Select(e => RawEntity.FromJson(e));
+                .Select(RawEntity.FromJson);
+        }
+        
+        public void StartTransaction()
+        {
+            client.StartTransaction();
+        }
+
+        public void RollbackTransaction()
+        {
+            client.RollbackTransaction();
+        }
+
+        public void CommitTransaction()
+        {
+            client.CommitTransaction();
+        }
+
+        public int TransactionLevel()
+        {
+            return client.TransactionLevel();
         }
     }
 }
