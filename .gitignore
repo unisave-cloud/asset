@@ -31,6 +31,10 @@ Assets/Unisave/Libraries/UnisaveFramework/
 # TextMesh Pro files
 [Aa]ssets/TextMesh*Pro/
 
+# JetBrains
+.idea/
+[Aa]ssets/Plugins/Editor/JetBrains
+
 # Visual Studio cache directory
 .vs/
 .vscode/
