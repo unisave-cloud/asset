@@ -1,0 +1,70 @@
+using System.Collections.Generic;
+using Unisave;
+using Unisave.Components.Matchmaking;
+
+public class MatchEntity : Entity
+{
+    // TODO: put here all the data you need to know about a match
+    
+    /// <summary>
+    /// What player makes the first move?
+    /// </summary>
+    [X] public UnisavePlayer FirstMovePlayer { get; set; }
+}
+
+public class MatchmakerTicket : BasicMatchmakerTicket
+{
+    // TODO: put here all the data you need to know about a waiting player
+    
+    /// <summary>
+    /// What score does the player have
+    /// </summary>
+    public int playerScore;
+}
+
+public class MatchmakerFacet : BasicMatchmakerFacet
+    <MatchmakerTicket, MatchEntity>
+{
+    /// <summary>
+    /// Called when a new ticket is inserted into the matchmaker
+    /// (verify data provided by the client, calculate sth. or just do nothing)
+    /// </summary>
+    /// <param name="ticket">Newly inserted ticket</param>
+    protected override void PrepareNewTicket(MatchmakerTicket ticket)
+    {
+        // TODO: replace this code with your own matchmaker implementation
+        // e.g. calculate player score, given ticket.Player value:
+        
+        ticket.playerScore = 42;
+    }
+    
+    /// <summary>
+    /// Called whenever the matchmaker state changes
+    /// (new ticket comes in or some time elapses)
+    /// </summary>
+    /// <param name="tickets">Waiting tickets (players)</param>
+    protected override void CreateMatches(List<MatchmakerTicket> tickets)
+    {
+        // TODO: replace this code with your own matchmaker implementation
+        // e.g. match pairs of players with similar score
+        
+        // sort waiting players by their score
+        tickets.Sort((a, b) => a.playerScore.CompareTo(b.playerScore));
+        
+        // while we have enough tickets
+        while (tickets.Count >= 2)
+        {
+            // take first two tickets from the queue
+            var selectedTickets = tickets.GetRange(index: 0, count: 2);
+            tickets.RemoveRange(index: 0, count: 2);
+
+            // create a match with those tickets
+            var match = new MatchEntity {
+                FirstMovePlayer = selectedTickets[0].Player // lower score
+            };
+            
+            // launch the match
+            SaveAndStartMatch(selectedTickets, match);
+        }
+    }
+}

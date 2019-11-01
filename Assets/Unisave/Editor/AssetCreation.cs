@@ -51,6 +51,26 @@ namespace Unisave.Editor
                 wildcard: "#HOOKNAME#"
             );
         }
+        
+        [MenuItem("Assets/Create/Unisave/Matchmaking/Matchmaker", false, 5)]
+        public static void CreateMatchmaker()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "Matchmaker",
+                templateName: "Templates/Components/MatchmakerTemplate",
+                wildcard: "#NO-WILDCARD-PRESENT#"
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Matchmaking/MatchmakerClient", false, 6)]
+        public static void CreateMatchmakerClient()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "MatchmakerClient",
+                templateName: "Templates/Components/MatchmakerClientTemplate",
+                wildcard: "#MATCHMAKERCLIENT#"
+            );
+        }
 
         [MenuItem("Assets/Create/Unisave/Backend folder", false, 20)]
         public static void CreateBackendFolder()
