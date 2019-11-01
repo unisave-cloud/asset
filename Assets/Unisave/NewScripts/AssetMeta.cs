@@ -8,6 +8,6 @@ namespace Unisave
         /// <summary>
         /// Version of the asset
         /// </summary>
-        public const string Version = "0.8.0-dev";
+        public const string Version = "0.7.1";
     }
 }
