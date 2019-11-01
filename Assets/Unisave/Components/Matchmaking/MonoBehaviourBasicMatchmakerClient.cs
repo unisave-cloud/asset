@@ -34,6 +34,13 @@ namespace Unisave.Components.Matchmaking
         /// Is the user waiting for cancellation?
         /// </summary>
         private bool cancelWaiting;
+
+        /// <summary>
+        /// Should the polling be immediately killed
+        /// because the mono behaviour has been destroyed
+        /// (does not leave gently, but right now)
+        /// </summary>
+        private bool killPolling;
         
         /// <summary>
         /// Registers a ticket into the matchmaker and waits for a match.
@@ -56,6 +63,9 @@ namespace Unisave.Components.Matchmaking
             while (true)
             {
                 await Task.Delay(PollingPeriodSeconds * 1000);
+
+                if (killPolling)
+                    return;
 
                 bool attemptingCancellation = cancelWaiting;
                 
@@ -140,8 +150,8 @@ namespace Unisave.Components.Matchmaking
         
         protected virtual void OnDestroy()
         {
-            // stop waiting if waiting
-            StopWaitingForMatch();
+            // stop all background tasks
+            killPolling = true;
         }
     }
 }
