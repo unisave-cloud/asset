@@ -17,9 +17,9 @@ public class MatchmakerTicket : BasicMatchmakerTicket
     // TODO: put here all the data you need to know about a waiting player
     
     /// <summary>
-    /// What score does the player have
+    /// What rating does the player have
     /// </summary>
-    public int playerScore;
+    public int playerRating;
 }
 
 public class MatchmakerFacet : BasicMatchmakerFacet
@@ -33,9 +33,9 @@ public class MatchmakerFacet : BasicMatchmakerFacet
     protected override void PrepareNewTicket(MatchmakerTicket ticket)
     {
         // TODO: replace this code with your own matchmaker implementation
-        // e.g. calculate player score, given ticket.Player value:
+        // e.g. calculate player rating, given ticket.Player value:
         
-        ticket.playerScore = 42;
+        ticket.playerRating = 42;
     }
     
     /// <summary>
@@ -49,7 +49,7 @@ public class MatchmakerFacet : BasicMatchmakerFacet
         // e.g. match pairs of players with similar score
         
         // sort waiting players by their score
-        tickets.Sort((a, b) => a.playerScore.CompareTo(b.playerScore));
+        tickets.Sort((a, b) => a.playerRating.CompareTo(b.playerRating));
         
         // while we have enough tickets
         while (tickets.Count >= 2)

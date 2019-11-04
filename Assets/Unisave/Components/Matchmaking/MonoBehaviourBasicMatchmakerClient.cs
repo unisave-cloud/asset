@@ -62,8 +62,6 @@ namespace Unisave.Components.Matchmaking
 
             while (true)
             {
-                await Task.Delay(PollingPeriodSeconds * 1000);
-
                 if (killPolling)
                     return;
 
@@ -122,6 +120,9 @@ namespace Unisave.Components.Matchmaking
                     WaitingCanceled();
                     return;
                 }
+                
+                // poll waiting
+                await Task.Delay(PollingPeriodSeconds * 1000);
             }
         }
 
