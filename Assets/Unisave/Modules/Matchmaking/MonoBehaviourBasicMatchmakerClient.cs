@@ -2,11 +2,11 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Unisave.Components.Matchmaking.Exceptions;
+using Unisave.Modules.Matchmaking.Exceptions;
 using Unisave.Exceptions;
 using UnityEngine;
 
-namespace Unisave.Components.Matchmaking
+namespace Unisave.Modules.Matchmaking
 {
     public class MonoBehaviourBasicMatchmakerClient
         <TMatchmakerFacet, TMatchmakerTicket, TMatchEntity> : MonoBehaviour

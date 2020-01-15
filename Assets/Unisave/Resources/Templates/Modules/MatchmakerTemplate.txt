@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using Unisave;
-using Unisave.Components.Matchmaking;
+using Unisave.Modules.Matchmaking;
 
 public class MatchEntity : Entity
 {

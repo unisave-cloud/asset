@@ -57,7 +57,7 @@ namespace Unisave.Editor
         {
             CreateScriptFromTemplate(
                 defaultName: "Matchmaker",
-                templateName: "Templates/Components/MatchmakerTemplate",
+                templateName: "Templates/Modules/MatchmakerTemplate",
                 wildcard: "#NO-WILDCARD-PRESENT#"
             );
         }
@@ -67,7 +67,7 @@ namespace Unisave.Editor
         {
             CreateScriptFromTemplate(
                 defaultName: "MatchmakerClient",
-                templateName: "Templates/Components/MatchmakerClientTemplate",
+                templateName: "Templates/Modules/MatchmakerClientTemplate",
                 wildcard: "#MATCHMAKERCLIENT#"
             );
         }
