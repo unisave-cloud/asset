@@ -1,35 +1,27 @@
 ﻿using System;
-using System.Collections;
-using System.Diagnostics;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Networking;
 using LightJson;
-using LightJson.Serialization;
 using RSG;
 using Unisave.Utils;
 using Unisave.Exceptions;
-using Unisave.Exceptions.ServerConnection;
 using Unisave.Serialization;
-using Debug = System.Diagnostics.Debug;
 
 namespace Unisave.Facets
 {
     public class UnisaveFacetCaller : FacetCaller
     {
-		private Func<string> GetAccessToken;
-		private ApiUrl apiUrl;
-        private CoroutineRunnerComponent coroutineRunner;
+	    /// <summary>
+	    /// Session ID that is used for communication with the server
+	    /// </summary>
+	    public string SessionId { get; private set; }
+	    
+		private readonly ApiUrl apiUrl;
+		private readonly string gameToken;
 
-        public UnisaveFacetCaller(
-	        Func<string> GetAccessToken,
-	        ApiUrl apiUrl,
-	        CoroutineRunnerComponent coroutineRunner
-	    )
+        public UnisaveFacetCaller(ApiUrl apiUrl, string gameToken)
         {
-			this.GetAccessToken = GetAccessToken;
-            this.coroutineRunner = coroutineRunner;
-			this.apiUrl = apiUrl;
+            this.apiUrl = apiUrl;
+            this.gameToken = gameToken;
         }
 
 		protected override IPromise<JsonValue> PerformFacetCall(
@@ -41,42 +33,39 @@ namespace Unisave.Facets
 			Http.Post(
 				apiUrl.CallFacet(),
 				new JsonObject()
-					.Add("access_token", GetAccessToken())
-					.Add("facet", facetName)
-					.Add("method", methodName)
-					.Add("arguments", arguments),
+					.Add("facetName", facetName)
+					.Add("methodName", methodName)
+					.Add("arguments", arguments)
+					.Add("sessionId", SessionId)
+					.Add("gameToken", gameToken)
+					.Add("client", new JsonObject()
+						.Add("backendHash",
+							UnisavePreferences.LoadOrCreate().BackendHash)
+						.Add("frameworkVersion", FrameworkMeta.Version)
+						.Add("assetVersion", AssetMeta.Version)
+						.Add("buildGuid", Application.buildGUID)
+						.Add("versionString", Application.version)
+					),
 				"200"
 			).Then(response => {
-				switch (response["result"].AsString)
+				JsonObject executionResult = response["executionResult"];
+				// TODO: pull out logs and stuff
+				
+				// remember the session id
+				string givenSessionId = executionResult["special"]["sessionId"];
+				if (givenSessionId != null)
+					SessionId = givenSessionId;
+				
+				switch (executionResult["result"].AsString)
 				{
 					case "ok":
-						if (response["hasReturnValue"].AsBoolean)
-							promise.Resolve(response["returnValue"]);
-						else
-							promise.Resolve(JsonValue.Null);
+						promise.Resolve(executionResult["returned"]);
 						break;
 
-					case "game-exception":
+					case "exception":
 						promise.Reject(
 							Serializer.FromJson<Exception>(
-								response["exception"]
-							)
-						);
-						break;
-
-					case "error":
-						promise.Reject(
-							new UnisaveException(
-								"Facet call error:\n" + response["message"]
-							)
-						);
-						break;
-
-					// DEPRECATED
-					case "compile-error":
-						promise.Reject(
-							new UnisaveException(
-								"Server compile error:\n" + response["message"]
+								executionResult["exception"]
 							)
 						);
 						break;
@@ -84,31 +73,14 @@ namespace Unisave.Facets
 					default:
 						promise.Reject(
 							new UnisaveException(
-								"Server sent unknown result for facet call."
+								"Server sent unknown response for facet call:\n"
+								+ response
 							)
 						);
 						break;
 				}
+				
 			}).Catch(e => {
-				if (!(e is HttpException))
-				{
-					promise.Reject(e);
-					return;
-				}
-
-				HttpException he = (HttpException)e;
-				
-				if (he.Response.StatusCode == 401)
-				{
-					promise.Reject(
-						new InvalidAccessTokenException(
-							"Unisave server rejected facet call, " +
-							"because the provided access token was invalid."
-						)
-					);
-					return;
-				}
-				
 				promise.Reject(e);
 			});
 

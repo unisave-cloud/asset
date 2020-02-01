@@ -8,10 +8,10 @@ using UnityEngine;
 
 namespace Unisave.Modules.Matchmaking
 {
-    public class MonoBehaviourBasicMatchmakerClient
+    public abstract class MonoBehaviourBasicMatchmakerClient
         <TMatchmakerFacet, TMatchmakerTicket, TMatchEntity> : MonoBehaviour
         where TMatchmakerTicket : BasicMatchmakerTicket
-        where TMatchEntity : Entity
+        where TMatchEntity : Entity, new()
         where TMatchmakerFacet : BasicMatchmakerFacet<TMatchmakerTicket, TMatchEntity>
     {
         /// <summary>

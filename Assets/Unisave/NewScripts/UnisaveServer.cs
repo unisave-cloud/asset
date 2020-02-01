@@ -71,11 +71,7 @@ namespace Unisave
         {
             // register promise exception handler
             Promise.UnhandledException += (object sender, ExceptionEventArgs e) => {
-                UnityEngine.Debug.LogException(e.Exception);
-
-                // UnityEngine.Debug.LogError($"Unhandled promise exception: {e.Exception.ToString()}");
-                // UnityEngine.Debug.LogError($"For more info on unhandled promise exceptions see:\n"
-                //     + "https://github.com/Real-Serious-Games/C-Sharp-Promise#unhandled-errors");
+                Debug.LogError(e.Exception.ToString() + "\n\n");
             };
 
             // create new instance with proper preferences
@@ -420,9 +416,8 @@ namespace Unisave
                 if (unisaveFacetCaller == null)
                 {
                     unisaveFacetCaller = new UnisaveFacetCaller(
-                        () => UnisaveAuthenticator.AccessToken,
                         ApiUrl,
-                        coroutineRunner
+                        GameToken
                     );
                 }
 
@@ -472,19 +467,19 @@ namespace Unisave
                 }
                 else
                 {
-                    if (!UnisaveAuthenticator.LoggedIn)
-                    {
-                        if (!Application.isEditor)
-                            throw new Exception("Cannot call facet methods without a logged-in player.");
-
-                        IsEmulating = true;
-
-                        EmulatedAuthenticator.AutoLogin(
-                            autoLoginPlayerEmail, autoRegister, autoRegisterArguments
-                        );
-
-                        return EmulatedFacetCaller;
-                    }
+//                    if (!UnisaveAuthenticator.LoggedIn)
+//                    {
+//                        if (!Application.isEditor)
+//                            throw new Exception("Cannot call facet methods without a logged-in player.");
+//
+//                        IsEmulating = true;
+//
+//                        EmulatedAuthenticator.AutoLogin(
+//                            autoLoginPlayerEmail, autoRegister, autoRegisterArguments
+//                        );
+//
+//                        return EmulatedFacetCaller;
+//                    }
 
                     return UnisaveFacetCaller;
                 }
