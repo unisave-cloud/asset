@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using LightJson;
 using NUnit.Framework;
+using Unisave.Contracts;
 using Unisave.Database;
 using Unisave.Utils;
 

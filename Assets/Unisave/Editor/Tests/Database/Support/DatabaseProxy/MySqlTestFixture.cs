@@ -2,6 +2,7 @@ using LightJson;
 using LightJson.Serialization;
 using MySql.Data.MySqlClient;
 using NUnit.Framework;
+using Unisave.Contracts;
 using Unisave.Database;
 using Unisave.Utils;
 

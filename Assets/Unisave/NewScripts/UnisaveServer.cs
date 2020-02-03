@@ -10,6 +10,7 @@ using Unisave.Utils;
 using Unisave.Exceptions;
 using RSG;
 using LightJson;
+using Unisave.Contracts;
 using Unisave.Services;
 
 namespace Unisave
@@ -80,8 +81,9 @@ namespace Unisave
             );
 
             // register framework services
-            ServiceContainer.Default = new ServiceContainer();
-            ServiceContainer.Default.Register<IDatabase>(instance.Database);
+            // TODO: this is broken, needs fixing
+            //Foundation.Application.Default = new Foundation.Application();
+            Foundation.Application.Default.Instance<IDatabase>(instance.Database);
 
             return instance;
         }

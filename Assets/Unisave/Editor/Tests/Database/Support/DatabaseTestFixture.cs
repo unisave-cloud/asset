@@ -1,6 +1,7 @@
 using System;
 using LightJson;
 using NUnit.Framework;
+using Unisave.Contracts;
 using Unisave.Database;
 using Unisave.Editor.Tests.Database.Support.DatabaseProxy;
 using Unisave.Editor.Tests.Database.Support.EmulatedDatabase;

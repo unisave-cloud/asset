@@ -9,6 +9,7 @@ using Unisave.Serialization;
 using Unisave.Utils;
 using LightJson;
 using LightJson.Serialization;
+using Unisave.Contracts;
 using Unisave.Database.Query;
 using Unisave.Exceptions;
 

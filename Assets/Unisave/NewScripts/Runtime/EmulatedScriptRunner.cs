@@ -24,8 +24,9 @@ namespace Unisave.Runtime
         )
         {
             // setup service container
-            ServiceContainer.Default = new ServiceContainer();
-            ServiceContainer.Default.Register<IDatabase>(db);
+            // TODO: this is broken, needs fixing
+//            ServiceContainer.Default = new ServiceContainer();
+//            ServiceContainer.Default.Register<IDatabase>(db);
 
             JsonObject executionParameters = new JsonObject()
                 .Add("executionId", "emulated-execution")
@@ -45,7 +46,7 @@ namespace Unisave.Runtime
             db.PreventAccess = wasAccessPrevented;
             
             // tear down service container
-            ServiceContainer.Default = null;
+//            ServiceContainer.Default = null;
 
             switch (response["result"].AsString)
             {

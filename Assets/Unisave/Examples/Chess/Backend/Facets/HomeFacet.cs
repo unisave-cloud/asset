@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unisave;
+using Unisave.Facets;
 
 namespace Unisave.Examples.Chess
 {
