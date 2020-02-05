@@ -32,7 +32,8 @@ namespace Unisave.Examples.Chess
 
 		public void OnLogoutButtonClick()
 		{
-			Auth.Logout();
+			// TODO: outdated auth
+			//Auth.Logout();
 			SceneManager.LoadSceneAsync(
 				"Unisave/Examples/Chess/Scenes/Login",
 				LoadSceneMode.Single

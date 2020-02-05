@@ -1,17 +1,12 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-using Unisave.Authentication;
 using Unisave.Facets;
 using Unisave.Database;
-using Unisave.Runtime;
 using Unisave.Utils;
-using Unisave.Exceptions;
 using RSG;
 using LightJson;
 using Unisave.Contracts;
-using Unisave.Services;
 
 namespace Unisave
 {
@@ -83,7 +78,7 @@ namespace Unisave
             // register framework services
             // TODO: this is broken, needs fixing
             //Foundation.Application.Default = new Foundation.Application();
-            Foundation.Application.Default.Instance<IDatabase>(instance.Database);
+            //Foundation.Application.Default.Instance<IDatabase>(instance.Database);
 
             return instance;
         }
@@ -173,9 +168,9 @@ namespace Unisave
             this.GameToken = gameToken;
             this.EditorKey = editorKey;
             this.emulatedDatabaseName = emulatedDatabaseName;
-            this.autoLoginPlayerEmail = autoLoginPlayerEmail;
-            this.autoRegister = autoRegister;
-            this.autoRegisterArguments = autoRegisterArguments;
+            //this.autoLoginPlayerEmail = autoLoginPlayerEmail;
+            //this.autoRegister = autoRegister;
+            //this.autoRegisterArguments = autoRegisterArguments;
 
             this.coroutineRunner = coroutineRunner;
 
@@ -196,11 +191,11 @@ namespace Unisave
                 IsEmulating = true;
 
             // email for auto login
-            autoLoginPlayerEmail = preferences.AutoLoginPlayerEmail;
+            //autoLoginPlayerEmail = preferences.AutoLoginPlayerEmail;
 
             // auto registration
-            autoRegister = preferences.AutoRegisterPlayer;
-            autoRegisterArguments = preferences.AutoRegisterArguments;
+            //autoRegister = preferences.AutoRegisterPlayer;
+            //autoRegisterArguments = preferences.AutoRegisterArguments;
 
             // TODO: apply remaining preferences
         }
@@ -240,7 +235,8 @@ namespace Unisave
                 if (value)
                 {
                     // emulation cannot be started in runtime
-                    // this may happen if the developer forgets the "Always emulate" option enabled during build
+                    // this may happen if the developer forgets the
+                    // "Always emulate" option enabled during build
                     if (!Application.isEditor)
                         return;
 
@@ -249,28 +245,11 @@ namespace Unisave
                 }
                 else
                 {
-                    if (IsTesting)
-                    {
-                        Debug.LogWarning(
-                            "Unisave: Stopping testing because emulation was disabled.\n" +
-                            "Tests can only be run during emulation."
-                        );
-                        TearDownTesting();
-                    }
-
                     isEmulating = false;
                 }
             }
         }
         private bool isEmulating = false;
-
-        /// <summary>
-        /// Is the server being tested
-        /// 
-        /// Tests automatically run during emulation. So this value only
-        /// determines what database to use during emulation.
-        /// </summary>
-        public bool IsTesting { get; private set; } = false;
 
         /// <summary>
         /// Emulated database that stores all the emulated entities
@@ -327,84 +306,15 @@ namespace Unisave
             {
                 if (IsEmulating)
                 {
-                    if (IsTesting)
-                        return TestingDatabase;
-                    else
+//                    if (IsTesting)
+//                        return TestingDatabase;
+//                    else
                         return EmulatedDatabase;
                 }
                 else
                 {
                     return new FakeDatabase();
                 }
-            }
-        }
-
-        /// <summary>
-        /// Email of the player that should be automatically logged in
-        /// </summary>
-        private string autoLoginPlayerEmail;
-
-        /// <summary>
-        /// Should a player be automatically registered
-        /// </summary>
-        private bool autoRegister;
-
-        /// <summary>
-        /// Arguments for automatic registration
-        /// </summary>
-        private JsonObject autoRegisterArguments;
-
-        /// <summary>
-        /// Authenticator that authenticates via the unisave servers
-        /// </summary>
-        public UnisaveAuthenticator UnisaveAuthenticator
-        {
-            get
-            {
-                if (unisaveAuthenticator == null)
-                {
-                    unisaveAuthenticator = new UnisaveAuthenticator(
-                        ApiUrl,
-                        GameToken,
-                        EditorKey
-                    );
-                }
-
-                return unisaveAuthenticator;
-            }
-        }
-        private UnisaveAuthenticator unisaveAuthenticator;
-
-        /// <summary>
-        /// Authenticator that runs against the emulated or testing database
-        /// </summary>
-        public EmulatedAuthenticator EmulatedAuthenticator
-        {
-            get
-            {
-                if (emulatedAuthenticator == null)
-                {
-                    emulatedAuthenticator = new EmulatedAuthenticator(
-                        () => IsTesting ? TestingDatabase : EmulatedDatabase
-                    );
-                }
-
-                return emulatedAuthenticator;
-            }
-        }
-        private EmulatedAuthenticator emulatedAuthenticator;
-
-        /// <summary>
-        /// Authenticator used to authenticate players
-        /// </summary>
-        public IAuthenticator Authenticator
-        {
-            get
-            {
-                if (IsEmulating)
-                    return EmulatedAuthenticator;
-                else
-                    return UnisaveAuthenticator;
             }
         }
 
@@ -438,7 +348,6 @@ namespace Unisave
                 if (emulatedFacetCaller == null)
                 {
                     emulatedFacetCaller = new EmulatedFacetCaller(
-                        () => EmulatedAuthenticator.Player,
                         () => EmulatedDatabase
                     );
                 }
@@ -458,12 +367,12 @@ namespace Unisave
             {
                 if (IsEmulating)
                 {
-                    if (!EmulatedAuthenticator.LoggedIn)
-                    {
-                        EmulatedAuthenticator.AutoLogin(
-                            autoLoginPlayerEmail, autoRegister, autoRegisterArguments
-                        );
-                    }
+//                    if (!EmulatedAuthenticator.LoggedIn)
+//                    {
+//                        EmulatedAuthenticator.AutoLogin(
+//                            autoLoginPlayerEmail, autoRegister, autoRegisterArguments
+//                        );
+//                    }
 
                     return EmulatedFacetCaller;
                 }
@@ -486,27 +395,6 @@ namespace Unisave
                     return UnisaveFacetCaller;
                 }
             }
-        }
-
-        /// <summary>
-        /// Setup environment for running tests
-        /// </summary>
-        public void SetUpTesting()
-        {
-            IsEmulating = true;
-            IsTesting = true;
-            
-            TestingDatabase.Clear();
-        }
-
-        /// <summary>
-        /// Testing has finished, tear the testing environment down
-        /// </summary>
-        public void TearDownTesting()
-        {
-            IsTesting = false;
-
-            EmulatedAuthenticator.Logout();
         }
     }
 }

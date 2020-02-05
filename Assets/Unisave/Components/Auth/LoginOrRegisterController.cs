@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using Unisave.Authentication;
 using Unisave.Exceptions;
 using Unisave.Exceptions.ServerConnection;
 using Unisave.Exceptions.PlayerRegistration;
@@ -45,14 +44,15 @@ namespace Unisave
 			messageText.text = "...";
 			messageText.gameObject.SetActive(true);
 
-			Auth.Login(loginEmailField.text, loginPasswordField.text)
-				.Then(() => {
-					SceneManager.LoadSceneAsync(sceneNameToLoad, LoadSceneMode.Single);
-				})
-				.Catch(failure => {
-					messageText.text = ((LoginFailure)failure).message;
-					messageText.gameObject.SetActive(true);
-				});
+			// TODO: outdated
+//			Auth.Login(loginEmailField.text, loginPasswordField.text)
+//				.Then(() => {
+//					SceneManager.LoadSceneAsync(sceneNameToLoad, LoadSceneMode.Single);
+//				})
+//				.Catch(failure => {
+//					messageText.text = ((LoginFailure)failure).message;
+//					messageText.gameObject.SetActive(true);
+//				});
 		}
 
 		void OnRegisterClicked()
@@ -73,23 +73,24 @@ namespace Unisave
 				hookArguments.Add("name", registerNameField.text);
 			}
 
-			Auth.Register(registerEmailField.text, registerPasswordField.text, hookArguments)
-				.Then(() => {
-					loginEmailField.text = registerEmailField.text;
-					loginPasswordField.text = registerPasswordField.text;
-
-					OnGotoLogin();
-					OnLoginClicked();
-				})
-				.Catch(exception => {
-					if (exception is ExceptionWithPlayerMessage)
-						messageText.text = ((ExceptionWithPlayerMessage)exception).MessageForPlayer;
-					else
-						messageText.text = "Unknown error.";
-
-					Debug.LogException(exception);
-					messageText.gameObject.SetActive(true);
-				});
+			// TODO: outdated
+//			Auth.Register(registerEmailField.text, registerPasswordField.text, hookArguments)
+//				.Then(() => {
+//					loginEmailField.text = registerEmailField.text;
+//					loginPasswordField.text = registerPasswordField.text;
+//
+//					OnGotoLogin();
+//					OnLoginClicked();
+//				})
+//				.Catch(exception => {
+//					if (exception is ExceptionWithPlayerMessage)
+//						messageText.text = ((ExceptionWithPlayerMessage)exception).MessageForPlayer;
+//					else
+//						messageText.text = "Unknown error.";
+//
+//					Debug.LogException(exception);
+//					messageText.gameObject.SetActive(true);
+//				});
 		}
 
 		void OnGotoRegistration()

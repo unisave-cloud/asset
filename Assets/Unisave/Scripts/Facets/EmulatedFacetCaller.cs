@@ -4,53 +4,113 @@ using System.Reflection;
 using RSG;
 using LightJson;
 using Unisave;
+using Unisave.Contracts;
 using Unisave.Serialization;
 using Unisave.Database;
 using Unisave.Exceptions;
+using Unisave.Foundation;
 using Unisave.Runtime;
+using Unisave.Runtime.Kernels;
+using Unisave.Sessions;
+using Unisave.Utils;
 
 namespace Unisave.Facets
 {
     public class EmulatedFacetCaller : FacetCaller
     {
-        private Func<UnisavePlayer> GetAuthorizedPlayer;
+        /// <summary>
+        /// Session ID that is used for communication with the server
+        /// </summary>
+        public string SessionId { get; private set; }
+        
+        /// <summary>
+        /// Session instance that will be used by the application
+        /// </summary>
+        public SessionOverStorage Session { get; private set; }
+        
         private Func<EmulatedDatabase> GetEmulatedDatabase;
 
         public EmulatedFacetCaller(
-            Func<UnisavePlayer> GetAuthorizedPlayer,
             Func<EmulatedDatabase> GetEmulatedDatabase
         )
         {
-            this.GetAuthorizedPlayer = GetAuthorizedPlayer;
             this.GetEmulatedDatabase = GetEmulatedDatabase;
+            
+            Session = new SessionOverStorage(
+                new InMemorySessionStorage(),
+                3600
+            );
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
             string facetName, string methodName, JsonArray arguments
         )
 		{
-            ScriptExecutionResult result = EmulatedScriptRunner.ExecuteScript(
-                GetEmulatedDatabase(),
-                "facet",
-                new JsonObject()
-                    .Add("facetName", facetName)
-                    .Add("methodName", methodName)
-                    .Add("arguments", arguments)
-                    .Add("callerId", GetAuthorizedPlayer().Id)
+            var env = new Env();
+            
+            // override with additional dev configuration
+            var preferences = UnisavePreferences.LoadOrCreate();
+            if (preferences.DevelopmentEnv != null)
+            {
+                var overrideEnv = Env.Parse(preferences.DevelopmentEnv.text);
+                env.OverrideWith(overrideEnv);
+            }
+            
+            var app = Bootstrap.Boot(
+                GetGameAssemblyTypes(),
+                env,
+                new SpecialValues()
             );
+            
+            Facade.SetApplication(app);
 
-            if (result.IsOK)
-            {
-                return Promise<JsonValue>.Resolved(
-                    result.methodResponse["returnValue"]
-                );
-            }
-            else
-            {
-                return Promise<JsonValue>.Rejected(
-                    result.TransformNonOkResultToFinalException()
-                );
-            }
+            PerformContainerSurgery(app);
+            
+            // BEGIN RUN THE APP
+            
+            var methodParameters = new FacetCallKernel.MethodParameters(
+                facetName,
+                methodName,
+                arguments,
+                SessionId
+            );
+                
+            var kernel = app.Resolve<FacetCallKernel>();
+                
+            var returnedJson = kernel.Handle(methodParameters);
+
+            var specialValues = app.Resolve<SpecialValues>();
+            SessionId = specialValues.Read("sessionId").AsString;
+            
+            // END RUN THE APP
+            
+            Facade.SetApplication(null);
+            
+            app.Dispose();
+            
+            return Promise<JsonValue>.Resolved(returnedJson);
 		}
+        
+        private Type[] GetGameAssemblyTypes()
+        {
+            // NOTE: gets all possible types, since there might be asm-def files
+            // that make the situation more difficult
+            
+            List<Type> types = new List<Type>();
+
+            foreach (var asm in AppDomain.CurrentDomain.GetAssemblies())
+            {
+                types.AddRange(asm.GetTypes());
+            }
+
+            return types.ToArray();
+        }
+
+        private void PerformContainerSurgery(Application app)
+        {
+            app.Instance<ISession>(Session);
+            
+            // TODO: replace database
+        }
     }
 }
