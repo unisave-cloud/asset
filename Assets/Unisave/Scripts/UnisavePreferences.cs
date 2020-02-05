@@ -226,6 +226,30 @@ namespace Unisave
 
 		[SerializeField]
 		private string backendHash;
+		
+		/// <summary>
+		/// File containing development env configuration
+		/// </summary>
+		public TextAsset DevelopmentEnv
+		{
+			get => developmentEnv;
+			set => developmentEnv = value;
+		}
+
+		[SerializeField]
+		private TextAsset developmentEnv;
+		
+		/// <summary>
+		/// File containing testing env configuration
+		/// </summary>
+		public TextAsset TestingEnv
+		{
+			get => testingEnv;
+			set => testingEnv = value;
+		}
+
+		[SerializeField]
+		private TextAsset testingEnv;
 
 		/// <summary>
 		/// Name of the emulated database to use

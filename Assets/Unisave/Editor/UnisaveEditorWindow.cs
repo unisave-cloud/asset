@@ -123,6 +123,14 @@ namespace Unisave
 					: preferences.BackendHash
 			);
 			EditorGUILayout.EndHorizontal();
+			
+			GUILayout.Label("Environment configuration", EditorStyles.boldLabel);
+			preferences.DevelopmentEnv = (TextAsset) EditorGUILayout.ObjectField(
+				"Development", preferences.DevelopmentEnv, typeof(TextAsset), false
+			);
+			preferences.TestingEnv = (TextAsset) EditorGUILayout.ObjectField(
+				"Testing", preferences.TestingEnv, typeof(TextAsset), false
+			);
 
 			GUILayout.Label("Database emulation", EditorStyles.boldLabel);
 			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
