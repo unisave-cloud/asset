@@ -9,7 +9,7 @@ namespace Unisave.Editor.Tests.Database.Support
         /// Should the tests run against real database proxy
         /// Or against the emulated database in memory
         /// </summary>
-        public const TestMode Mode = TestMode.DatabaseProxy;
+        public const TestMode Mode = TestMode.EmulatedDatabase;
         
         ///////////////////////////////////////
         // Database proxy mode configuration //

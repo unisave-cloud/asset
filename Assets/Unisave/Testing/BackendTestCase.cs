@@ -4,7 +4,7 @@ using NUnit.Framework;
 using Unisave.Foundation;
 using Unisave.Testing;
 
-namespace Unisave
+namespace Unisave.Testing
 {
     /// <summary>
     /// Base class for Unisave backend tests

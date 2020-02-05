@@ -1,5 +1,5 @@
 {
-    "name": "UnisaveTests",
+    "name": "Unisave.Editor",
     "references": [
         "LightJson",
         "Unisave"

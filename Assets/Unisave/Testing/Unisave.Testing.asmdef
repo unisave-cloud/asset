@@ -1,15 +1,12 @@
 {
-    "name": "UnisaveEditor",
+    "name": "Unisave.Testing",
     "references": [
-        "LightJson",
         "Unisave"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
     ],
-    "includePlatforms": [
-        "Editor"
-    ],
+    "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
