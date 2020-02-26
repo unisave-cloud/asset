@@ -1,18 +1,20 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Threading.Tasks;
+using Unisave.Entities;
 using Unisave.Modules.Matchmaking.Exceptions;
 using Unisave.Exceptions;
 using UnityEngine;
 
 namespace Unisave.Modules.Matchmaking
 {
-    public abstract class MonoBehaviourBasicMatchmakerClient
-        <TMatchmakerFacet, TMatchmakerTicket, TMatchEntity> : MonoBehaviour
+    public abstract class MonoBehaviourBasicMatchmakerClient<
+        TPlayerEntity, TMatchEntity, TMatchmakerFacet, TMatchmakerTicket
+    > : MonoBehaviour
         where TMatchmakerTicket : BasicMatchmakerTicket
-        where TMatchEntity : Entity, new()
-        where TMatchmakerFacet : BasicMatchmakerFacet<TMatchmakerTicket, TMatchEntity>
+        where TPlayerEntity : Entity, new()
+        where TMatchEntity : BasicMatchEntity<TPlayerEntity>, new()
+        where TMatchmakerFacet : BasicMatchmakerFacet<
+            TPlayerEntity, TMatchmakerTicket, TMatchEntity
+        >
     {
         /// <summary>
         /// What's the delay between individual server polls

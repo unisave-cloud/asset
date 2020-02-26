@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unisave.Facets;
-using Unisave.Database;
 using Unisave.Utils;
 using RSG;
 using LightJson;
+using Unisave.Arango;
 using Unisave.Contracts;
 
 namespace Unisave
@@ -101,9 +101,8 @@ namespace Unisave
                 return;
 
             overridingPreferences.Add(preferences);
-            
-            if (defaultInstance != null)
-                defaultInstance.ReloadPreferences(GetDefaultPreferencesWithOverriding());
+
+            defaultInstance?.ReloadPreferences(GetDefaultPreferencesWithOverriding());
         }
 
         /// <summary>
@@ -115,9 +114,8 @@ namespace Unisave
                 throw new ArgumentNullException();
 
             overridingPreferences.Remove(preferences);
-            
-            if (defaultInstance != null)
-                defaultInstance.ReloadPreferences(GetDefaultPreferencesWithOverriding());
+
+            defaultInstance?.ReloadPreferences(GetDefaultPreferencesWithOverriding());
         }
 
         /// <summary>
@@ -167,7 +165,7 @@ namespace Unisave
             this.ApiUrl = new ApiUrl(apiUrl);
             this.GameToken = gameToken;
             this.EditorKey = editorKey;
-            this.emulatedDatabaseName = emulatedDatabaseName;
+            //this.emulatedDatabaseName = emulatedDatabaseName;
             //this.autoLoginPlayerEmail = autoLoginPlayerEmail;
             //this.autoRegister = autoRegister;
             //this.autoRegisterArguments = autoRegisterArguments;
@@ -183,8 +181,8 @@ namespace Unisave
         public void ReloadPreferences(UnisavePreferences preferences)
         {
             // emulated database name
-            emulatedDatabaseName = preferences.EmulatedDatabaseName;
-            emulatedDatabase = null; // make it reload once needed
+            //emulatedDatabaseName = preferences.EmulatedDatabaseName;
+            //emulatedDatabase = null; // make it reload once needed
 
             // always emulate
             if (preferences.AlwaysEmulate)
@@ -252,73 +250,6 @@ namespace Unisave
         private bool isEmulating = false;
 
         /// <summary>
-        /// Emulated database that stores all the emulated entities
-        /// </summary>
-        public EmulatedDatabase EmulatedDatabase
-        {
-            get
-            {
-                if (emulatedDatabase == null)
-                {
-                    emulatedDatabase = EmulatedDatabaseRepository
-                        .GetInstance()
-                        .GetDatabase(emulatedDatabaseName);
-                    
-                    emulatedDatabase.PreventAccess = true;
-                }
-
-                return emulatedDatabase;
-            }
-        }
-        private EmulatedDatabase emulatedDatabase;
-
-        /// <summary>
-        /// Name of the emulated database that is used
-        /// </summary>
-        private string emulatedDatabaseName;
-
-        /// <summary>
-        /// Empty, if no tests ran so far. Not deleted once test finishes, but left
-        /// alone to be checked in the uniarchy if needed.
-        /// </summary>
-        public EmulatedDatabase TestingDatabase
-        {
-            get
-            {
-                if (testingDatabase == null)
-                {
-                    testingDatabase = EmulatedDatabaseRepository
-                        .GetInstance()
-                        .GetDatabase("testing");
-                }
-
-                return testingDatabase;
-            }
-        }
-        private EmulatedDatabase testingDatabase;
-
-        /// <summary>
-        /// Resolves the database endpoint for the unisave framework
-        /// </summary>
-        public IDatabase Database
-        {
-            get
-            {
-                if (IsEmulating)
-                {
-//                    if (IsTesting)
-//                        return TestingDatabase;
-//                    else
-                        return EmulatedDatabase;
-                }
-                else
-                {
-                    return new FakeDatabase();
-                }
-            }
-        }
-
-        /// <summary>
         /// Facet caller that performs the calls against unisave servers
         /// </summary>
         public UnisaveFacetCaller UnisaveFacetCaller
@@ -347,9 +278,7 @@ namespace Unisave
             {
                 if (emulatedFacetCaller == null)
                 {
-                    emulatedFacetCaller = new EmulatedFacetCaller(
-                        () => EmulatedDatabase
-                    );
+                    emulatedFacetCaller = new EmulatedFacetCaller();
                 }
 
                 return emulatedFacetCaller;

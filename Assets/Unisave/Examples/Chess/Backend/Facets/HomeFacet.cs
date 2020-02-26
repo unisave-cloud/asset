@@ -12,7 +12,8 @@ namespace Unisave.Examples.Chess
         /// </summary>
         public PlayerEntity DownloadPlayerEntity()
         {
-            return PlayerEntity.OfPlayer(Caller);
+            //return PlayerEntity.OfPlayer(Caller);
+            return null;
         }
     }
 }

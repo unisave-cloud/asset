@@ -1,62 +1,38 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using Unisave.Arango.Emulation;
 using UnityEditor.IMGUI.Controls;
-using Unisave.Database;
 
 namespace Unisave.Uniarchy
 {
-    class DatabaseItem : TreeViewItem
+    sealed class DatabaseItem : TreeViewItem
     {
-        public EmulatedDatabase Database { get; private set; }
+        public ArangoInMemory Arango { get; }
 
-        public DatabaseItem(EmulatedDatabase database, IdAllocator idAllocator) : base()
+        public DatabaseItem(ArangoInMemory arango, IdAllocator idAllocator)
         {
-            Database = database;
+            Arango = arango;
 
-            this.displayName = database.Name;
+            displayName = "TODO arango name"; // TODO arango name
             id = idAllocator.NextId();
-
-            var gameEntities = new TreeViewItem { id = idAllocator.NextId(), displayName = "Game entities" };
-            foreach (RawEntity entity in Database.EnumerateGameEntities())
-            {
-                gameEntities.AddChild(
-                    new EntityItem(entity, idAllocator)
-                );
-            }
-            AddChild(gameEntities);
             
-            var players = new TreeViewItem { id = idAllocator.NextId(), displayName = "Players" };
-            BuildPlayers(players, idAllocator);
-            AddChild(players);
-            
-            var sharedEntities = new TreeViewItem { id = idAllocator.NextId(), displayName = "Shared entities" };
-            foreach (RawEntity entity in Database.EnumerateSharedEntities())
-            {
-                sharedEntities.AddChild(
-                    new EntityItem(entity, idAllocator)
-                );
-            }
-            AddChild(sharedEntities);
+            BuildChildren(idAllocator);
         }
 
-        private void BuildPlayers(TreeViewItem root, IdAllocator idAllocator)
+        private void BuildChildren(IdAllocator idAllocator)
         {
-            foreach (EmulatedDatabase.PlayerRecord player in Database.EnumeratePlayers())
+            foreach (var pair in Arango.Collections)
             {
-                var playerItem = new TreeViewItem {
+                var collectionNode = new TreeViewItem {
                     id = idAllocator.NextId(),
-                    displayName = player.email + " [" + player.id + "]"
+                    displayName = pair.Key
                 };
-                
-                foreach (RawEntity entity in Database.EnumeratePlayerEntities(player.id))
+
+                foreach (var document in pair.Value)
                 {
-                    playerItem.AddChild(
-                        new EntityItem(entity, idAllocator)
-                    );
+                    var entityNode = new EntityItem(document, idAllocator);
+                    collectionNode.AddChild(entityNode);
                 }
                 
-                root.AddChild(playerItem);
+                AddChild(collectionNode);
             }
         }
     }

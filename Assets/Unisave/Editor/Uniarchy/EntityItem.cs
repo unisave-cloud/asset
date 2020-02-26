@@ -1,24 +1,21 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
+﻿using LightJson;
 using UnityEditor.IMGUI.Controls;
-using Unisave.Database;
 
 namespace Unisave.Uniarchy
 {
     class EntityItem : TreeViewItem
     {
-        private RawEntity entity;
+        private JsonObject entity;
 
-        public EntityItem(RawEntity entity, IdAllocator idAllocator) : base()
+        public EntityItem(JsonObject entity, IdAllocator idAllocator) : base()
         {
             this.entity = entity;
             
-            displayName = entity.type + " [" + entity.id + "]";
+            displayName = entity["$type"].AsString + " [" + entity["_id"] + "]";
             id = idAllocator.NextId();
         }
 
-        public RawEntity GetEntity()
+        public JsonObject GetEntity()
         {
             return entity;
         }

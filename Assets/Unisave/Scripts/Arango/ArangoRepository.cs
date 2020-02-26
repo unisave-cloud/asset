@@ -1,20 +1,29 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
-using UnityEngine;
 using LightJson;
 using LightJson.Serialization;
+using Unisave.Arango.Emulation;
+using UnityEngine;
 
-namespace Unisave.Database
+namespace Unisave.Arango
 {
     /// <summary>
-    /// Stores all emulated databases
+    /// Repository of all available arango (in memory) databases
     /// </summary>
-    public class EmulatedDatabaseRepository
+    public class ArangoRepository
     {
-        private const string PlayerPrefsDatabaseKey = "Unisave.EmulatedDatabase.Instance:"; // + name
-        private const string PlayerPrefsDatabaseListKey = "Unisave.EmulatedDatabase.List"; // json array of names
+        /// <summary>
+        /// PlayerPrefs key prefix for a single arango database
+        /// </summary>
+        private const string PlayerPrefsDatabaseKey
+            = "Unisave.EmulatedDatabase.Instance:"; // + name
+        
+        /// <summary>
+        /// PlayerPrefs key for the list of all databases
+        /// </summary>
+        private const string PlayerPrefsDatabaseListKey
+            = "Unisave.EmulatedDatabase.List"; // json array of names
 
         /*
             Databases are primarily in the memory. When the singleton is created,
@@ -22,15 +31,15 @@ namespace Unisave.Database
             the database is saved to PlayerPrefs.
          */
 
-        private static EmulatedDatabaseRepository singletonInstance = null;
+        private static ArangoRepository singletonInstance;
 
         /// <summary>
         /// Returns the singleton instance
         /// </summary>
-        public static EmulatedDatabaseRepository GetInstance()
+        public static ArangoRepository GetInstance()
         {
             if (singletonInstance == null)
-                singletonInstance = new EmulatedDatabaseRepository();
+                singletonInstance = new ArangoRepository();
 
             return singletonInstance;
         }
@@ -38,7 +47,8 @@ namespace Unisave.Database
         /// <summary>
         /// List of loaded databases
         /// </summary>
-        private Dictionary<string, EmulatedDatabase> loadedDatabases = new Dictionary<string, EmulatedDatabase>();
+        private Dictionary<string, ArangoInMemory> loadedDatabases
+            = new Dictionary<string, ArangoInMemory>();
 
         /// <summary>
         /// All existing database names
@@ -50,14 +60,15 @@ namespace Unisave.Database
         /// This is in case you would create a database just after deletion
         /// and you want to handle nicely old references
         /// </summary>
-        private Dictionary<string, EmulatedDatabase> deletedDatabases = new Dictionary<string, EmulatedDatabase>();
+        private Dictionary<string, ArangoInMemory> deletedDatabases
+            = new Dictionary<string, ArangoInMemory>();
 
         /// <summary>
         /// Called when the repository changes
         /// </summary>
         public event Action OnChange;
 
-        private EmulatedDatabaseRepository()
+        private ArangoRepository()
         {
             LoadDatabaseList();
         }
@@ -67,7 +78,10 @@ namespace Unisave.Database
         /// </summary>
         private void LoadDatabaseList()
         {
-            string rawJsonDatabases = PlayerPrefs.GetString(PlayerPrefsDatabaseListKey, null);
+            string rawJsonDatabases = PlayerPrefs.GetString(
+                PlayerPrefsDatabaseListKey,
+                null
+            );
             
             if (String.IsNullOrEmpty(rawJsonDatabases))
                 rawJsonDatabases = "[]";
@@ -96,48 +110,47 @@ namespace Unisave.Database
         /// <summary>
         /// Enumerate all existing databases ordered by their name
         /// </summary>
-        public IEnumerable<EmulatedDatabase> EnumerateDatabases()
+        public IEnumerable<ArangoInMemory> EnumerateDatabases()
         {
             return databaseList
                 .OrderBy(name => name)
-                .Select(name => GetDatabase(name));
+                .Select(GetDatabase);
         }
 
         /// <summary>
         /// Save a database
         /// </summary>
-        public void SaveDatabase(EmulatedDatabase database)
+        public void SaveDatabase(string name, ArangoInMemory database)
         {
             // revive database
             // old reference tries to save deleted database
-            if (deletedDatabases.ContainsKey(database.Name))
+            if (deletedDatabases.ContainsKey(name))
             {
-                if (deletedDatabases[database.Name] != database)
+                if (deletedDatabases[name] != database)
                     throw new InvalidOperationException(
                         "Trying to save a database that has not been created by the repository."
                     );
 
-                deletedDatabases.Remove(database.Name);
+                deletedDatabases.Remove(name);
 
-                databaseList.Add(database.Name);
+                databaseList.Add(name);
                 SaveDatabaseList();
             }
 
             // perform the save
             PlayerPrefs.SetString(
-                PlayerPrefsDatabaseKey + database.Name,
+                PlayerPrefsDatabaseKey + name,
                 database.ToJson().ToString()
             );
             PlayerPrefs.Save();
 
-            if (OnChange != null)
-                OnChange();
+            OnChange?.Invoke();
         }
 
         /// <summary>
         /// Get, load or create a database
         /// </summary>
-        public EmulatedDatabase GetDatabase(string name)
+        public ArangoInMemory GetDatabase(string name)
         {
             // if already loaded
             if (loadedDatabases.ContainsKey(name))
@@ -167,8 +180,8 @@ namespace Unisave.Database
                 PlayerPrefs.GetString(PlayerPrefsDatabaseKey + name, "{}")
             );
 
-            var database = EmulatedDatabase.FromJson(json, name);
-            database.OnChange += SaveDatabase;
+            var database = ArangoInMemory.FromJson(json);
+            //database.OnChange += SaveDatabase; // TODO: onChange
             
             loadedDatabases[name] = database;
         }
@@ -184,7 +197,7 @@ namespace Unisave.Database
             if (databaseList.Contains(name))
                 throw new InvalidOperationException("Database already exists.");
 
-            EmulatedDatabase database;
+            ArangoInMemory database;
 
             // revive database
             if (deletedDatabases.ContainsKey(name))
@@ -194,18 +207,17 @@ namespace Unisave.Database
             }
             else // create fresh database
             {
-                database = new EmulatedDatabase(name);
-                database.OnChange += SaveDatabase;
+                database = new ArangoInMemory();
+                //database.OnChange += SaveDatabase; // TODO: on change
             }
             
             loadedDatabases[name] = database;
             databaseList.Add(name);
 
             SaveDatabaseList();
-            SaveDatabase(database);
+            SaveDatabase(name, database);
 
-            if (OnChange != null)
-                OnChange();
+            OnChange?.Invoke();
         }
 
         /// <summary>
@@ -220,7 +232,8 @@ namespace Unisave.Database
             var database = GetDatabase(name);
             
             // clear to make sure any left over references won't see the deleted data
-            database.Clear(raiseChangeEvent: false);
+            //database.Clear(raiseChangeEvent: false); // TODO
+            database.Clear();
 
             // remove from the list
             databaseList.Remove(name);
@@ -233,8 +246,7 @@ namespace Unisave.Database
             // register as deleted for possible revival
             deletedDatabases[name] = database;
 
-            if (OnChange != null)
-                OnChange();
+            OnChange?.Invoke();
         }
     }
 }

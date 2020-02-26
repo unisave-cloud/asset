@@ -1,10 +1,7 @@
-﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEditor;
+﻿using System.Collections.Generic;
+using Unisave.Arango;
+using Unisave.Arango.Emulation;
 using UnityEditor.IMGUI.Controls;
-using Unisave.Database;
 
 namespace Unisave.Uniarchy
 {
@@ -13,13 +10,13 @@ namespace Unisave.Uniarchy
         /// <summary>
         /// The selected item
         /// </summary>
-        public static TreeViewItem SelectedItem { get; private set; } = null;
+        public static TreeViewItem SelectedItem { get; private set; }
 
-        EmulatedDatabaseRepository databaseRepository;
+        ArangoRepository databaseRepository;
 
         public UniarchyTreeView(TreeViewState treeViewState) : base(treeViewState)
         {
-            databaseRepository = EmulatedDatabaseRepository.GetInstance();
+            databaseRepository = ArangoRepository.GetInstance();
 
             // reload on each db change
             databaseRepository.OnChange += Reload;
@@ -34,7 +31,7 @@ namespace Unisave.Uniarchy
             var root = new TreeViewItem { id = 0, depth = -1, displayName = "Root" };
 
             var emulatedDatabases = new TreeViewItem { id = idAllocator.NextId(), displayName = "Emulated databases" };
-            foreach (EmulatedDatabase database in databaseRepository.EnumerateDatabases())
+            foreach (ArangoInMemory database in databaseRepository.EnumerateDatabases())
             {
                 emulatedDatabases.AddChild(new DatabaseItem(database, idAllocator));
             }

@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using Unisave;
+using Unisave.Entities;
 
 namespace Unisave.Examples.Chess
 {
@@ -19,19 +20,19 @@ namespace Unisave.Examples.Chess
         /// <summary>
         /// Loads or creates this entity belonging to a certain player
         /// </summary>
-        public static PlayerEntity OfPlayer(UnisavePlayer player)
-        {
-            var loaded = GetEntity<PlayerEntity>.OfPlayer(player).First();
-
-            // create id needed
-            if (loaded == null)
-            {
-                loaded = new PlayerEntity();
-                loaded.Owners.Add(player);
-                loaded.Save();
-            }
-
-            return loaded;
-        }
+//        public static PlayerEntity OfPlayer(UnisavePlayer player)
+//        {
+//            var loaded = GetEntity<PlayerEntity>.OfPlayer(player).First();
+//
+//            // create id needed
+//            if (loaded == null)
+//            {
+//                loaded = new PlayerEntity();
+//                loaded.Owners.Add(player);
+//                loaded.Save();
+//            }
+//
+//            return loaded;
+//        }
     }
 }

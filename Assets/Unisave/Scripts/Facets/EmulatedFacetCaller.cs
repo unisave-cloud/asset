@@ -6,8 +6,8 @@ using LightJson;
 using Unisave;
 using Unisave.Contracts;
 using Unisave.Serialization;
-using Unisave.Database;
 using Unisave.Exceptions;
+using Unisave.Facades;
 using Unisave.Foundation;
 using Unisave.Runtime;
 using Unisave.Runtime.Kernels;
@@ -28,14 +28,8 @@ namespace Unisave.Facets
         /// </summary>
         public SessionOverStorage Session { get; private set; }
         
-        private Func<EmulatedDatabase> GetEmulatedDatabase;
-
-        public EmulatedFacetCaller(
-            Func<EmulatedDatabase> GetEmulatedDatabase
-        )
+        public EmulatedFacetCaller()
         {
-            this.GetEmulatedDatabase = GetEmulatedDatabase;
-            
             Session = new SessionOverStorage(
                 new InMemorySessionStorage(),
                 3600

@@ -4,7 +4,6 @@ using UnityEngine;
 using UnityEditor;
 using Unisave;
 using Unisave.Uniarchy;
-using Unisave.Database;
 using UnityEditor.IMGUI.Controls;
 using Unisave.Serialization;
 using Unisave.Editor.JsonEditor;
@@ -40,15 +39,16 @@ namespace Unsiave.Uniarchy
 			{
 				DrawInspectorTitle("Database");
 				
-				var database = ((DatabaseItem)selection).Database;
+				var arango = ((DatabaseItem)selection).Arango;
 
-				ReadOnlyField("Name", database.Name);
+				ReadOnlyField("Name", "TODO Arango name??"); //arango.Name); // TODO
 
 				EditorGUILayout.BeginHorizontal();
-				if (GUILayout.Button("Clear"))
-					database.Clear(true);
-				if (GUILayout.Button("Delete"))
-					EmulatedDatabaseRepository.GetInstance().DeleteDatabase(database.Name);
+				// TODO
+//				if (GUILayout.Button("Clear"))
+//					arango.Clear(true);
+//				if (GUILayout.Button("Delete"))
+//					EmulatedDatabaseRepository.GetInstance().DeleteDatabase(arango.Name);
 				EditorGUILayout.EndHorizontal();
 			}
 
@@ -58,16 +58,15 @@ namespace Unsiave.Uniarchy
 
 				var entity = ((EntityItem)selection).GetEntity();
 
-				ReadOnlyField("ID", entity.id);
-				ReadOnlyField("Type", entity.type);
-				ReadOnlyField("Owners", string.Join(", ", entity.ownerIds));
-				ReadOnlyField("Created", Serializer.ToJson(entity.createdAt).AsString);
-				ReadOnlyField("Updated", Serializer.ToJson(entity.updatedAt).AsString);
+				ReadOnlyField("ID", entity["_id"]);
+				ReadOnlyField("Type", entity["$type"]);
+				ReadOnlyField("Created", Serializer.ToJson(entity["CreatedAt"]).AsString);
+				ReadOnlyField("Updated", Serializer.ToJson(entity["UpdatedAt"]).AsString);
 
 				if (jsonEditor == null)
 				{
 					jsonEditor = new JsonEditor();
-					jsonEditor.SetValue(entity.data);
+					jsonEditor.SetValue(entity);
 				}
 				
 				jsonEditor.OnGUI();
