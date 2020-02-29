@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using UnityEngine;
-using Unisave.Serialization;
 using LightJson;
 using LightJson.Serialization;
-using UnityEngine.Serialization;
+using Unisave.Serialization;
+using UnityEngine;
 
-namespace Unisave
+namespace Unisave.Foundation
 {
 	/// <summary>
 	/// Holds all preferences of Unisave

@@ -1,46 +1,41 @@
 ﻿using System;
-using UnityEngine;
 using LightJson;
 using RSG;
 using Unisave.Utils;
 using Unisave.Exceptions;
+using Unisave.Foundation;
 using Unisave.Serialization;
+using Application = UnityEngine.Application;
 
 namespace Unisave.Facets
 {
     public class UnisaveFacetCaller : FacetCaller
     {
-	    /// <summary>
-	    /// Session ID that is used for communication with the server
-	    /// </summary>
-	    public string SessionId { get; private set; }
-	    
-		private readonly ApiUrl apiUrl;
-		private readonly string gameToken;
+		private readonly ClientApplication app;
 
-        public UnisaveFacetCaller(ApiUrl apiUrl, string gameToken)
+        public UnisaveFacetCaller(ClientApplication app)
         {
-            this.apiUrl = apiUrl;
-            this.gameToken = gameToken;
+	        this.app = app;
         }
 
 		protected override IPromise<JsonValue> PerformFacetCall(
-            string facetName, string methodName, JsonArray arguments
+            string facetName,
+            string methodName,
+            JsonArray arguments
         )
 		{
 			var promise = new Promise<JsonValue>();
 
 			Http.Post(
-				apiUrl.CallFacet(),
+				app.Resolve<ApiUrl>().CallFacet(),
 				new JsonObject()
 					.Add("facetName", facetName)
 					.Add("methodName", methodName)
 					.Add("arguments", arguments)
 					.Add("sessionId", SessionId)
-					.Add("gameToken", gameToken)
+					.Add("gameToken", app.Preferences.GameToken)
 					.Add("client", new JsonObject()
-						.Add("backendHash",
-							UnisavePreferences.LoadOrCreate().BackendHash)
+						.Add("backendHash", app.Preferences.BackendHash)
 						.Add("frameworkVersion", FrameworkMeta.Version)
 						.Add("assetVersion", AssetMeta.Version)
 						.Add("buildGuid", Application.buildGUID)

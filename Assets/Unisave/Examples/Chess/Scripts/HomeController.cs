@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Unisave;
+using Unisave.Facades;
 
 namespace Unisave.Examples.Chess
 {

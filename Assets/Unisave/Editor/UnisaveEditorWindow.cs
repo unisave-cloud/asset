@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEditor;
 using Unisave.Serialization;
 using Unisave.Editor.JsonEditor;
+using Unisave.Foundation;
 
 namespace Unisave
 {

@@ -14,4 +14,10 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Unisave/Examples/Chess/Scenes/Home.unity
     guid: 599b65a1ace70427a8459bbd7460139c
+  - enabled: 1
+    path: Assets/TestingGame/MainScene.unity
+    guid: c5777200d3108949aa00746252901163
+  - enabled: 1
+    path: Assets/Unisave/Examples/NewsStream/NewsStream.unity
+    guid: 68cc5eb5e47a0ffc6aa96cd0760bfa35
   m_configObjects: {}

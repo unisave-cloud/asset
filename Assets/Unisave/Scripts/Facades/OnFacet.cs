@@ -1,37 +1,50 @@
-﻿using System;
-using Unisave;
+﻿using System.Threading.Tasks;
 using RSG;
-using System.Threading.Tasks;
 using Unisave.Facets;
+using Unisave.Foundation;
 
-namespace Unisave
+namespace Unisave.Facades
 {
     /// <summary>
-    /// Facade for calling facet methods on the server
+    /// Facade for calling facet methods
     /// </summary>
-    /// <typeparam name="F">Target facet class</typeparam>
-    public static class OnFacet<F> where F : Facet
+    /// <typeparam name="TFacet">Target facet class</typeparam>
+    public static class OnFacet<TFacet> where TFacet : Facet
     {
+        /// <summary>
+        /// Returns the facet caller instance that will be used
+        /// </summary>
+        private static FacetCaller GetFacetCaller()
+        {
+            return ClientApplication.GetInstance().Resolve<FacetCaller>();
+        }
+        
         /// <summary>
         /// Calls a facet method that has a return value
         /// </summary>
         /// <param name="methodName">Name of the facet method</param>
         /// <param name="arguments">Arguments for the method</param>
-        /// <typeparam name="R">Return type of the method</typeparam>
+        /// <typeparam name="TReturn">Return type of the method</typeparam>
         /// <returns>Promise that will resolve once the call finishes</returns>
-        public static IPromise<R> Call<R>(string methodName, params object[] arguments)
-        {
-            return UnisaveServer.DefaultInstance.FacetCaller.CallFacetMethod<F, R>(methodName, arguments);
-        }
+        public static IPromise<TReturn> Call<TReturn>(
+            string methodName,
+            params object[] arguments
+        ) => GetFacetCaller().CallFacetMethod<TFacet, TReturn>(
+            methodName,
+            arguments
+        );
 
         /// <summary>
         /// Same as Call, but used via the C# await async keywords
         /// </summary>
-        public static Task<R> CallAsync<R>(string methodName, params object[] arguments)
+        public static Task<TReturn> CallAsync<TReturn>(
+            string methodName,
+            params object[] arguments
+        )
         {
-            var source = new TaskCompletionSource<R>();
+            var source = new TaskCompletionSource<TReturn>();
 
-            Call<R>(methodName, arguments)
+            Call<TReturn>(methodName, arguments)
                 .Then(r => {
                     source.SetResult(r);
                 })
@@ -48,17 +61,23 @@ namespace Unisave
         /// <param name="methodName">Name of the facet method</param>
         /// <param name="arguments">Arguments for the method</param>
         /// <returns>Promise that will resolve once the call finishes</returns>
-        public static IPromise Call(string methodName, params object[] arguments)
-        {
-            return UnisaveServer.DefaultInstance.FacetCaller.CallFacetMethod<F>(methodName, arguments);
-        }
+        public static IPromise Call(
+            string methodName,
+            params object[] arguments
+        ) => GetFacetCaller().CallFacetMethod<TFacet>(
+            methodName,
+            arguments
+        );
 
         /// <summary>
         /// Same as Call, but used via the C# await async keywords
         /// </summary>
-        public static Task CallAsync(string methodName, params object[] arguments)
+        public static Task CallAsync(
+            string methodName,
+            params object[] arguments
+        )
         {
-            var source = new TaskCompletionSource<bool>(); // bool is dummy void
+            var source = new TaskCompletionSource<bool>(); // bool = void
 
             Call(methodName, arguments)
                 .Then(() => {

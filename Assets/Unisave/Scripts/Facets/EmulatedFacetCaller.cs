@@ -1,35 +1,36 @@
 using System;
 using System.Collections.Generic;
-using System.Reflection;
 using RSG;
 using LightJson;
-using Unisave;
+using Unisave.Arango;
+using Unisave.Arango.Emulation;
 using Unisave.Contracts;
-using Unisave.Serialization;
-using Unisave.Exceptions;
 using Unisave.Facades;
 using Unisave.Foundation;
 using Unisave.Runtime;
 using Unisave.Runtime.Kernels;
 using Unisave.Sessions;
-using Unisave.Utils;
 
 namespace Unisave.Facets
 {
     public class EmulatedFacetCaller : FacetCaller
     {
         /// <summary>
-        /// Session ID that is used for communication with the server
-        /// </summary>
-        public string SessionId { get; private set; }
-        
-        /// <summary>
         /// Session instance that will be used by the application
         /// </summary>
         public SessionOverStorage Session { get; private set; }
         
-        public EmulatedFacetCaller()
+        private readonly ClientApplication clientApp;
+
+        /// <summary>
+        /// Arango in-memory database used by the server application
+        /// </summary>
+        private ArangoInMemory arango;
+        
+        public EmulatedFacetCaller(ClientApplication clientApp)
         {
+            this.clientApp = clientApp;
+            
             Session = new SessionOverStorage(
                 new InMemorySessionStorage(),
                 3600
@@ -37,7 +38,9 @@ namespace Unisave.Facets
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
-            string facetName, string methodName, JsonArray arguments
+            string facetName,
+            string methodName,
+            JsonArray arguments
         )
 		{
             var env = new Env();
@@ -68,15 +71,17 @@ namespace Unisave.Facets
                 arguments,
                 SessionId
             );
-                
+            
             var kernel = app.Resolve<FacetCallKernel>();
-                
+            
             var returnedJson = kernel.Handle(methodParameters);
 
             var specialValues = app.Resolve<SpecialValues>();
             SessionId = specialValues.Read("sessionId").AsString;
             
             // END RUN THE APP
+            
+            SaveDatabase();
             
             Facade.SetApplication(null);
             
@@ -100,11 +105,26 @@ namespace Unisave.Facets
             return types.ToArray();
         }
 
-        private void PerformContainerSurgery(Application app)
+        private void PerformContainerSurgery(Application serverApp)
         {
-            app.Instance<ISession>(Session);
-            
-            // TODO: replace database
+            // replace session instance
+            serverApp.Instance<ISession>(Session);
+
+            // replace the database instance
+            var arangoRepo = clientApp.Resolve<ArangoRepository>();
+            arango = arangoRepo.GetDatabase(
+                clientApp.Preferences.EmulatedDatabaseName
+            );
+            serverApp.Instance<IArango>(arango);
+        }
+
+        private void SaveDatabase()
+        {
+            var arangoRepo = clientApp.Resolve<ArangoRepository>();
+            arangoRepo.SaveDatabase(
+                clientApp.Preferences.EmulatedDatabaseName,
+                arango // assigned in PerformContainerSurgery(...)
+            );
         }
     }
 }
