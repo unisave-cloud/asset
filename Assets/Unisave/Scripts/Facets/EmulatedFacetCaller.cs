@@ -26,6 +26,12 @@ namespace Unisave.Facets
         /// Arango in-memory database used by the server application
         /// </summary>
         private ArangoInMemory arango;
+
+        /// <summary>
+        /// Invoked after a facet method has been called
+        /// (no matter the result value or exception thrown)
+        /// </summary>
+        public event Action OnFacetCalled;
         
         public EmulatedFacetCaller(ClientApplication clientApp)
         {
@@ -62,30 +68,38 @@ namespace Unisave.Facets
             Facade.SetApplication(app);
 
             PerformContainerSurgery(app);
-            
-            // BEGIN RUN THE APP
-            
-            var methodParameters = new FacetCallKernel.MethodParameters(
-                facetName,
-                methodName,
-                arguments,
-                SessionId
-            );
-            
-            var kernel = app.Resolve<FacetCallKernel>();
-            
-            var returnedJson = kernel.Handle(methodParameters);
 
-            var specialValues = app.Resolve<SpecialValues>();
-            SessionId = specialValues.Read("sessionId").AsString;
-            
-            // END RUN THE APP
-            
-            SaveDatabase();
-            
-            Facade.SetApplication(null);
-            
-            app.Dispose();
+            JsonValue returnedJson;
+            try
+            {
+                // BEGIN RUN THE APP
+
+                var methodParameters = new FacetCallKernel.MethodParameters(
+                    facetName,
+                    methodName,
+                    arguments,
+                    SessionId
+                );
+
+                var kernel = app.Resolve<FacetCallKernel>();
+
+                returnedJson = kernel.Handle(methodParameters);
+
+                var specialValues = app.Resolve<SpecialValues>();
+                SessionId = specialValues.Read("sessionId").AsString;
+
+                // END RUN THE APP
+            }
+            finally
+            {
+                SaveDatabase();
+                
+                Facade.SetApplication(null);
+                
+                app.Dispose();
+                
+                OnFacetCalled?.Invoke();
+            }
             
             return Promise<JsonValue>.Resolved(returnedJson);
 		}
@@ -116,6 +130,7 @@ namespace Unisave.Facets
                 clientApp.Preferences.EmulatedDatabaseName
             );
             serverApp.Instance<IArango>(arango);
+            clientApp.DontDisposeInstance(arango);
         }
 
         private void SaveDatabase()

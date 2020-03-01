@@ -110,11 +110,15 @@ namespace Unisave.Arango
         /// <summary>
         /// Enumerate all existing databases ordered by their name
         /// </summary>
-        public IEnumerable<ArangoInMemory> EnumerateDatabases()
+        public IEnumerable<KeyValuePair<string, ArangoInMemory>>
+            EnumerateDatabases()
         {
             return databaseList
                 .OrderBy(name => name)
-                .Select(GetDatabase);
+                .Select(name => new KeyValuePair<string, ArangoInMemory>(
+                    name,
+                    GetDatabase(name)
+                ));
         }
 
         /// <summary>
