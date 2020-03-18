@@ -34,6 +34,7 @@ namespace Unisave.Facets
         public event Action OnFacetCalled;
         
         public EmulatedFacetCaller(ClientApplication clientApp)
+            : base(clientApp)
         {
             this.clientApp = clientApp;
             

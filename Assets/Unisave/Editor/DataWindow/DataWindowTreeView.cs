@@ -3,6 +3,7 @@ using Unisave.Arango;
 using Unisave.Editor.DataWindow.SelectionWrappers;
 using Unisave.Editor.DataWindow.TreeItems;
 using Unisave.Foundation;
+using Unisave.Sessions;
 using UnityEditor;
 using UnityEditor.IMGUI.Controls;
 
@@ -29,6 +30,11 @@ namespace Unisave.Editor.DataWindow
 
             root.AddChild(new EmulatedDatabasesItem(
                 ClientApplication.GetInstance().Resolve<ArangoRepository>(),
+                idAllocator
+            ));
+            
+            root.AddChild(new SessionIdItem(
+                ClientApplication.GetInstance().Resolve<SessionIdRepository>(),
                 idAllocator
             ));
 

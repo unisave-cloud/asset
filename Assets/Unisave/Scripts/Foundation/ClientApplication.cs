@@ -1,6 +1,7 @@
 using System;
 using Unisave.Arango;
 using Unisave.Facets;
+using Unisave.Sessions;
 using Unisave.Utils;
 
 namespace Unisave.Foundation
@@ -37,6 +38,8 @@ namespace Unisave.Foundation
         private void RegisterIndependentServices()
         {
             Bind<ApiUrl>(_ => new ApiUrl(Preferences.ServerUrl));
+            
+            Singleton<SessionIdRepository>(_ => new SessionIdRepository());
             
             Bind<ArangoRepository>(_ => ArangoRepository.GetInstance());
             

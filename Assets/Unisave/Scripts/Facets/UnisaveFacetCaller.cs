@@ -13,7 +13,7 @@ namespace Unisave.Facets
     {
 		private readonly ClientApplication app;
 
-        public UnisaveFacetCaller(ClientApplication app)
+        public UnisaveFacetCaller(ClientApplication app) : base(app)
         {
 	        this.app = app;
         }

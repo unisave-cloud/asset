@@ -3,7 +3,9 @@ using System.Reflection;
 using RSG;
 using LightJson;
 using Unisave.Exceptions;
+using Unisave.Foundation;
 using Unisave.Serialization;
+using Unisave.Sessions;
 using Unisave.Utils;
 
 namespace Unisave.Facets
@@ -16,7 +18,18 @@ namespace Unisave.Facets
         /// <summary>
         /// ID of the session held against the server
         /// </summary>
-        public string SessionId { get; protected set; }
+        protected string SessionId
+        {
+            get => sessionIdRepository.GetSessionId();
+            set => sessionIdRepository.StoreSessionId(value);
+        }
+
+        private readonly SessionIdRepository sessionIdRepository;
+        
+        public FacetCaller(ClientApplication clientApp)
+        {
+            sessionIdRepository = clientApp.Resolve<SessionIdRepository>();
+        }
         
         /// <summary>
         /// Calls facet method that has a return value

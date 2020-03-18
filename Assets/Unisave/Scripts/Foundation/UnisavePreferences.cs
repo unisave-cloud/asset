@@ -92,7 +92,7 @@ namespace Unisave.Foundation
 		private string gameToken;
 
 		/// <summary>
-		/// Returns a prefix for keys stored inside editor prefs
+		/// Returns a suffix for keys stored inside editor prefs
 		/// That makes sure editor prefs are not shared between projects
 		/// </summary>
 		private string KeySuffix => gameToken ?? "null";

@@ -19,7 +19,7 @@ namespace Unisave.Examples.NewsStream.Backend
         /// <summary>
         /// Holds the cached news
         /// </summary>
-        [X] public List<NewsItem> News { get; set; }
+        public List<NewsItem> News { get; set; }
             = new List<NewsItem>();
 
         /// <summary>
