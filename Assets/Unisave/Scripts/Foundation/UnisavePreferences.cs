@@ -271,41 +271,5 @@ namespace Unisave.Foundation
 		
 		[SerializeField]
 		private bool alwaysEmulate;
-
-		/// <summary>
-		/// Email of the player used for autologin
-		/// </summary>
-		public string AutoLoginPlayerEmail
-		{
-			get => autoLoginPlayerEmail;
-			set => autoLoginPlayerEmail = value;
-		}
-
-		[SerializeField]
-		private string autoLoginPlayerEmail = "john@doe.com";
-
-		/// <summary>
-		/// Automatically register a player when not present to be logged in
-		/// </summary>
-		public bool AutoRegisterPlayer
-		{
-			get => autoRegisterPlayer;
-			set => autoRegisterPlayer = value;
-		}
-
-		[SerializeField]
-		private bool autoRegisterPlayer = true;
-
-		/// <summary>
-		/// Arguments for the automatic registration
-		/// </summary>
-		public JsonObject AutoRegisterArguments
-		{
-			get => JsonReader.Parse(autoRegisterArguments);
-			set => autoRegisterArguments = value.ToString();
-		}
-
-		[SerializeField]
-		private string autoRegisterArguments = @"{""name"":""John""}";
 	}
 }

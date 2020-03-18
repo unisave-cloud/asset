@@ -1,13 +1,9 @@
-﻿using System.Collections;
-using System.Collections.Generic;
-using Unisave.Editor.BackendUploading;
-using UnityEngine;
-using UnityEditor;
-using Unisave.Serialization;
-using Unisave.Editor.JsonEditor;
+﻿using Unisave.Editor.BackendUploading;
 using Unisave.Foundation;
+using UnityEditor;
+using UnityEngine;
 
-namespace Unisave
+namespace Unisave.Editor
 {
 	public class UnisaveEditorWindow : EditorWindow
 	{
@@ -17,9 +13,6 @@ namespace Unisave
 		private UnisavePreferences preferences;
 
 		private Texture unisaveLogo;
-
-		// editor for autoreg arguments
-		private JsonEditor autoRegistrationArguments;
 
 		private Vector2 windowScroll = Vector3.zero;
 
@@ -57,24 +50,7 @@ namespace Unisave
 		/// </summary>
 		private void OnPrefencesLoaded()
 		{
-			// load autoreg arguments
-			if (autoRegistrationArguments == null)
-			{
-				autoRegistrationArguments = new JsonEditor();
-
-				autoRegistrationArguments.SetValue(preferences.AutoRegisterArguments);
-
-				// save on change
-				// (because focus loosing works in a strange way...)
-				autoRegistrationArguments.OnChange += () => {
-					if (preferences != null && autoRegistrationArguments != null)
-						preferences.AutoRegisterArguments = autoRegistrationArguments.GetValue();
-				};
-			}
-			else
-			{
-				autoRegistrationArguments.SetValue(preferences.AutoRegisterArguments);
-			}
+			// ...
 		}
 
 		/// <summary>
@@ -83,8 +59,7 @@ namespace Unisave
 		/// </summary>
 		private void BeforePreferencesSave()
 		{
-			// save autoreg arguments
-			preferences.AutoRegisterArguments = autoRegistrationArguments.GetValue();
+			// ...
 		}
 
 		void OnGUI()
@@ -104,6 +79,10 @@ namespace Unisave
 			preferences.GameToken = EditorGUILayout.TextField("Game token", preferences.GameToken);
 			preferences.EditorKey = EditorGUILayout.TextField("Editor key", preferences.EditorKey);
 
+			GUILayout.Label("Server emulation", EditorStyles.boldLabel);
+			preferences.AlwaysEmulate = EditorGUILayout.Toggle("Emulate", preferences.AlwaysEmulate);
+			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
+			
 			GUILayout.Label("Backend folder uploading", EditorStyles.boldLabel);
 			preferences.BackendFolder = EditorGUILayout.TextField("Backend assets folder", preferences.BackendFolder);
 			preferences.AutomaticBackendUploading = EditorGUILayout.Toggle("Automatic", preferences.AutomaticBackendUploading);
@@ -125,25 +104,13 @@ namespace Unisave
 			);
 			EditorGUILayout.EndHorizontal();
 			
-			GUILayout.Label("Environment configuration", EditorStyles.boldLabel);
-			preferences.DevelopmentEnv = (TextAsset) EditorGUILayout.ObjectField(
-				"Development", preferences.DevelopmentEnv, typeof(TextAsset), false
-			);
-			preferences.TestingEnv = (TextAsset) EditorGUILayout.ObjectField(
-				"Testing", preferences.TestingEnv, typeof(TextAsset), false
-			);
-
-			GUILayout.Label("Database emulation", EditorStyles.boldLabel);
-			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
-			preferences.AlwaysEmulate = EditorGUILayout.Toggle("Always emulate", preferences.AlwaysEmulate);
-
-			GUILayout.Label("Auto-login", EditorStyles.boldLabel);
-			preferences.AutoLoginPlayerEmail = EditorGUILayout.TextField("Auto-login email", preferences.AutoLoginPlayerEmail);
-			preferences.AutoRegisterPlayer = EditorGUILayout.Toggle("Auto-register", preferences.AutoRegisterPlayer);
-			EditorGUILayout.BeginHorizontal();
-			EditorGUILayout.LabelField("Auto-reg arguments", GUILayout.Width(EditorGUIUtility.labelWidth - 4));
-			autoRegistrationArguments.OnGUI();
-			EditorGUILayout.EndHorizontal();
+//			GUILayout.Label("Environment configuration", EditorStyles.boldLabel);
+//			preferences.DevelopmentEnv = (TextAsset) EditorGUILayout.ObjectField(
+//				"Development", preferences.DevelopmentEnv, typeof(TextAsset), false
+//			);
+//			preferences.TestingEnv = (TextAsset) EditorGUILayout.ObjectField(
+//				"Testing", preferences.TestingEnv, typeof(TextAsset), false
+//			);
 
 			GUILayout.Space(30f);
 
