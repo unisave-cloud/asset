@@ -15,11 +15,6 @@ namespace Unisave.Facets
 {
     public class EmulatedFacetCaller : FacetCaller
     {
-        /// <summary>
-        /// Session instance that will be used by the application
-        /// </summary>
-        public SessionOverStorage Session { get; private set; }
-        
         private readonly ClientApplication clientApp;
 
         /// <summary>
@@ -37,11 +32,6 @@ namespace Unisave.Facets
             : base(clientApp)
         {
             this.clientApp = clientApp;
-            
-            Session = new SessionOverStorage(
-                new InMemorySessionStorage(),
-                3600
-            );
         }
 
         protected override IPromise<JsonValue> PerformFacetCall(
@@ -122,9 +112,6 @@ namespace Unisave.Facets
 
         private void PerformContainerSurgery(Application serverApp)
         {
-            // replace session instance
-            serverApp.Instance<ISession>(Session);
-
             // replace the database instance
             var arangoRepo = clientApp.Resolve<ArangoRepository>();
             arango = arangoRepo.GetDatabase(
@@ -132,6 +119,13 @@ namespace Unisave.Facets
             );
             serverApp.Instance<IArango>(arango);
             clientApp.DontDisposeInstance(arango);
+            
+            // replace session instance
+            var session = new SessionOverStorage(
+                new EmulatedSessionStorage(arango),
+                3600
+            );
+            serverApp.Instance<ISession>(session);
         }
 
         private void SaveDatabase()
