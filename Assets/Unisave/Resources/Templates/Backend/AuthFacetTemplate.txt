@@ -22,14 +22,14 @@ public class AuthFacet : Facet
         var player = DB.TakeAll<PlayerEntity>()
             .Filter(entity => entity.Email == email)
             .First();
-        
-        if (player == null)
-            throw new LoginException("Given credentials are invalid.");
-        
-        if (!Hash.Check(password, player.Password))
-            throw new LoginException("Given credentials are invalid.");
-        
-        Auth.Login(player);
+
+        if (player != null && Hash.Check(password, player.Password))
+        {
+            Auth.Login(player);
+            return;
+        }
+
+        throw new LoginException("Given credentials are invalid.");
     }
 
     /// <summary>
