@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Runtime.Serialization;
 using LightJson;
 using RSG;
 using Unisave.Utils;
 using Unisave.Exceptions;
 using Unisave.Foundation;
 using Unisave.Serialization;
+using UnityEngine;
 using Application = UnityEngine.Application;
 
 namespace Unisave.Facets
@@ -58,11 +60,11 @@ namespace Unisave.Facets
 						break;
 
 					case "exception":
-						promise.Reject(
-							Serializer.FromJson<Exception>(
-								executionResult["exception"]
-							)
+						var e = Serializer.FromJson<Exception>(
+							executionResult["exception"]
 						);
+						PreserveStackTrace(e);
+						promise.Reject(e);
 						break;
 					
 					default:
@@ -80,6 +82,21 @@ namespace Unisave.Facets
 			});
 
 			return promise;
+		}
+		
+		// magic
+		// https://stackoverflow.com/a/2085377
+		private static void PreserveStackTrace(Exception e)
+		{
+			var ctx = new StreamingContext(StreamingContextStates.CrossAppDomain);
+			var mgr = new ObjectManager(null, ctx);
+			var si = new SerializationInfo(e.GetType(), new FormatterConverter());
+
+			e.GetObjectData(si, ctx);
+			mgr.RegisterObject(e, 1, si); // prepare for SetObjectData
+			mgr.DoFixups(); // ObjectManager calls SetObjectData
+
+			// voila, e is unmodified save for _remoteStackTraceString
 		}
     }
 }
