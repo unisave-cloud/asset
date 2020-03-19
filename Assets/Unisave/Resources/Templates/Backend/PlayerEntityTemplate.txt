@@ -1,0 +1,14 @@
+using Unisave.Entities;
+
+public class PlayerEntity : Entity
+{
+    /// <summary>
+    /// Email of the player
+    /// </summary>
+    public string Email { get; set; }
+    
+    /// <summary>
+    /// Hashed password
+    /// </summary>
+    public string Password { get; set; }
+}

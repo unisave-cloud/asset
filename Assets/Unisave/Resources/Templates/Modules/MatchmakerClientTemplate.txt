@@ -1,12 +1,14 @@
 using Unisave;
+using Unisave.Facades;
 using Unisave.Modules.Matchmaking;
 using UnityEngine;
 
 /// <summary>
 /// Communicates with the matchmaker
 /// </summary>
-public class #MATCHMAKERCLIENT# : MonoBehaviourBasicMatchmakerClient
-    <MatchmakerFacet, MatchmakerTicket, MatchEntity>
+public class MatchmakerClient : MonoBehaviourBasicMatchmakerClient<
+    PlayerEntity, MatchEntity, MatchmakerFacet, MatchmakerTicket
+>
 {
     void Start()
     {
@@ -26,6 +28,6 @@ public class #MATCHMAKERCLIENT# : MonoBehaviourBasicMatchmakerClient
         
         Debug.Log("Match has been joined: " + match.ToJson());
         Debug.Log("Are we the first to move: " +
-                  (match.FirstMovePlayer == Auth.Player));
+                  (match.PlayerThatBegins == Auth.Player)); // UNISAVE TODO: solve this
     }
 }

@@ -1,0 +1,92 @@
+using System;
+using System.Runtime.Serialization;
+using Unisave.Facets;
+using Unisave.Facades;
+using Unisave.Utils;
+
+/// <summary>
+/// Handles player login and registration
+/// </summary>
+public class AuthFacet : Facet
+{
+    /// <summary>
+    /// Tries to log the player in and throws LoginException on failure
+    /// </summary>
+    /// <param name="email">Player's email</param>
+    /// <param name="password">Player's password</param>
+    /// <exception cref="LoginException">
+    /// Given credentials were invalid (no such player found in the database)
+    /// </exception>
+    public void Login(string email, string password)
+    {
+        var player = DB.TakeAll<PlayerEntity>()
+            .Filter(entity => entity.Email == email)
+            .First();
+        
+        if (player == null)
+            throw new LoginException("Given credentials are invalid.");
+        
+        if (!Hash.Check(password, player.Password))
+            throw new LoginException("Given credentials are invalid.");
+        
+        Auth.Login(player);
+    }
+
+    /// <summary>
+    /// Registers a new player
+    /// </summary>
+    /// <param name="email">Player's email</param>
+    /// <param name="password">Player's password</param>
+    /// <exception cref="RegistrationException">
+    /// Given email address is already registered
+    /// </exception>
+    public void Register(string email, string password)
+    {
+        var player = DB.TakeAll<PlayerEntity>()
+            .Filter(entity => entity.Email == email)
+            .First();
+        
+        if (player != null)
+            throw new RegistrationException(
+                "This email is already registered."
+            );
+        
+        player = new PlayerEntity {
+            Email = email,
+            Password = Hash.Make(password)
+        };
+        player.Save();
+        
+        Auth.Login(player);
+    }
+
+    /// <summary>
+    /// Thrown on a failed login attempt
+    /// </summary>
+    [Serializable]
+    public class LoginException : Exception
+    {
+        public LoginException() { }
+        public LoginException(string message) : base(message) { }
+        public LoginException(string message, Exception inner)
+            : base(message, inner) { }
+        protected LoginException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context) { }
+    }
+    
+    /// <summary>
+    /// Thrown on a failed registration attempt
+    /// </summary>
+    [Serializable]
+    public class RegistrationException : Exception
+    {
+        public RegistrationException() { }
+        public RegistrationException(string message) : base(message) { }
+        public RegistrationException(string message, Exception inner)
+            : base(message, inner) { }
+        protected RegistrationException(
+            SerializationInfo info,
+            StreamingContext context) : base(info, context) { }
+    }
+}

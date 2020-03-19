@@ -2,6 +2,8 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unisave;
+using Unisave.Facets;
+using Unisave.Facades;
 
 public class #FACETNAME# : Facet
 {
