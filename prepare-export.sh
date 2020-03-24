@@ -8,6 +8,9 @@ cd ./AssetForExport
 rm ./Assets/Unisave/Resources/UnisavePreferencesFile.asset*
 rm -r ./Assets/Unisave/Tests*
 
+# remove acceptance tests
+rm -r ./Assets/AcceptanceTests*
+
 # remove example tests
 rm -r ./Assets/Unisave/Examples/Tests*
 
