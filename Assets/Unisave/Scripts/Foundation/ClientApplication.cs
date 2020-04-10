@@ -40,6 +40,7 @@ namespace Unisave.Foundation
             Bind<ApiUrl>(_ => new ApiUrl(Preferences.ServerUrl));
             
             Singleton<SessionIdRepository>(_ => new SessionIdRepository());
+            Singleton<DeviceIdRepository>(_ => new DeviceIdRepository());
             
             Bind<ArangoRepository>(_ => ArangoRepository.GetInstance());
             

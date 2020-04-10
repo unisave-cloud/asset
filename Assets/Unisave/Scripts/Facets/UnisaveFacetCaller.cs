@@ -35,6 +35,8 @@ namespace Unisave.Facets
 					.Add("methodName", methodName)
 					.Add("arguments", arguments)
 					.Add("sessionId", SessionId)
+					.Add("deviceId", DeviceIdRepository.GetDeviceId())
+					.Add("device", DeviceIdRepository.GetDeviceInfo())
 					.Add("gameToken", app.Preferences.GameToken)
 					.Add("client", new JsonObject()
 						.Add("backendHash", app.Preferences.BackendHash)

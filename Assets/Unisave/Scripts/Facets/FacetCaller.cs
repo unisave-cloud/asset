@@ -26,9 +26,15 @@ namespace Unisave.Facets
 
         private readonly SessionIdRepository sessionIdRepository;
         
+        /// <summary>
+        /// Class that extracts information about the device
+        /// </summary>
+        protected DeviceIdRepository DeviceIdRepository { get; }
+        
         public FacetCaller(ClientApplication clientApp)
         {
             sessionIdRepository = clientApp.Resolve<SessionIdRepository>();
+            DeviceIdRepository = clientApp.Resolve<DeviceIdRepository>();
         }
         
         /// <summary>
