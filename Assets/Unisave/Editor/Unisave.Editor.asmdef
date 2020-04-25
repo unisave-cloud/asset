@@ -1,7 +1,6 @@
 {
     "name": "Unisave.Editor",
     "references": [
-        "LightJson",
         "Unisave"
     ],
     "optionalUnityReferences": [

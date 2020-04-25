@@ -7,6 +7,7 @@ using Unisave.Arango.Emulation;
 using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Foundation;
+using Unisave.Logging;
 using Unisave.Runtime;
 using Unisave.Runtime.Kernels;
 using Unisave.Sessions;
@@ -76,9 +77,6 @@ namespace Unisave.Facets
 
                 returnedJson = kernel.Handle(methodParameters);
 
-                var specialValues = app.Resolve<SpecialValues>();
-                SessionId = specialValues.Read("sessionId").AsString;
-
                 // END RUN THE APP
             }
             finally
@@ -87,7 +85,12 @@ namespace Unisave.Facets
                 
                 Facade.SetApplication(null);
                 
+                var specialValues = app.Resolve<SpecialValues>();
+                
                 app.Dispose();
+                
+                SessionId = specialValues.Read("sessionId").AsString;
+                LogPrinter.PrintLogsFromFacetCall(specialValues.Read("logs"));
                 
                 OnFacetCalled?.Invoke();
             }

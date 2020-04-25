@@ -1,7 +1,6 @@
 {
     "name": "Unisave.Tests",
     "references": [
-        "LightJson",
         "Unisave"
     ],
     "optionalUnityReferences": [

@@ -5,6 +5,7 @@ using RSG;
 using Unisave.Utils;
 using Unisave.Exceptions;
 using Unisave.Foundation;
+using Unisave.Logging;
 using Unisave.Serialization;
 using UnityEngine;
 using Application = UnityEngine.Application;
@@ -48,12 +49,17 @@ namespace Unisave.Facets
 				"200"
 			).Then(response => {
 				JsonObject executionResult = response["executionResult"];
-				// TODO: pull out logs and stuff
+
+				JsonObject specialValues = executionResult["special"].AsJsonObject
+				                           ?? new JsonObject();
 				
 				// remember the session id
-				string givenSessionId = executionResult["special"]["sessionId"];
+				string givenSessionId = specialValues["sessionId"].AsString;
 				if (givenSessionId != null)
 					SessionId = givenSessionId;
+				
+				// print logs
+				LogPrinter.PrintLogsFromFacetCall(specialValues["logs"]);
 				
 				switch (executionResult["result"].AsString)
 				{
