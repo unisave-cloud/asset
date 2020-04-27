@@ -92,10 +92,14 @@ namespace Unisave.Editor.BackendUploading
             // compute file hashes
             files.ForEach(f => f.ComputeHash());
             
+            // get all file hashes
+            List<string> hashes = files.Select(f => f.Hash).ToList();
+            
+            // add hashes of contextual data (e.g. framework version)
+            hashes.Add(Hash.MD5(FrameworkMeta.Version));
+            
             // compute backend hash
-            string backendHash = Hash.CompositeMD5(
-                files.Select(f => f.Hash)
-            );
+            string backendHash = Hash.CompositeMD5(hashes);
             
             // store the upload time and backend hash
             preferences.LastBackendUploadAt = DateTime.Now;
