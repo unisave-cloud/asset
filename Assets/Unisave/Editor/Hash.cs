@@ -44,6 +44,15 @@ namespace Unisave.Editor
                 return BytesToHexaString(hashBytes);
             }
         }
+        
+        /// <summary>
+        /// Computes MD5 hash of some string
+        /// </summary>
+        [SuppressMessage("ReSharper", "InconsistentNaming")]
+        public static string MD5(string subject)
+        {
+            return MD5(Encoding.ASCII.GetBytes(subject));
+        }
 
         /// <summary>
         /// Converts bytes to a hexadecimal string

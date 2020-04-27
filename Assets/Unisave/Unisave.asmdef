@@ -1,8 +1,6 @@
 {
     "name": "Unisave",
-    "references": [
-        "LightJson"
-    ],
+    "references": [],
     "optionalUnityReferences": [],
     "includePlatforms": [],
     "excludePlatforms": [],

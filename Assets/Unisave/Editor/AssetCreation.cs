@@ -12,7 +12,7 @@ namespace Unisave.Editor
     /// </summary>
     public static class AssetCreation
     {
-        [MenuItem("Assets/Create/Unisave/Entity", false, 1)]
+        [MenuItem("Assets/Create/Unisave/Entity", false, 2)]
         public static void CreateEntity()
         {
             CreateScriptFromTemplate(
@@ -22,7 +22,7 @@ namespace Unisave.Editor
             );
         }
 
-        [MenuItem("Assets/Create/Unisave/Facet", false, 2)]
+        [MenuItem("Assets/Create/Unisave/Facet", false, 3)]
         public static void CreateFacet()
         {
             CreateScriptFromTemplate(
@@ -32,46 +32,27 @@ namespace Unisave.Editor
             );
         }
 
-        [MenuItem("Assets/Create/Unisave/Hook/OnPlayerRegistration", false, 3)]
-        public static void CreatePlayerRegistrationHook()
-        {
-            CreateScriptFromTemplate(
-                defaultName: "OnPlayerRegistration",
-                templateName: "Templates/Hooks/PlayerRegistrationHookTemplate",
-                wildcard: "#HOOKNAME#"
-            );
-        }
-
-        [MenuItem("Assets/Create/Unisave/Boilerplate/CreatePlayerEntityOnPlayerRegistration", false, 4)]
-        public static void CreateBoilerplateCreatePlayerEntity()
-        {
-            CreateScriptFromTemplate(
-                defaultName: "CreatePlayerEntityOnPlayerRegistration",
-                templateName: "Templates/Boilerplate/CreatePlayerEntityOnRegistrationHookTemplate",
-                wildcard: "#HOOKNAME#"
-            );
-        }
+//        TODO: matchmaker is disabled until I verify that it works
+//        [MenuItem("Assets/Create/Unisave/Matchmaking/Matchmaker", false, 4)]
+//        public static void CreateMatchmaker()
+//        {
+//            CreateScriptFromTemplate(
+//                defaultName: "Matchmaker",
+//                templateName: "Templates/Modules/MatchmakerTemplate",
+//                wildcard: "#NO-WILDCARD-PRESENT#"
+//            );
+//        }
+//        
+//        [MenuItem("Assets/Create/Unisave/Matchmaking/MatchmakerClient", false, 5)]
+//        public static void CreateMatchmakerClient()
+//        {
+//            CreateScriptFromTemplate(
+//                defaultName: "MatchmakerClient",
+//                templateName: "Templates/Modules/MatchmakerClientTemplate",
+//                wildcard: "#MATCHMAKERCLIENT#"
+//            );
+//        }
         
-        [MenuItem("Assets/Create/Unisave/Matchmaking/Matchmaker", false, 5)]
-        public static void CreateMatchmaker()
-        {
-            CreateScriptFromTemplate(
-                defaultName: "Matchmaker",
-                templateName: "Templates/Modules/MatchmakerTemplate",
-                wildcard: "#NO-WILDCARD-PRESENT#"
-            );
-        }
-        
-        [MenuItem("Assets/Create/Unisave/Matchmaking/MatchmakerClient", false, 6)]
-        public static void CreateMatchmakerClient()
-        {
-            CreateScriptFromTemplate(
-                defaultName: "MatchmakerClient",
-                templateName: "Templates/Modules/MatchmakerClientTemplate",
-                wildcard: "#MATCHMAKERCLIENT#"
-            );
-        }
-
         [MenuItem("Assets/Create/Unisave/Backend folder", false, 20)]
         public static void CreateBackendFolder()
         {
@@ -80,12 +61,41 @@ namespace Unisave.Editor
             AssetDatabase.CreateFolder(path, "Backend");
             AssetDatabase.CreateFolder(path + "/Backend", "Entities");
             AssetDatabase.CreateFolder(path + "/Backend", "Facets");
-            AssetDatabase.CreateFolder(path + "/Backend", "Migrations");
+            
+            CreateTextAssetFromTemplate(
+                path + "/Backend/Entities/PlayerEntity.cs",
+                "Templates/Backend/PlayerEntityTemplate"
+            );
+            CreateTextAssetFromTemplate(
+                path + "/Backend/Facets/AuthFacet.cs",
+                "Templates/Backend/AuthFacetTemplate"
+            );
         }
 
         /////////////
         // Helpers //
         /////////////
+
+        /// <summary>
+        /// Creates a text asset at given path from a given template
+        /// (no wildcard substitution performed)
+        /// </summary>
+        /// <param name="path"></param>
+        /// <param name="templateName"></param>
+        public static void CreateTextAssetFromTemplate(
+            string path,
+            string templateName
+        )
+        {
+            AssetDatabase.CreateAsset(new TextAsset(), path);
+                    
+            File.WriteAllText(
+                path,
+                Resources.Load<TextAsset>(templateName).text
+            );
+
+            AssetDatabase.ImportAsset(path);
+        }
 
         /// <summary>
         /// Creates a CS script from template

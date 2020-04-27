@@ -2,11 +2,13 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Unisave;
+using Unisave.Entities;
+using Unisave.Facades;
 
 public class #ENTITYNAME# : Entity
 {
     /// <summary>
     /// Replace this with your own entity attributes
     /// </summary>
-    [X] public string MyAttribute { get; set; } = "Default value";
+    public string MyAttribute { get; set; } = "Default value";
 }

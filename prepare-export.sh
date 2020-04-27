@@ -6,8 +6,11 @@ cd ./AssetForExport
 
 # remove unnecessary files
 rm ./Assets/Unisave/Resources/UnisavePreferencesFile.asset*
-rm -r ./Assets/Unisave/Editor/Tests*
+rm -r ./Assets/Unisave/Tests*
 
-# remove chess example (not finished yet)
-rm -r ./Assets/Unisave/Examples/Chess*
+# remove acceptance tests
+rm -r ./Assets/AcceptanceTests*
+
+# remove example tests
+rm -r ./Assets/Unisave/Examples/Tests*
 

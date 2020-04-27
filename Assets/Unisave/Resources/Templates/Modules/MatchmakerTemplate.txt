@@ -1,15 +1,18 @@
+using System;
 using System.Collections.Generic;
 using Unisave;
+using Unisave.Entities;
+using Unisave.Facades;
 using Unisave.Modules.Matchmaking;
 
-public class MatchEntity : Entity
+public class MatchEntity : BasicMatchEntity<PlayerEntity>
 {
     // TODO: put here all the data you need to know about a match
     
     /// <summary>
     /// What player makes the first move?
     /// </summary>
-    [X] public UnisavePlayer FirstMovePlayer { get; set; }
+    public EntityReference<PlayerEntity> PlayerThatBegins { get; set; }
 }
 
 public class MatchmakerTicket : BasicMatchmakerTicket
@@ -22,8 +25,9 @@ public class MatchmakerTicket : BasicMatchmakerTicket
     public int playerRating;
 }
 
-public class MatchmakerFacet : BasicMatchmakerFacet
-    <MatchmakerTicket, MatchEntity>
+public class MatchmakerFacet : BasicMatchmakerFacet<
+    PlayerEntity, MatchmakerTicket, MatchEntity
+>
 {
     /// <summary>
     /// Called when a new ticket is inserted into the matchmaker
@@ -33,9 +37,11 @@ public class MatchmakerFacet : BasicMatchmakerFacet
     protected override void PrepareNewTicket(MatchmakerTicket ticket)
     {
         // TODO: replace this code with your own matchmaker implementation
-        // e.g. calculate player rating, given ticket.Player value:
+        // e.g. calculate player rating:
+
+        PlayerEntity player = GetPlayer();
         
-        ticket.playerRating = 42;
+        ticket.playerRating = player.Email.Length;
     }
     
     /// <summary>
@@ -60,11 +66,22 @@ public class MatchmakerFacet : BasicMatchmakerFacet
 
             // create a match with those tickets
             var match = new MatchEntity {
-                FirstMovePlayer = selectedTickets[0].Player // lower score
+                PlayerThatBegins = new EntityReference<PlayerEntity>(
+                    selectedTickets[0].PlayerId
+                ) // lower score
             };
             
             // launch the match
             SaveAndStartMatch(selectedTickets, match);
         }
+    }
+    
+    /// <summary>
+    /// When joining the matchmaker,
+    /// this method returns the player that is joining
+    /// </summary>
+    protected override PlayerEntity GetPlayer()
+    {
+        return Auth.GetPlayer<PlayerEntity>();
     }
 }

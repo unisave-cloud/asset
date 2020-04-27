@@ -1,0 +1,19 @@
+using System;
+using System.Collections;
+using System.Collections.Generic;
+using Unisave;
+using Unisave.Entities;
+using Unisave.Facades;
+
+public class PlayerEntity : Entity
+{
+    /// <summary>
+    /// Email of the player
+    /// </summary>
+    public string Email { get; set; }
+    
+    /// <summary>
+    /// Hashed password
+    /// </summary>
+    public string Password { get; set; }
+}
