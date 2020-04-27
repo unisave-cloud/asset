@@ -21,27 +21,15 @@ namespace Unisave.Utils
 
         public string Index() => serverUrl;
 
-        private string GameApiUrl(string relativeUrl)
+        private string Url(string relativeUrl)
         {
-            return serverUrl + "api/game/v1.0/" + relativeUrl;
+            return serverUrl + "_api/" + relativeUrl;
         }
 
-        private string EditorApiUrl(string relativeUrl)
-        {
-            return serverUrl + "api/editor/v1.0/" + relativeUrl;
-        }
-
-        public string Register() => GameApiUrl("register");
-        public string Login() => GameApiUrl("login");
-        public string Logout() => GameApiUrl("logout");
+        public string CallFacet() => Url("call-facet");
         
-        public string CallFacet() => GameApiUrl("call-facet");
-        
-        public string BackendUpload_Start()
-            => EditorApiUrl("backend-upload/start");
-        public string BackendUpload_File()
-            => EditorApiUrl("backend-upload/file");
-        public string BackendUpload_Finish()
-            => EditorApiUrl("backend-upload/finish");
+        public string BackendUpload_Start() => Url("backend-upload/start");
+        public string BackendUpload_File() => Url("backend-upload/file");
+        public string BackendUpload_Finish() => Url("backend-upload/finish");
     }
 }
