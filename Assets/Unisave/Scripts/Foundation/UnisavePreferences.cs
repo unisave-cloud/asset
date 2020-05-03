@@ -118,6 +118,9 @@ namespace Unisave.Foundation
 					}
 					return editorKeyCache;
 				#else
+					// NOTE: It's important that no exception is thrown,
+					// since the editor key may be requested in non-editor
+					// contexts (e.g. facet call).
 					return null;
 				#endif
 			}
@@ -223,6 +226,33 @@ namespace Unisave.Foundation
 
 		[SerializeField]
 		private string backendHash;
+		
+		/// <summary>
+		/// Last backend hash that has been uploaded
+		/// </summary>
+		public string LastUploadedBackendHash
+		{
+			get
+			{
+				#if UNITY_EDITOR
+					return UnityEditor.EditorPrefs.GetString(
+						"unisave.lastUploadedBackendHash:" + KeySuffix, null
+					);
+				#else
+					return null;
+				#endif
+			}
+
+			set
+			{
+				#if UNITY_EDITOR
+					UnityEditor.EditorPrefs.SetString(
+						"unisave.lastUploadedBackendHash:" + KeySuffix,
+						value
+					);
+				#endif
+			}
+		}
 		
 		/// <summary>
 		/// File containing development env configuration

@@ -31,5 +31,7 @@ namespace Unisave.Utils
         public string BackendUpload_Start() => Url("backend-upload/start");
         public string BackendUpload_File() => Url("backend-upload/file");
         public string BackendUpload_Finish() => Url("backend-upload/finish");
+
+        public string RegisterBuild() => Url("register-build");
     }
 }

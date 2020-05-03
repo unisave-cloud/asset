@@ -19,6 +19,12 @@ namespace Unisave.Editor.BackendUploading
         private readonly ApiUrl apiUrl;
 
         /// <summary>
+        /// Whether the automatic backend uploading is enabled
+        /// </summary>
+        public bool AutomaticUploadingEnabled
+            => preferences.AutomaticBackendUploading;
+
+        /// <summary>
         /// Creates the default instance of the uploader
         /// that uses correct preferences.
         /// </summary>
@@ -41,32 +47,8 @@ namespace Unisave.Editor.BackendUploading
         }
 
         /// <summary>
-        /// This method gets called after recompilation by the hook.
-        /// It triggers the upload if preferences are set up that way.
-        /// </summary>
-        /// <param name="isEditor">
-        /// Are we uploading just an editor recompilation? (true)
-        /// Or a new build of the game? (false)
-        /// </param>
-        public void RunAutomaticUpload(bool isEditor)
-        {
-            if (!preferences.AutomaticBackendUploading)
-                return;
-
-            Run(
-                isEditor,
-                verbose: false,
-                useAnotherThread: false // has to be FALSE! see the param. note
-            );
-        }
-
-        /// <summary>
         /// Performs all the uploading
         /// </summary>
-        /// <param name="isEditor">
-        /// Are we uploading just an editor recompilation? (true)
-        /// Or a new build of the game? (false)
-        /// </param>
         /// <param name="verbose">Print additional info</param>
         /// <param name="useAnotherThread">
         /// If true, the networking will happen in a background thread so
@@ -74,37 +56,19 @@ namespace Unisave.Editor.BackendUploading
         /// right after assembly compilation, it gets killed unexpectedly
         /// for some reason. So there the execution has to be single-threaded.
         /// </param>
-        public void Run(bool isEditor, bool verbose, bool useAnotherThread)
+        public void UploadBackend(bool verbose, bool useAnotherThread)
         {
             if (verbose)
-                Debug.Log("Starting backend upload...");
-            
-            // list all backend folders
-            var backendFolders = new string[] {
-                "Assets/" + preferences.BackendFolder
-            };
+                Debug.Log("[Unisave] Starting backend upload...");
 
-            // get list of files to be uploaded
-            var files = new List<BackendFile>();
-            files.AddRange(CSharpFile.FindFiles(backendFolders));
-            files.AddRange(SOFile.FindFiles(backendFolders));
+            List<BackendFile> files = RecalculateBackendHashAndGetFileList(
+                out string backendHash
+            );
             
-            // compute file hashes
-            files.ForEach(f => f.ComputeHash());
-            
-            // get all file hashes
-            List<string> hashes = files.Select(f => f.Hash).ToList();
-            
-            // add hashes of contextual data (e.g. framework version)
-            hashes.Add(Hash.MD5(FrameworkMeta.Version));
-            
-            // compute backend hash
-            string backendHash = Hash.CompositeMD5(hashes);
-            
-            // store the upload time and backend hash
+            // NOTE: preferences.Save() not needed since both values are
+            // stored inside EditorPrefs
             preferences.LastBackendUploadAt = DateTime.Now;
-            preferences.BackendHash = backendHash;
-            preferences.Save();
+            preferences.LastUploadedBackendHash = backendHash;
 
             // NOTE: Debug Methods are thread-safe
             // https://answers.unity.com/questions/714590/
@@ -114,13 +78,13 @@ namespace Unisave.Editor.BackendUploading
             if (useAnotherThread)
             {
                 var backgroundThread = new Thread(() => {
-                    BackgroundJob(files, backendHash, isEditor, verbose);
+                    BackgroundJob(files, backendHash, verbose);
                 });
                 backgroundThread.Start();
             }
             else // well, not always in the background
             {
-                BackgroundJob(files, backendHash, isEditor, verbose);
+                BackgroundJob(files, backendHash, verbose);
             }
         }
 
@@ -129,8 +93,7 @@ namespace Unisave.Editor.BackendUploading
         /// on another thread
         /// </summary>
         private void BackgroundJob(
-            List<BackendFile> files, string backendHash,
-            bool isEditor, bool verbose
+            List<BackendFile> files, string backendHash, bool verbose
         )
         {
             /*
@@ -159,8 +122,6 @@ namespace Unisave.Editor.BackendUploading
                     
                     .Add("backend_hash", backendHash)
                     .Add("framework_version", FrameworkMeta.Version)
-                    .Add("asset_version", AssetMeta.Version)
-                    .Add("is_editor", isEditor)
                     .Add(
                         "backend_folder_path",
                         "Assets/" + preferences.BackendFolder
@@ -179,7 +140,7 @@ namespace Unisave.Editor.BackendUploading
                 if (verbose)
                 {
                     Debug.Log(
-                        "Backend upload done, this backend " +
+                        "[Unisave] Backend upload done, this backend " +
                         "has already been uploaded."
                     );
                 }
@@ -237,7 +198,7 @@ namespace Unisave.Editor.BackendUploading
             if (verbose)
             {
                 Debug.Log(
-                    "Backend upload done, starting server compilation..."
+                    "[Unisave] Backend upload done, starting server compilation..."
                 );
             }
 
@@ -245,15 +206,65 @@ namespace Unisave.Editor.BackendUploading
             if (!finishResponse["compiler_success"].AsBoolean)
             {
                 Debug.LogError(
-                    "Server compile error:\n" +
+                    "[Unisave] Server compile error:\n" +
                     finishResponse["compiler_output"].AsString
                 );
             }
             else
             {
                 if (verbose)
-                    Debug.Log("Server compilation done.");
+                    Debug.Log("[Unisave] Server compilation done.");
             }
+        }
+
+        /// <summary>
+        /// Goes through the backend folder and updates the backend hash
+        /// stored in unisave preferences
+        /// </summary>
+        /// <returns>
+        /// True if the backend has changed and should be uploaded
+        /// </returns>
+        public bool RecalculateBackendHash()
+        {
+            string lastUploadedHash = preferences.LastUploadedBackendHash;
+            
+            // (throw away file list and ignore the hash (it has been stored))
+            RecalculateBackendHashAndGetFileList(out string currentHash);
+
+            return lastUploadedHash != currentHash;
+        }
+
+        private List<BackendFile> RecalculateBackendHashAndGetFileList(
+            out string backendHash
+        )
+        {
+            // list all backend folders
+            var backendFolders = new string[] {
+                "Assets/" + preferences.BackendFolder
+            };
+
+            // get list of files to be uploaded
+            var files = new List<BackendFile>();
+            files.AddRange(CSharpFile.FindFiles(backendFolders));
+            files.AddRange(SOFile.FindFiles(backendFolders));
+            
+            // compute file hashes
+            files.ForEach(f => f.ComputeHash());
+            
+            // get all file hashes
+            List<string> hashes = files.Select(f => f.Hash).ToList();
+            
+            // add hashes of contextual data (e.g. framework version)
+            hashes.Add(Hash.MD5(FrameworkMeta.Version));
+            
+            // compute backend hash
+            backendHash = Hash.CompositeMD5(hashes);
+            
+            // store the backend hash
+            preferences.BackendHash = backendHash;
+            preferences.Save();
+
+            return files;
         }
     }
 }

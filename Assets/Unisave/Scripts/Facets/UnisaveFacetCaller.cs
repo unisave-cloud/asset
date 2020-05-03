@@ -39,6 +39,7 @@ namespace Unisave.Facets
 					.Add("deviceId", DeviceIdRepository.GetDeviceId())
 					.Add("device", DeviceIdRepository.GetDeviceInfo())
 					.Add("gameToken", app.Preferences.GameToken)
+					.Add("editorKey", app.Preferences.EditorKey)
 					.Add("client", new JsonObject()
 						.Add("backendHash", app.Preferences.BackendHash)
 						.Add("frameworkVersion", FrameworkMeta.Version)
@@ -86,6 +87,17 @@ namespace Unisave.Facets
 				}
 				
 			}).Catch(e => {
+
+				if (e is HttpException he)
+				{
+					if (he.Response.StatusCode == 422)
+					{
+						Debug.LogError(
+							"Facet call failed:\n" + he.Response.TextContent
+						);
+					}
+				}
+				
 				promise.Reject(e);
 			});
 

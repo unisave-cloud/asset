@@ -118,7 +118,6 @@ namespace Unisave.Editor
 
 			GUILayout.Space(30f);
 
-			GUILayout.Label("Unisave asset version: " + AssetMeta.Version);
 			GUILayout.Label("Unisave framework version: " + FrameworkMeta.Version);
 
 			GUILayout.EndScrollView();
@@ -147,8 +146,7 @@ namespace Unisave.Editor
 		{
 			Uploader
 				.GetDefaultInstance()
-				.Run(
-					isEditor: true,
+				.UploadBackend(
 					verbose: true,
 					useAnotherThread: true // yes, here we can run in background
 				);
