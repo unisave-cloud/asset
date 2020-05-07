@@ -30,10 +30,26 @@ namespace Unisave.Editor.BackendUploading.Hooks
 
         /// <summary>
         /// Called before a build starts. It uploads the backend if automatic
-        /// upload is enabled.
+        /// upload is enabled and then registers the build.
+        /// 
+        /// NOTE: Registration is done in preprocessing, because the
+        /// postprocessing hook wasn't called on Peter's machine.
         /// </summary>
         /// <param name="report"></param>
         public static void OnPreprocessBuild(BuildReport report)
+        {
+            // Performs automatic backend upload if enabled
+            PerformAutomaticUploadIfEnabled();
+
+            // Checks that the backend hash matches the reality and
+            // if so, registers the build. Else prints warning.
+            TryToRegisterTheBuild(report);
+        }
+
+        /// <summary>
+        /// Performs automatic backend upload if enabled
+        /// </summary>
+        private static void PerformAutomaticUploadIfEnabled()
         {
             var uploader = Uploader.GetDefaultInstance();
             
@@ -45,24 +61,13 @@ namespace Unisave.Editor.BackendUploading.Hooks
                 );
             }
         }
-        
-        /// <summary>
-        /// Called when a build finishes. It checks backend hash and registers
-        /// the new build in the Unisave cloud.
-        /// </summary>
-        /// <param name="report"></param>
-        public static void OnPostprocessBuild(BuildReport report)
-        {
-            // skip unsuccessful builds
-            if (report.summary.totalErrors > 0)
-            {
-                Debug.LogWarning(
-                    "[Unisave] Skipping build registration because " +
-                    $"the build had {report.summary.totalErrors} errors."
-                );
-                return;
-            }
 
+        /// <summary>
+        /// Checks that the backend hash matches the reality and
+        /// if so, registers the build. Else prints warning.
+        /// </summary>
+        private static void TryToRegisterTheBuild(BuildReport report)
+        {
             // check that the backendHash in preferences is up to date
             bool uploadNeeded = Uploader.GetDefaultInstance()
                 .RecalculateBackendHash();
@@ -79,7 +84,6 @@ namespace Unisave.Editor.BackendUploading.Hooks
             }
             
             // register the build
-            
             BuildRegistrator
                 .GetDefaultInstance()
                 .RegisterBuild(report);
