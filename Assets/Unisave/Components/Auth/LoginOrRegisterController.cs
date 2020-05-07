@@ -4,8 +4,6 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using Unisave.Exceptions;
-using Unisave.Exceptions.ServerConnection;
-using Unisave.Exceptions.PlayerRegistration;
 
 namespace Unisave
 {
