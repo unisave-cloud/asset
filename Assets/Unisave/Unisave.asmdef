@@ -6,7 +6,11 @@
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "LightJson.dll",
+        "RSG.Promise.dll",
+        "UnisaveFramework.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": []
 }

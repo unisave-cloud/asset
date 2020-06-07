@@ -8,9 +8,6 @@
 # Testing folder
 [Aa]ssets/TestingGame
 
-# Framework dll
-Assets/Unisave/Libraries/UnisaveFramework/
-
 #########################
 # Unity gitignore rules #
 #########################
