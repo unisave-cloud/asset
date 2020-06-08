@@ -107,7 +107,9 @@ namespace Unisave.Editor
         {
             CreateAsset(
                 GetCurrentDirectoryPath() + "/" + defaultName + ".cs",
-                Resources.Load<Texture2D>("UnisaveLogo"),
+                AssetDatabase.LoadAssetAtPath<Texture2D>(
+                    "Assets/Unisave/Images/NewAssetIcon.png"
+                ),
                 (pathName) => {
                     var name = Path.GetFileNameWithoutExtension(pathName);
                     

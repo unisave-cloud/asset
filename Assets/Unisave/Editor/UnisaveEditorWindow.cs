@@ -2,6 +2,7 @@
 using Unisave.Foundation;
 using UnityEditor;
 using UnityEngine;
+using UnityEngine.UI;
 
 namespace Unisave.Editor
 {
@@ -23,6 +24,13 @@ namespace Unisave.Editor
 				typeof(UnisaveEditorWindow),
 				false,
 				"Unisave"
+			);
+		}
+
+		void OnEnable()
+		{
+			titleContent.image = AssetDatabase.LoadAssetAtPath<Texture>(
+				"Assets/Unisave/Images/WindowIcon.png"
 			);
 		}
 
@@ -79,9 +87,13 @@ namespace Unisave.Editor
 			preferences.GameToken = EditorGUILayout.TextField("Game token", preferences.GameToken);
 			preferences.EditorKey = EditorGUILayout.TextField("Editor key", preferences.EditorKey);
 
+			GUILayout.Space(15f);
+
 			GUILayout.Label("Server emulation", EditorStyles.boldLabel);
 			preferences.AlwaysEmulate = EditorGUILayout.Toggle("Emulate", preferences.AlwaysEmulate);
 			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
+			
+			GUILayout.Space(15f);
 			
 			GUILayout.Label("Backend folder uploading", EditorStyles.boldLabel);
 			preferences.BackendFolder = EditorGUILayout.TextField("Backend assets folder", preferences.BackendFolder);
@@ -129,14 +141,19 @@ namespace Unisave.Editor
 
 		void DrawUnisaveLogo()
 		{
-			const float height = 120f;
 			const float margin = 10f;
+			const float maxWidth = 400f;
 
 			if (unisaveLogo == null)
-				unisaveLogo = Resources.Load<Texture>("UnisaveLogo");
+				unisaveLogo = AssetDatabase.LoadAssetAtPath<Texture>(
+					"Assets/Unisave/Images/PropertiesLogo.png"
+				);
+
+			float width = Mathf.Min(position.width, maxWidth) - 2 * margin;
+			float height = width * (unisaveLogo.height / (float)unisaveLogo.width);
 
 			GUI.DrawTexture(
-				new Rect((position.width - height) / 2, margin, height, height),
+				new Rect((position.width - width) / 2, margin, width, height),
 				unisaveLogo
 			);
 			GUILayout.Space(height + 2 * margin);

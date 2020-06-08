@@ -38,7 +38,9 @@ namespace Unisave.Editor.DataWindow
                 .Resolve<EmulatedFacetCaller>()
                 .OnFacetCalled += PerformRefresh;
 
-            titleContent.image = Resources.Load<Texture>("UnisaveLogo");
+            titleContent.image = AssetDatabase.LoadAssetAtPath<Texture>(
+                "Assets/Unisave/Images/WindowIcon.png"
+            );
             
             if (treeViewState == null)
                 treeViewState = new TreeViewState();
