@@ -8,7 +8,12 @@ using Unisave.Facades;
 public class #ENTITYNAME# : Entity
 {
     /// <summary>
-    /// Replace this with your own entity attributes
+    /// Email of the player
     /// </summary>
-    public string MyAttribute { get; set; } = "Default value";
+    public string email;
+
+    /// <summary>
+    /// Hashed password
+    /// </summary>
+    public string password;
 }

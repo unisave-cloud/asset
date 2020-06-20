@@ -17,7 +17,7 @@ namespace Unisave.Editor
         {
             CreateScriptFromTemplate(
                 defaultName: "NewEntity",
-                templateName: "Templates/EntityTemplate",
+                templateName: "EntityTemplate.txt",
                 wildcard: "#ENTITYNAME#"
             );
         }
@@ -27,32 +27,51 @@ namespace Unisave.Editor
         {
             CreateScriptFromTemplate(
                 defaultName: "NewFacet",
-                templateName: "Templates/FacetTemplate",
+                templateName: "FacetTemplate.txt",
                 wildcard: "#FACETNAME#"
             );
         }
-
-//        TODO: matchmaker is disabled until I verify that it works
-//        [MenuItem("Assets/Create/Unisave/Matchmaking/Matchmaker", false, 4)]
-//        public static void CreateMatchmaker()
-//        {
-//            CreateScriptFromTemplate(
-//                defaultName: "Matchmaker",
-//                templateName: "Templates/Modules/MatchmakerTemplate",
-//                wildcard: "#NO-WILDCARD-PRESENT#"
-//            );
-//        }
-//        
-//        [MenuItem("Assets/Create/Unisave/Matchmaking/MatchmakerClient", false, 5)]
-//        public static void CreateMatchmakerClient()
-//        {
-//            CreateScriptFromTemplate(
-//                defaultName: "MatchmakerClient",
-//                templateName: "Templates/Modules/MatchmakerClientTemplate",
-//                wildcard: "#MATCHMAKERCLIENT#"
-//            );
-//        }
         
+        [MenuItem("Assets/Create/Unisave/Auth/PlayerEntity", false, 4)]
+        public static void CreatePlayerEntity()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "PlayerEntity",
+                templateName: "Auth/PlayerEntityTemplate.txt",
+                wildcard: "#ENTITYNAME#"
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Auth/AuthFacet", false, 5)]
+        public static void CreateAuthFacet()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "AuthFacet",
+                templateName: "Auth/AuthFacetTemplate.txt",
+                wildcard: "#FACETNAME#"
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Auth/LoginController", false, 6)]
+        public static void CreateLoginController()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "LoginController",
+                templateName: "Auth/LoginControllerTemplate.txt",
+                wildcard: "#CONTROLLERNAME#"
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Auth/RegistrationController", false, 6)]
+        public static void CreateRegistrationController()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "RegistrationController",
+                templateName: "Auth/RegistrationControllerTemplate.txt",
+                wildcard: "#CONTROLLERNAME#"
+            );
+        }
+
         [MenuItem("Assets/Create/Unisave/Backend folder", false, 20)]
         public static void CreateBackendFolder()
         {
@@ -64,11 +83,15 @@ namespace Unisave.Editor
             
             CreateTextAssetFromTemplate(
                 path + "/Backend/Entities/PlayerEntity.cs",
-                "Templates/Backend/PlayerEntityTemplate"
+                "Auth/PlayerEntityTemplate.txt",
+                "#ENTITYNAME#",
+                "PlayerEntity"
             );
             CreateTextAssetFromTemplate(
                 path + "/Backend/Facets/AuthFacet.cs",
-                "Templates/Backend/AuthFacetTemplate"
+                "Auth/AuthFacetTemplate.txt",
+                "#FACETNAME#",
+                "AuthFacet"
             );
         }
 
@@ -82,16 +105,20 @@ namespace Unisave.Editor
         /// </summary>
         /// <param name="path"></param>
         /// <param name="templateName"></param>
-        public static void CreateTextAssetFromTemplate(
+        private static void CreateTextAssetFromTemplate(
             string path,
-            string templateName
+            string templateName,
+            string wildcard,
+            string wildcardValue
         )
         {
             AssetDatabase.CreateAsset(new TextAsset(), path);
                     
             File.WriteAllText(
                 path,
-                Resources.Load<TextAsset>(templateName).text
+                AssetDatabase.LoadAssetAtPath<TextAsset>(
+                    "Assets/Unisave/Templates/" + templateName
+                ).text.Replace(wildcard, wildcardValue)
             );
 
             AssetDatabase.ImportAsset(path);
@@ -103,7 +130,11 @@ namespace Unisave.Editor
         /// <param name="defaultName">Default name of the file and the main class</param>
         /// <param name="templateName">Name of the template resource file</param>
         /// <param name="wildcard">Wildcard for the class name</param>
-        public static void CreateScriptFromTemplate(string defaultName, string templateName, string wildcard)
+        private static void CreateScriptFromTemplate(
+            string defaultName,
+            string templateName,
+            string wildcard
+        )
         {
             CreateAsset(
                 GetCurrentDirectoryPath() + "/" + defaultName + ".cs",
@@ -111,12 +142,13 @@ namespace Unisave.Editor
                     "Assets/Unisave/Images/NewAssetIcon.png"
                 ),
                 (pathName) => {
-                    var name = Path.GetFileNameWithoutExtension(pathName);
+                    string name = Path.GetFileNameWithoutExtension(pathName);
                     
                     File.WriteAllText(
                         pathName,
-                        Resources.Load<TextAsset>(templateName).text
-                            .Replace(wildcard, name)
+                        AssetDatabase.LoadAssetAtPath<TextAsset>(
+                            "Assets/Unisave/Templates/" + templateName
+                        ).text.Replace(wildcard, name)
                     );
 
                     AssetDatabase.ImportAsset(pathName);
@@ -127,7 +159,7 @@ namespace Unisave.Editor
         /// <summary>
         /// Get directory where we want to create the new asset
         /// </summary>
-        public static string GetCurrentDirectoryPath()
+        private static string GetCurrentDirectoryPath()
         {
             var activeObject = Selection.activeObject;
 
@@ -145,7 +177,7 @@ namespace Unisave.Editor
         /// <summary>
         /// Starts the asset creation UI in project window and calls back the inserted name on success
         /// </summary>
-        public static void CreateAsset(string defaultPathName, Texture2D icon, Action<string> callback)
+        private static void CreateAsset(string defaultPathName, Texture2D icon, Action<string> callback)
         {
             ProjectWindowUtil.StartNameEditingIfProjectWindowExists(
                 0,
