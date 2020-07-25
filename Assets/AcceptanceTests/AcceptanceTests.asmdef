@@ -1,7 +1,10 @@
 {
     "name": "AcceptanceTests",
     "references": [
-        "Unisave"
+        "Unisave",
+        "Unisave.Testing",
+        "Steamworks",
+        "Steamworks.SteamManager"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"

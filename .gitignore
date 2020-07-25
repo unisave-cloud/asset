@@ -8,6 +8,15 @@
 # Testing folder
 [Aa]ssets/TestingGame
 
+# Steamworks.NET
+[Aa]ssets/Editor/Steamworks.NET
+[Aa]ssets/Plugins/steam_api.bundle
+[Aa]ssets/Plugins/Steamworks.NET
+[Aa]ssets/Plugins/x86
+[Aa]ssets/Plugins/x86_64
+[Aa]ssets/Scripts/Steamworks.NET
+steam_appid.txt
+
 #########################
 # Unity gitignore rules #
 #########################
