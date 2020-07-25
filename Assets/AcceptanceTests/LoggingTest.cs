@@ -13,6 +13,14 @@ namespace AcceptanceTests
         [UnityTest]
         public IEnumerator InfoCanBeLogged()
         {
+            LogAssert.Expect(
+                LogType.Log,
+                new Regex(
+                    @"SERVER\.INFO.*Hello world![\s\S]*Context: 42",
+                    RegexOptions.Multiline
+                )
+            );
+            
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.LogInfo)
             ).AsCoroutine();
@@ -21,6 +29,14 @@ namespace AcceptanceTests
         [UnityTest]
         public IEnumerator WarningCanBeLogged()
         {
+            LogAssert.Expect(
+                LogType.Warning,
+                new Regex(
+                    @"SERVER\.WARNING.*Hello world![\s\S]*Context: 42",
+                    RegexOptions.Multiline
+                )
+            );
+            
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.LogWarning)
             ).AsCoroutine();
@@ -30,6 +46,14 @@ namespace AcceptanceTests
         public IEnumerator ErrorCanBeLogged()
         {
             LogAssert.ignoreFailingMessages = true;
+            
+            LogAssert.Expect(
+                LogType.Error,
+                new Regex(
+                    @"SERVER\.ERRO.*Hello world![\s\S]*Context: 42",
+                    RegexOptions.Multiline
+                )
+            );
             
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.LogError)
@@ -41,6 +65,14 @@ namespace AcceptanceTests
         {
             LogAssert.ignoreFailingMessages = true;
             
+            LogAssert.Expect(
+                LogType.Error,
+                new Regex(
+                    @"SERVER\.CRITICAL.*Hello world![\s\S]*Context: 42",
+                    RegexOptions.Multiline
+                )
+            );
+            
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.LogCritical)
             ).AsCoroutine();
@@ -49,6 +81,14 @@ namespace AcceptanceTests
         [UnityTest]
         public IEnumerator DebugLogCanBeUsed()
         {
+            LogAssert.Expect(
+                LogType.Log,
+                new Regex(
+                    @"Hello world!",
+                    RegexOptions.Multiline
+                )
+            );
+            
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.DebugLog)
             ).AsCoroutine();
@@ -57,6 +97,14 @@ namespace AcceptanceTests
         [UnityTest]
         public IEnumerator DebugLogWarningCanBeUsed()
         {
+            LogAssert.Expect(
+                LogType.Warning,
+                new Regex(
+                    @"Hello world!",
+                    RegexOptions.Multiline
+                )
+            );
+            
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.DebugLogWarning)
             ).AsCoroutine();
@@ -67,6 +115,14 @@ namespace AcceptanceTests
         {
             LogAssert.ignoreFailingMessages = true;
             
+            LogAssert.Expect(
+                LogType.Error,
+                new Regex(
+                    @"Hello world!",
+                    RegexOptions.Multiline
+                )
+            );
+            
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.DebugLogError)
             ).AsCoroutine();
@@ -76,6 +132,14 @@ namespace AcceptanceTests
         public IEnumerator DebugLogExceptionCanBeUsed()
         {
             LogAssert.ignoreFailingMessages = true;
+            
+            LogAssert.Expect(
+                LogType.Error,
+                new Regex(
+                    @"Some exception.",
+                    RegexOptions.Multiline
+                )
+            );
             
             yield return OnFacet<LogFacet>.Call(
                 nameof(LogFacet.DebugLogException)
