@@ -13,7 +13,7 @@ namespace Unisave.Utils
     /// <summary>
     /// Encapsulates http requests into promises
     /// </summary>
-    public static class Http
+    public static class HttpUtil
     {
         /// <summary>
         /// When true, request times are logged into the console

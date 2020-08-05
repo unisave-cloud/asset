@@ -29,7 +29,7 @@ namespace Unisave.Facets
 		{
 			var promise = new Promise<JsonValue>();
 
-			Http.Post(
+			HttpUtil.Post(
 				app.Resolve<ApiUrl>().CallFacet(),
 				new JsonObject()
 					.Add("facetName", facetName)

@@ -1,8 +1,10 @@
 using System.Collections;
 using System.Text.RegularExpressions;
 using AcceptanceTests.Backend.Logging;
+using LightJson;
 using NUnit.Framework;
 using Steamworks;
+using Unisave.Facades;
 using Unisave.Testing;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -30,23 +32,36 @@ namespace AcceptanceTests.SteamMicrotransactions
         }
         
         [UnityTest]
-        public IEnumerator ClickingBuySendsHttpRequestToSteam()
+        public IEnumerator ClickingBuyInitiatesTransaction()
         {
-            // scene setup
+            // setup scene
             var go = new GameObject();
             var smm = go.AddComponent<SteamMicrotransactionManager>();
-            
             yield return null;
-            
-            // TODO: BackendTestCase should replace OnFacet facade as well
-            // smm.PlayerClickedBuy();
-            // assert http request was made
-            
-//            yield return OnFacet<LogFacet>.Call(
-//                nameof(LogFacet.LogInfo)
-//            ).AsCoroutine();
 
-            yield return null;
+            // setup HTTP
+            Http.Fake(Http.Response(new JsonObject {
+                ["response"] = new JsonObject {
+                    ["result"] = "OK",
+                    ["params"] = new JsonObject {
+                        ["orderid"] = "938473",
+                        ["transid"] = "374839"
+                    }
+                }
+            }, 200));
+            
+            // click the button
+            smm.PlayerClickedBuy();
+
+            // assert request to initiate transaction has been sent
+            Http.AssertSent(request =>
+                request.Url == "https://steam-stuff.com/" &&
+                request.HasHeader("Accept", "application/json") &&
+                request["key"] == "..." &&
+                request["appid"] == "..."
+            );
+            
+            // now the Steamworks API will notify the game via a callback
         }
 
         [UnityTest]
