@@ -1,6 +1,12 @@
+using System;
 using System.Collections;
+using System.Net;
+using System.Reflection;
+using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
 using AcceptanceTests.Backend.Logging;
+using AcceptanceTests.Backend.SteamMicrotransactions;
+using AcceptanceTests.Backend.SteamMicrotransactions.VirtualProducts;
 using LightJson;
 using NUnit.Framework;
 using Steamworks;
@@ -17,6 +23,15 @@ namespace AcceptanceTests.SteamMicrotransactions
     [TestFixture]
     public class SteamMicrotransactionTest : BackendTestCase
     {
+        private class SteamMicrotransactionManagerMock
+            : SteamMicrotransactionManager
+        {
+            protected override ulong GetSteamId()
+            {
+                return 123456789L;
+            }
+        }
+        
         public override void SetUp()
         {
             base.SetUp();
@@ -30,13 +45,13 @@ namespace AcceptanceTests.SteamMicrotransactions
             );
             Assert.IsFalse(SteamManager.Initialized);
         }
-        
+
         [UnityTest]
         public IEnumerator ClickingBuyInitiatesTransaction()
         {
             // setup scene
             var go = new GameObject();
-            var smm = go.AddComponent<SteamMicrotransactionManager>();
+            var smm = go.AddComponent<SteamMicrotransactionManagerMock>();
             yield return null;
 
             // setup HTTP
@@ -53,6 +68,9 @@ namespace AcceptanceTests.SteamMicrotransactions
             // click the button
             smm.PlayerClickedBuy();
 
+            // check the
+            //var requests = Http.Recorded();
+            
             // assert request to initiate transaction has been sent
             Http.AssertSent(request =>
                 request.Url == "https://steam-stuff.com/" &&
@@ -60,6 +78,7 @@ namespace AcceptanceTests.SteamMicrotransactions
                 request["key"] == "..." &&
                 request["appid"] == "..."
             );
+//            Http.AssertNothingSent();
             
             // now the Steamworks API will notify the game via a callback
         }
