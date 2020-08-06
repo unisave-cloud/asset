@@ -4,7 +4,7 @@ using Unisave.Facades;
 using Unisave.Facets;
 using Unisave.Foundation;
 
-namespace AcceptanceTests.Backend.SteamMicrotransactions
+namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
     public class SteamPurchasingServerFacet : Facet
     {
@@ -207,8 +207,10 @@ namespace AcceptanceTests.Backend.SteamMicrotransactions
         {
             foreach (var item in transaction.items)
             {
-                Type productType = Type.GetType(item.productClass)
-                    ?? throw new Exception(
+                Type productType = Type.GetType(item.productClass);
+                    
+                if (productType == null)
+                    throw new Exception(
                         $"Cannot find product {item.productClass}"
                     );
                 

@@ -1,24 +1,18 @@
-using System;
 using System.Collections;
-using System.Net;
-using System.Reflection;
-using System.Runtime.CompilerServices;
 using System.Text.RegularExpressions;
-using AcceptanceTests.Backend.Logging;
-using AcceptanceTests.Backend.SteamMicrotransactions;
-using AcceptanceTests.Backend.SteamMicrotransactions.VirtualProducts;
 using LightJson;
 using NUnit.Framework;
 using Steamworks;
 using Unisave.Facades;
 using Unisave.Testing;
+using UnisaveFixture.SteamMicrotransactions;
 using UnityEngine;
 using UnityEngine.TestTools;
 
 // Steam documentation of the entire process:
 // https://partner.steamgames.com/doc/features/microtransactions/implementation
 
-namespace AcceptanceTests.SteamMicrotransactions
+namespace UnisaveFixture.Tests.SteamMicrotransactions
 {
     [TestFixture]
     public class SteamMicrotransactionTest : BackendTestCase

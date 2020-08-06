@@ -1,11 +1,11 @@
 using System;
-using AcceptanceTests.Backend.SteamMicrotransactions;
-using AcceptanceTests.Backend.SteamMicrotransactions.VirtualProducts;
 using Steamworks;
 using Unisave.Facades;
+using UnisaveFixture.Backend.SteamMicrotransactions;
+using UnisaveFixture.Backend.SteamMicrotransactions.VirtualProducts;
 using UnityEngine;
 
-namespace AcceptanceTests.SteamMicrotransactions
+namespace UnisaveFixture.SteamMicrotransactions
 {
     public class SteamMicrotransactionManager : MonoBehaviour
     {

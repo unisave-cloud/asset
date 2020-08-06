@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Unisave.Entities;
 
-namespace AcceptanceTests.Backend.SteamMicrotransactions
+namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
     /// <summary>
     /// Represents one steam transaction

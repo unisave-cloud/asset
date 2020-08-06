@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace AcceptanceTests.Backend.SteamMicrotransactions
+namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
     /// <summary>
     /// Interface for a virtual product (item)

@@ -11,6 +11,12 @@ namespace Unisave.Testing
     /// </summary>
     public class BackendTestCase : BasicBackendTestCase
     {
+        // TODO:
+        // - soak up BasicBackendTestCase into this class
+        //     - actually just move testing away from framework into the asset
+        // - redesign client -> ClientApplication, ClientFacade(s)
+        //     - all interactions with the ClientApp goe through ClientFacades
+        
         [SetUp]
         public virtual void SetUp()
         {

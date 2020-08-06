@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using Unisave.Facades;
 
-namespace AcceptanceTests.Backend.SteamMicrotransactions.VirtualProducts
+namespace UnisaveFixture.Backend.SteamMicrotransactions.VirtualProducts
 {
     /*
      * Learn more at:
