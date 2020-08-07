@@ -11,11 +11,8 @@ namespace Unisave.Facades
         /// <summary>
         /// Application instance that should be used by facades
         /// </summary>
-        public static ClientApplication ClientApp => clientApp
-            ?? throw new InvalidOperationException(
-             "Trying to use a facade, but facades have not been "
-             + "initialized to an application instance."
-            );
+        public static ClientApplication ClientApp
+            => clientApp ?? CreateDefaultApplication();
 
         private static ClientApplication clientApp;
         
@@ -30,6 +27,24 @@ namespace Unisave.Facades
         public static void SetApplication(ClientApplication newApp)
         {
             clientApp = newApp;
+        }
+
+        /// <summary>
+        /// Sets a new application instance created from given preferences file
+        /// </summary>
+        public static void SetNewFromPreferences(UnisavePreferences preferences)
+        {
+            if (preferences == null)
+                throw new ArgumentNullException();
+            
+            SetApplication(new ClientApplication(preferences));
+        }
+
+        private static ClientApplication CreateDefaultApplication()
+        {
+            SetNewFromPreferences(UnisavePreferences.LoadOrCreate());
+
+            return clientApp;
         }
     }
 }

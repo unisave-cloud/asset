@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using Unisave.Editor.DataWindow.TreeItems;
+using Unisave.Facades;
 using Unisave.Foundation;
 using Unisave.Sessions;
 using UnityEditor;
@@ -27,7 +28,7 @@ namespace Unisave.Editor.DataWindow
             };
 
             root.AddChild(new SessionIdItem(
-                ClientApplication.GetInstance().Resolve<SessionIdRepository>(),
+                ClientFacade.ClientApp.Resolve<SessionIdRepository>(),
                 idAllocator
             ));
 

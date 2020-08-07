@@ -17,7 +17,6 @@ namespace Unisave.Facades
         private static FacetCaller GetFacetCaller()
         {
             return ClientFacade.ClientApp.Resolve<FacetCaller>();
-            //return ClientApplication.GetInstance().Resolve<FacetCaller>();
         }
         
         /// <summary>

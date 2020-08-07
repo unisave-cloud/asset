@@ -1,5 +1,3 @@
-using System;
-using Unisave.Arango;
 using Unisave.Facets;
 using Unisave.Sessions;
 using Unisave.Utils;
@@ -12,58 +10,29 @@ namespace Unisave.Foundation
     public class ClientApplication : Container
     {
         /// <summary>
-        /// The latest preferences that should be used by the system
+        /// Preferences that should be used by the application
         /// </summary>
-        public UnisavePreferences Preferences { get; private set; }
+        public UnisavePreferences Preferences { get; }
         
         public ClientApplication(UnisavePreferences preferences)
         {
-            RegisterIndependentServices();
-            
-            SetPreferences(preferences);
-        }
-
-        public void SetPreferences(UnisavePreferences preferences)
-        {
             Preferences = preferences;
             
-            // TODO: load preferences / propagate event to services
-            // Re-register dependant services
+            RegisterServices();
         }
 
         /// <summary>
-        /// Registers services that need not be recreated
-        /// when preferences change.
+        /// Registers default services
         /// </summary>
-        private void RegisterIndependentServices()
+        private void RegisterServices()
         {
             Bind<ApiUrl>(_ => new ApiUrl(Preferences.ServerUrl));
             
             Singleton<SessionIdRepository>(_ => new SessionIdRepository());
+            
             Singleton<DeviceIdRepository>(_ => new DeviceIdRepository());
             
             Singleton<FacetCaller>(_ => new UnisaveFacetCaller(this));
         }
-        
-        #region "Singleton management"
-
-        private static ClientApplication singletonInstance;
-
-        public static ClientApplication GetInstance()
-        {
-            if (singletonInstance == null)
-                singletonInstance = new ClientApplication(
-                    UnisavePreferences.LoadOrCreate()
-                );
-            
-            return singletonInstance;
-        }
-
-        public static void ForgetInstance()
-        {
-            singletonInstance = null;
-        }
-        
-        #endregion
     }
 }

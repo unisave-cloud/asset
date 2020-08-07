@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Unisave;
+using Unisave.Facades;
 using Unisave.Foundation;
 
 namespace Unisave.Components
@@ -25,7 +26,7 @@ namespace Unisave.Components
 
         void Awake()
         {
-            ClientApplication.GetInstance().SetPreferences(preferences);
+            ClientFacade.SetNewFromPreferences(preferences);
         }
 
         // used if awake is not called
@@ -33,21 +34,17 @@ namespace Unisave.Components
         // UnisaveServer makes sure no duplicate overriding takes place
         void OnEnable()
         {
-            ClientApplication.GetInstance().SetPreferences(preferences);
+            ClientFacade.SetNewFromPreferences(preferences);
         }
 
         void OnDisable()
         {
-            ClientApplication.GetInstance().SetPreferences(
-                UnisavePreferences.LoadOrCreate()
-            );
+            ClientFacade.SetApplication(null);
         }
 
         void OnDestroy()
         {
-            ClientApplication.GetInstance().SetPreferences(
-                UnisavePreferences.LoadOrCreate()
-            );
+            ClientFacade.SetApplication(null);
         }
     }
 }
