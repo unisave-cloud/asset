@@ -111,6 +111,7 @@ namespace UnisaveFixture.SteamMicrotransactions
             }
             catch (Exception e)
             {
+                throw; // TODO DEBUG
                 ReportErrorToThePlayer(e.Message);
                 return;
             }

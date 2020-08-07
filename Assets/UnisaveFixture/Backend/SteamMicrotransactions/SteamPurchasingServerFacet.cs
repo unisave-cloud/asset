@@ -2,19 +2,27 @@ using System;
 using System.Collections.Generic;
 using Unisave.Facades;
 using Unisave.Facets;
-using Unisave.Foundation;
+using Unisave.Utils;
 
 namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
     public class SteamPurchasingServerFacet : Facet
     {
-        private Env env;
+        // TODO: incorporate sandbox API:
+        // https://partner.steamgames.com/doc/webapi/ISteamMicroTxnSandbox
+        // TODO: test entire URLs, not just .Contains
         
-        public SteamPurchasingServerFacet()
-        {
-            // TODO: create env facade
-            env = Facade.App.Resolve<Env>();
-        }
+        /// <summary>
+        /// URL of the Steam API, ending with a slash
+        /// </summary>
+        private string SteamApiUrl
+            => Str.Finish(
+                input: Env.GetString(
+                    key: "STEAM_API_URL",
+                    defaultValue: "https://partner.steam-api.com/"
+                ),
+                tail: "/"
+            );
         
         /// <summary>
         /// Call this method to initiate a new transaction
@@ -34,7 +42,7 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
             
             // tell Steam we want to initiate a transaction
             var response = Http.Post(
-                "https://partner.steam-api.com/ISteamMicroTxn/InitTxn/v3/",
+                SteamApiUrl + "ISteamMicroTxn/InitTxn/v3/",
                 BuildInitTxnRequestBody(transaction)
             );
             response.Throw();
@@ -94,10 +102,10 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
         )
         {
             var body = new Dictionary<string, string> {
-                ["key"] = env["STEAM_PUBLISHER_KEY"],
+                ["key"] = Env.GetString("STEAM_PUBLISHER_KEY"),
                 ["orderid"] = transaction.orderId.ToString(),
                 ["steamid"] = transaction.playerSteamId.ToString(),
-                ["appid"] = env["STEAM_APP_ID"],
+                ["appid"] = Env.GetString("STEAM_APP_ID"),
                 ["itemcount"] = transaction.items.Count.ToString(),
                 ["language"] = transaction.language,
                 ["currency"] = transaction.currency
@@ -137,11 +145,11 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
             
             // tell Steam we want to finalize the transaction
             var response = Http.Post(
-                "https://partner.steam-api.com/ISteamMicroTxn/FinalizeTxn/v2/",
+                SteamApiUrl + "ISteamMicroTxn/FinalizeTxn/v2/",
                 new Dictionary<string, string> {
-                    ["key"] = env["STEAM_PUBLISHER_KEY"],
+                    ["key"] = Env.GetString("STEAM_PUBLISHER_KEY"),
                     ["orderid"] = orderId.ToString(),
-                    ["appid"] = env["STEAM_APP_ID"]
+                    ["appid"] = Env.GetString("STEAM_APP_ID")
                 }
             );
             response.Throw();

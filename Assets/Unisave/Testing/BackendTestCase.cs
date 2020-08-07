@@ -7,6 +7,7 @@ using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Facets;
 using Unisave.Foundation;
+using Unisave.Logging;
 using Unisave.Runtime;
 using Unisave.Sessions;
 
@@ -36,7 +37,7 @@ namespace Unisave.Testing
             );
             
             // prepare environment
-            var env = new Env();
+            var env = new EnvStore();
             DownloadEnvFile(env);
             
             // create testing backend application
@@ -50,6 +51,11 @@ namespace Unisave.Testing
             ClientApp.Singleton<FacetCaller>(
                 _ => new TestingFacetCaller(App, ClientApp)
             );
+            
+            // logging should go direct, we don't want to wait for app disposal
+            // for writing logs to special values
+            // HACK: this is a hack, see the ClientSideLog class for more
+            App.Singleton<ILog>(_ => new ClientSideLog());
             
             // bind facades
             Facade.SetApplication(App);
@@ -69,13 +75,14 @@ namespace Unisave.Testing
             App.Dispose();
         }
 
-        private void DownloadEnvFile(Env env)
+        private void DownloadEnvFile(EnvStore env)
         {
             // TODO: the .env file will be downloaded from the cloud
             
             // TODO: cache the env file between individual test runs
             // (download only once per the test suite execution
             // - use SetUpFixture, or OneTimeSetup)
+            // cache only the downloaded string, but reset env for each test
             
             env["SESSION_DRIVER"] = "arango";
             env["ARANGO_DRIVER"] = "http";
