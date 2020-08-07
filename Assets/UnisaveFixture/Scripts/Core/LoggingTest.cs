@@ -1,12 +1,11 @@
 using System.Collections;
 using System.Text.RegularExpressions;
-using AcceptanceTests.Backend.Logging;
-using NUnit.Framework;
 using Unisave.Facades;
+using UnisaveFixture.Backend.Core.Logging;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace AcceptanceTests
+namespace UnisaveFixture.Core
 {
     public class LoggingTest
     {

@@ -1,55 +1,88 @@
 using System;
 using System.Collections.Generic;
+using LightJson;
 using NUnit.Framework;
+using Unisave.Arango;
+using Unisave.Contracts;
+using Unisave.Facades;
+using Unisave.Facets;
 using Unisave.Foundation;
-using Unisave.Testing;
+using Unisave.Runtime;
 
 namespace Unisave.Testing
 {
     /// <summary>
     /// Base class for Unisave backend tests
     /// </summary>
-    public class BackendTestCase : BasicBackendTestCase
+    public abstract partial class BackendTestCase
     {
-        // TODO:
-        // - soak up BasicBackendTestCase into this class
-        //     - actually just move testing away from framework into the asset
-        // - redesign client -> ClientApplication, ClientFacade(s)
-        //     - all interactions with the ClientApp goe through ClientFacades
+        /// <summary>
+        /// The client application behind client facades
+        /// </summary>
+        protected ClientApplication ClientApp { get; private set; }
+        
+        /// <summary>
+        /// The server application behind server facades
+        /// </summary>
+        protected Application App { get; private set; }
         
         [SetUp]
         public virtual void SetUp()
         {
-            var env = new Env();
-            SetUpDefaultEnv(env);
-            
-            // override with additional test configuration
-            var preferences = UnisavePreferences.LoadOrCreate();
-            if (preferences.TestingEnv != null)
-            {
-                var overrideEnv = Env.Parse(preferences.TestingEnv.text);
-                env.OverrideWith(overrideEnv);
-            }
-            
-            base.SetUp(
-                GetGameAssemblyTypes(),
-                env
+            ClientApp = new ClientApplication(
+                UnisavePreferences.LoadOrCreate()
             );
+            
+            var env = new Env();
+            
+            DownloadEnvFile(env);
+            
+            App = Bootstrap.Boot(
+                GetGameAssemblyTypes(),
+                env,
+                new SpecialValues()
+            );
+            
+            // swap out facet caller implementation
+            ClientApp.Singleton<FacetCaller>(
+                _ => new TestingFacetCaller(App, ClientApp)
+            );
+            
+            Facade.SetApplication(App);
+            ClientFacade.SetApplication(ClientApp);
+            
+            ClearDatabase();
         }
-        
-        /// <summary>
-        /// Sets up default values for the env configuration,
-        /// before they get overriden by the testing env file
-        /// </summary>
-        private void SetUpDefaultEnv(Env env)
+
+        [TearDown]
+        public virtual void TearDown()
         {
+            Facade.SetApplication(null);
+            ClientFacade.SetApplication(null);
+            
+            App.Dispose();
+        }
+
+        private void DownloadEnvFile(Env env)
+        {
+            // TODO: the .env file will be downloaded from the cloud
+            
+            // TODO: cache the env file between individual test runs
+            // (download only once per the test suite execution
+            // - use SetUpFixture, or OneTimeSetup)
+            
             env["SESSION_DRIVER"] = "memory";
+            env["ARANGO_DRIVER"] = "http";
+            env["ARANGO_BASE_URL"] = "http://127.0.0.1:8529/";
+            env["ARANGO_DATABASE"] = "db_Jj0Y3Fu6";
+            env["ARANGO_USERNAME"] = "db_user_Jj0Y3Fu6";
+            env["ARANGO_PASSWORD"] = "JSmhb08w9fDCweT+ux/CM/Ur";
         }
         
         private Type[] GetGameAssemblyTypes()
         {
             // NOTE: gets all possible types, since there might be asm-def files
-            // that make the situation more difficult
+            // that makes the situation more difficult
             
             List<Type> types = new List<Type>();
 
@@ -60,65 +93,20 @@ namespace Unisave.Testing
 
             return types.ToArray();
         }
-        
-        [TearDown]
-        public override void TearDown()
-        {
-            base.TearDown();
-        }
-        
-        //////////////////////////
-        // Implement assertions //
-        //////////////////////////
-        
-        protected override void AssertAreEqual(
-            object expected, object actual, string message = null
-        )
-        {
-            if (message == null)
-                Assert.AreEqual(expected, actual);
-            else
-                Assert.AreEqual(expected, actual, message);
-        }
 
-        protected override void AssertIsNull(
-            object subject, string message = null
-        )
+        private void ClearDatabase()
         {
-            if (message == null)
-                Assert.IsNull(subject);
-            else
-                Assert.IsNull(subject, message);
-        }
+            var arango = (ArangoConnection)App.Resolve<IArango>();
+            
+            JsonArray collections = arango.Get("/_api/collection")["result"];
 
-        protected override void AssertIsNotNull(
-            object subject, string message = null
-        )
-        {
-            if (message == null)
-                Assert.IsNotNull(subject);
-            else
-                Assert.IsNotNull(subject, message);
-        }
-
-        public override void AssertIsTrue(
-            bool condition, string message = null
-        )
-        {
-            if (message == null)
-                Assert.IsTrue(condition);
-            else
-                Assert.IsTrue(condition, message);
-        }
-
-        public override void AssertIsFalse(
-            bool condition, string message = null
-        )
-        {
-            if (message == null)
-                Assert.IsFalse(condition);
-            else
-                Assert.IsFalse(condition, message);
+            foreach (var c in collections)
+            {
+                if (c["isSystem"].AsBoolean)
+                    continue;
+                
+                arango.DeleteCollection(c["name"]);
+            }
         }
     }
 }

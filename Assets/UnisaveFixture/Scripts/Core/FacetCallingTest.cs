@@ -1,10 +1,10 @@
 using System.Collections;
-using AcceptanceTests.Backend.FacetCalling;
 using NUnit.Framework;
 using Unisave.Facades;
+using UnisaveFixture.Backend.Core.FacetCalling;
 using UnityEngine.TestTools;
 
-namespace AcceptanceTests
+namespace UnisaveFixture.Core
 {
     public class FacetCallingTest
     {

@@ -1,8 +1,7 @@
-using System;
 using Unisave.Facades;
 using Unisave.Facets;
 
-namespace AcceptanceTests.Backend.SingleEntityOperations
+namespace UnisaveFixture.Backend.Core.SingleEntityOperations
 {
     public class SeoFacet : Facet
     {

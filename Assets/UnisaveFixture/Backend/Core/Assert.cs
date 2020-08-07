@@ -1,6 +1,6 @@
 using System;
 
-namespace AcceptanceTests.Backend
+namespace UnisaveFixture.Backend.Core
 {
     /// <summary>
     /// Simple assertions so that NUnit need not be compiled on the server

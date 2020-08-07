@@ -1,6 +1,6 @@
 using Unisave.Entities;
 
-namespace AcceptanceTests.Backend.SingleEntityOperations
+namespace UnisaveFixture.Backend.Core.SingleEntityOperations
 {
     public class SeoEntity : Entity
     {

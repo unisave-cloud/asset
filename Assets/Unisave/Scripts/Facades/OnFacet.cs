@@ -1,7 +1,7 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using RSG;
 using Unisave.Facets;
-using Unisave.Foundation;
 
 namespace Unisave.Facades
 {
@@ -56,6 +56,47 @@ namespace Unisave.Facades
         }
 
         /// <summary>
+        /// Same as Call, but synchronous, blocking the thread
+        /// (use only in tests, otherwise it will freeze your game)
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="arguments"></param>
+        /// <typeparam name="TReturn"></typeparam>
+        /// <returns></returns>
+        public static TReturn CallSync<TReturn>(
+            string methodName,
+            params object[] arguments
+        )
+        {
+            bool finished = false;
+            
+            TReturn result = default;
+            Exception exception = null;
+            
+            Call<TReturn>(methodName, arguments)
+                .Then(r => {
+                    finished = true;
+                    result = r;
+                })
+                .Catch(e => {
+                    finished = true;
+                    exception = e;
+                });
+            
+            if (!finished)
+                throw new InvalidOperationException(
+                    "You can only use OnFacet<T>.CallSync() inside " +
+                    "integration tests. It would freeze your game should " +
+                    "it be used in your game code."
+                );
+
+            if (exception != null)
+                throw exception;
+
+            return result;
+        }
+
+        /// <summary>
         /// Calls a facet method that returns void
         /// </summary>
         /// <param name="methodName">Name of the facet method</param>
@@ -88,6 +129,42 @@ namespace Unisave.Facades
                 });
 
             return source.Task;
+        }
+        
+        /// <summary>
+        /// Same as Call, but synchronous, blocking the thread
+        /// (use only in tests, otherwise it will freeze your game)
+        /// </summary>
+        /// <param name="methodName"></param>
+        /// <param name="arguments"></param>
+        /// <returns></returns>
+        public static void CallSync(
+            string methodName,
+            params object[] arguments
+        )
+        {
+            bool finished = false;
+            
+            Exception exception = null;
+            
+            Call(methodName, arguments)
+                .Then(() => {
+                    finished = true;
+                })
+                .Catch(e => {
+                    finished = true;
+                    exception = e;
+                });
+            
+            if (!finished)
+                throw new InvalidOperationException(
+                    "You can only use OnFacet<T>.CallSync() inside " +
+                    "integration tests. It would freeze your game should " +
+                    "it be used in your game code."
+                );
+
+            if (exception != null)
+                throw exception;
         }
     }
 }

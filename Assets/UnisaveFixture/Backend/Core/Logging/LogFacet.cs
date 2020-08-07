@@ -3,7 +3,7 @@ using Unisave.Facades;
 using Unisave.Facets;
 using UnityEngine;
 
-namespace AcceptanceTests.Backend.Logging
+namespace UnisaveFixture.Backend.Core.Logging
 {
     public class LogFacet : Facet
     {

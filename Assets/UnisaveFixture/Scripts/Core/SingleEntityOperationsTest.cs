@@ -1,11 +1,9 @@
 using System.Collections;
-using AcceptanceTests.Backend.SingleEntityOperations;
-using NUnit.Framework;
 using Unisave.Facades;
-using UnityEngine;
+using UnisaveFixture.Backend.Core.SingleEntityOperations;
 using UnityEngine.TestTools;
 
-namespace AcceptanceTests
+namespace UnisaveFixture.Core
 {
     public class SingleEntityOperationsTest
     {

@@ -1,7 +1,7 @@
 using System;
 using Unisave.Facets;
 
-namespace AcceptanceTests.Backend.FacetCalling
+namespace UnisaveFixture.Backend.Core.FacetCalling
 {
     public class FcFacet : Facet
     {

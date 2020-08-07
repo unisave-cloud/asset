@@ -39,10 +39,6 @@ in.
             - Testing
                 > Support code for writing integration tests for your backend.
                   (analogous to Scripts or Editor, but for your tests)
-            - Tests
-                > Unit tests for the Unisave Scripts & Editor folders.
-                  It's not really used yet. More likely it will be
-                  replaced by the UnisaveFixture in the future.
         - UnisaveFixture
             > See the README.md inside
 
