@@ -1,18 +1,18 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Net;
-using System.Net.Http;
-using System.Threading.Tasks;
 using LightJson;
 using NUnit.Framework;
 using Unisave.Arango;
 using Unisave.Contracts;
 using Unisave.Facades;
+using Unisave.Facets;
 using Unisave.Foundation;
 using Unisave.Runtime;
 using UnisaveFixture.Backend.ExampleTesting;
+using UnisaveFixture.ExampleTesting;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.TestTools;
 using Application = Unisave.Foundation.Application;
 
@@ -23,6 +23,7 @@ namespace UnisaveFixture.Tests.ExampleTesting
         #region "Test case behind the scenes"
         
         private Application app;
+        private ClientApplication clientApp;
         
         [SetUp]
         public void SetUp()
@@ -30,9 +31,7 @@ namespace UnisaveFixture.Tests.ExampleTesting
             var env = new Env();
             
             // TODO: the .env file will be downloaded from the cloud
-            
             env["SESSION_DRIVER"] = "memory";
-            
             env["ARANGO_DRIVER"] = "http";
             env["ARANGO_BASE_URL"] = "http://127.0.0.1:8529/";
             env["ARANGO_DATABASE"] = "db_Jj0Y3Fu6";
@@ -45,8 +44,18 @@ namespace UnisaveFixture.Tests.ExampleTesting
                 new SpecialValues()
             );
             
-            // TODO: set ClientApplication to ClientFacade
+            clientApp = new ClientApplication(
+                // TODO: resolve unisave preferences via some overriding stack
+                UnisavePreferences.LoadOrCreate()
+            );
+            
+            // swap out facet caller implementation
+            clientApp.Singleton<FacetCaller>(
+                _ => new TestingFacetCaller(app, clientApp)
+            );
+            
             Facade.SetApplication(app);
+            ClientFacade.SetApplication(clientApp);
             
             ClearDatabase();
         }
@@ -104,34 +113,41 @@ namespace UnisaveFixture.Tests.ExampleTesting
             Assert.AreEqual(entity.CreatedAt, loaded.CreatedAt);
         }
         
-        [Test]
-        public async Task ItCanCallFacetsFromTestMethod()
+        [UnityTest]
+        public IEnumerator ItCanCallFacetsFromTestMethod()
         {
-            int result = await OnFacet<ExampleTestingFacet>.CallAsync<int>(
+            ExampleTestingFacet.addNumbersWasCalled = false;
+            
+            // TODO: CallSync for TestingFacetCaller
+            yield return OnFacet<ExampleTestingFacet>.Call<int>(
                 nameof(ExampleTestingFacet.AddNumbers),
                 4, 7
-            );
-            
-            Assert.AreEqual(11, result);
+            ).Then(result => {
+                Assert.AreEqual(11, result);
+                Assert.IsTrue(ExampleTestingFacet.addNumbersWasCalled);
+            }).AsCoroutine();
         }
         
-        // TODO: ItCanCallFacetsFromScene
-        
-//        [Test]
-//        public void ExampleIntegrationTestSimplePasses()
-//        {
-//            // Use the Assert class to test conditions.
-//            
-//        }
-//
-//        // A UnityTest behaves like a coroutine in PlayMode
-//        // and allows you to yield null to skip a frame in EditMode
-//        [UnityTest]
-//        public IEnumerator ExampleIntegrationTestWithEnumeratorPasses()
-//        {
-//            // Use the Assert class to test conditions.
-//            // yield to skip a frame
-//            yield return null;
-//        }
+        [UnityTest]
+        public IEnumerator ItCanCallFacetsFromScene()
+        {
+            ExampleTestingFacet.addNumbersWasCalled = false;
+            
+            SceneManager.LoadScene(
+                "UnisaveFixture/Scripts/ExampleTesting/ExampleTestingScene"
+            );
+            
+            yield return null;
+
+            var client = GameObject
+                .Find("ExampleTestingClient")
+                .GetComponent<ExampleTestingClient>();
+            
+            client.CallAddingFacet();
+            
+            yield return null;
+            
+            Assert.IsTrue(ExampleTestingFacet.addNumbersWasCalled);
+        }
     }
 }

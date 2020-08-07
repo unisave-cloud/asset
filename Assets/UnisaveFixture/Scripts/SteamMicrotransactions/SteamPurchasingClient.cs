@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace UnisaveFixture.SteamMicrotransactions
 {
-    public class SteamMicrotransactionManager : MonoBehaviour
+    public class SteamPurchasingClient : MonoBehaviour
     {
         /// <summary>
         /// Emulates clicking "Buy" on an ExampleVirtualProduct.

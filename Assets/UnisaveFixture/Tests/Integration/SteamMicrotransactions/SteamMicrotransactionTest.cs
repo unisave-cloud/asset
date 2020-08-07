@@ -17,8 +17,8 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
     [TestFixture]
     public class SteamMicrotransactionTest : BackendTestCase
     {
-        private class SteamMicrotransactionManagerMock
-            : SteamMicrotransactionManager
+        private class SteamPurchasingClientMock
+            : SteamPurchasingClient
         {
             protected override ulong GetSteamId()
             {
@@ -45,7 +45,7 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
         {
             // setup scene
             var go = new GameObject();
-            var smm = go.AddComponent<SteamMicrotransactionManagerMock>();
+            var smm = go.AddComponent<SteamPurchasingClientMock>();
             yield return null;
 
             // setup HTTP
@@ -82,7 +82,7 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
         {
             // scene setup
             var go = new GameObject();
-            var smm = go.AddComponent<SteamMicrotransactionManager>();
+            var smm = go.AddComponent<SteamPurchasingClient>();
             
             yield return null;
             
