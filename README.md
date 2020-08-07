@@ -20,3 +20,8 @@ distributed via the Unity Asset Store. It contains the code that facilitates Uni
 Your backend code, however, interacts primarily with
 the [Unisave Framework](https://github.com/Jirka-Mayer/UnisaveFramework),
 bundled within this asset as a `.dll` library.
+
+### Internal asset documentation
+
+For documentation of the asset structure, see
+[internal asset documentation](docs).
