@@ -33,11 +33,6 @@ namespace Unisave.Editor.DataWindow
         {
             OnRefresh += PerformRefresh;
 
-            ClientApplication
-                .GetInstance()
-                .Resolve<EmulatedFacetCaller>()
-                .OnFacetCalled += PerformRefresh;
-
             titleContent.image = AssetDatabase.LoadAssetAtPath<Texture>(
                 "Assets/Unisave/Images/WindowIcon.png"
             );
@@ -51,11 +46,6 @@ namespace Unisave.Editor.DataWindow
         private void OnDisable()
         {
             OnRefresh -= PerformRefresh;
-            
-            ClientApplication
-                .GetInstance()
-                .Resolve<EmulatedFacetCaller>()
-                .OnFacetCalled -= PerformRefresh;
         }
 
         /// <summary>

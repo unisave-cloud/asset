@@ -88,12 +88,6 @@ namespace Unisave.Editor
 			preferences.EditorKey = EditorGUILayout.TextField("Editor key", preferences.EditorKey);
 
 			GUILayout.Space(15f);
-
-			GUILayout.Label("Server emulation", EditorStyles.boldLabel);
-			preferences.AlwaysEmulate = EditorGUILayout.Toggle("Emulate", preferences.AlwaysEmulate);
-			preferences.EmulatedDatabaseName = EditorGUILayout.TextField("Emulated database name", preferences.EmulatedDatabaseName);
-			
-			GUILayout.Space(15f);
 			
 			GUILayout.Label("Backend folder uploading", EditorStyles.boldLabel);
 			preferences.BackendFolder = EditorGUILayout.TextField("Backend assets folder", preferences.BackendFolder);

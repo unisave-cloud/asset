@@ -42,22 +42,6 @@ namespace Unisave.Foundation
             Singleton<SessionIdRepository>(_ => new SessionIdRepository());
             Singleton<DeviceIdRepository>(_ => new DeviceIdRepository());
             
-            // TODO: remove this obsolete code thing
-            /*Bind<ArangoRepository>(_ => ArangoRepository.GetInstance());
-            
-            Bind<FacetCaller>(_ => {
-                if (Preferences.AlwaysEmulate)
-                    return Resolve<EmulatedFacetCaller>();
-                
-                return Resolve<UnisaveFacetCaller>();
-            });
-
-            Singleton<EmulatedFacetCaller>(_ => new EmulatedFacetCaller(this));
-            
-            Singleton<UnisaveFacetCaller>(_ => new UnisaveFacetCaller(this));*/
-            
-            // TODO: remove this comment with the code above
-            // (this is the new facet calling implementation)
             Singleton<FacetCaller>(_ => new UnisaveFacetCaller(this));
         }
         

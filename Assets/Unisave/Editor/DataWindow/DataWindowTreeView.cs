@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using Unisave.Arango;
-using Unisave.Editor.DataWindow.SelectionWrappers;
 using Unisave.Editor.DataWindow.TreeItems;
 using Unisave.Foundation;
 using Unisave.Sessions;
@@ -28,11 +26,6 @@ namespace Unisave.Editor.DataWindow
                 displayName = "Root"
             };
 
-            root.AddChild(new EmulatedDatabasesItem(
-                ClientApplication.GetInstance().Resolve<ArangoRepository>(),
-                idAllocator
-            ));
-            
             root.AddChild(new SessionIdItem(
                 ClientApplication.GetInstance().Resolve<SessionIdRepository>(),
                 idAllocator
@@ -55,17 +48,7 @@ namespace Unisave.Editor.DataWindow
             
             switch (SelectedItem)
             {
-                case DatabaseItem item:
-                    DatabaseSelectionWrapper.Select(item);
-                    break;
-                
-                case CollectionItem item:
-                    CollectionSelectionWrapper.Select(item);
-                    break;
-                
-                case DocumentItem item:
-                    DocumentSelectionWrapper.Select(item);
-                    break;
+                // ...
                 
                 default:
                     Selection.SetActiveObjectWithContext(null, null);

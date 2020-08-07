@@ -277,29 +277,5 @@ namespace Unisave.Foundation
 
 		[SerializeField]
 		private TextAsset testingEnv;
-
-		/// <summary>
-		/// Name of the emulated database to use
-		/// </summary>
-		public string EmulatedDatabaseName
-		{
-			get => emulatedDatabaseName;
-			set => emulatedDatabaseName = value;
-		}
-		
-		[SerializeField]
-		private string emulatedDatabaseName = "main";
-
-		/// <summary>
-		/// Emulate even if the scene does not require it
-		/// </summary>
-		public bool AlwaysEmulate
-		{
-			get => alwaysEmulate;
-			set => alwaysEmulate = value;
-		}
-		
-		[SerializeField]
-		private bool alwaysEmulate;
 	}
 }
