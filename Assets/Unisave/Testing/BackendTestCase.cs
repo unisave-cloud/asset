@@ -8,6 +8,7 @@ using Unisave.Facades;
 using Unisave.Facets;
 using Unisave.Foundation;
 using Unisave.Runtime;
+using Unisave.Sessions;
 
 namespace Unisave.Testing
 {
@@ -29,28 +30,33 @@ namespace Unisave.Testing
         [SetUp]
         public virtual void SetUp()
         {
+            // create testing client application
             ClientApp = new ClientApplication(
                 UnisavePreferences.LoadOrCreate()
             );
             
+            // prepare environment
             var env = new Env();
-            
             DownloadEnvFile(env);
             
+            // create testing backend application
             App = Bootstrap.Boot(
                 GetGameAssemblyTypes(),
                 env,
                 new SpecialValues()
             );
             
-            // swap out facet caller implementation
+            // execute backend code locally
             ClientApp.Singleton<FacetCaller>(
                 _ => new TestingFacetCaller(App, ClientApp)
             );
             
+            // bind facades
             Facade.SetApplication(App);
             ClientFacade.SetApplication(ClientApp);
             
+            // start with a blank slate
+            ClientApp.Resolve<SessionIdRepository>().StoreSessionId(null);
             ClearDatabase();
         }
 
@@ -71,7 +77,7 @@ namespace Unisave.Testing
             // (download only once per the test suite execution
             // - use SetUpFixture, or OneTimeSetup)
             
-            env["SESSION_DRIVER"] = "memory";
+            env["SESSION_DRIVER"] = "arango";
             env["ARANGO_DRIVER"] = "http";
             env["ARANGO_BASE_URL"] = "http://127.0.0.1:8529/";
             env["ARANGO_DATABASE"] = "db_Jj0Y3Fu6";

@@ -5,7 +5,7 @@ using UnisaveFixture.Backend.Core.Logging;
 using UnityEngine;
 using UnityEngine.TestTools;
 
-namespace UnisaveFixture.Core
+namespace UnisaveFixture.Tests.Core
 {
     public class LoggingTest
     {

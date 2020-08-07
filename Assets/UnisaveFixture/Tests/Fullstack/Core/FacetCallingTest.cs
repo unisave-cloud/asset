@@ -4,7 +4,7 @@ using Unisave.Facades;
 using UnisaveFixture.Backend.Core.FacetCalling;
 using UnityEngine.TestTools;
 
-namespace UnisaveFixture.Core
+namespace UnisaveFixture.Tests.Core
 {
     public class FacetCallingTest
     {

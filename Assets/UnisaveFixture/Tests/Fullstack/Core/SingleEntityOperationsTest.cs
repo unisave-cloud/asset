@@ -3,7 +3,7 @@ using Unisave.Facades;
 using UnisaveFixture.Backend.Core.SingleEntityOperations;
 using UnityEngine.TestTools;
 
-namespace UnisaveFixture.Core
+namespace UnisaveFixture.Tests.Core
 {
     public class SingleEntityOperationsTest
     {
