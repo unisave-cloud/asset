@@ -4,17 +4,20 @@ using Unisave.Facades;
 namespace UnisaveFixture.Backend.SteamMicrotransactions.VirtualProducts
 {
     /*
-     * Learn more at:
+     * SteamMicrotransactions template - v0.9.0
+     * ----------------------------------------
+     *
+     * This is an example product that can be purchased via Steam.
+     * Modify, duplicate, and rename this the way you need.
+     * Example products: "medium gold pack", "premium for a month", "no ads" ...
+     * 
+     * Read more from Steam:
      * https://partner.steamgames.com/doc/features/microtransactions/implementation
      *
      * List of currencies supported by Steam:
      * https://partner.steamgames.com/doc/store/pricing/currencies
      */
     
-    /// <summary>
-    /// An example virtual product
-    /// (e.g. medium gold pack, premium account for 30 day, etc...)
-    /// </summary>
     public class ExampleVirtualProduct : IVirtualProduct
     {
         /// <summary>
@@ -30,7 +33,7 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions.VirtualProducts
         /// </summary>
         public IReadOnlyDictionary<string, decimal> UnitCost
             => new Dictionary<string, decimal> {
-                ["USD"] = 5.00m,
+                ["USD"] = 5.00m, // "m" means "decimal type"
                 ["EUR"] = 4.25m
             };
         
@@ -57,20 +60,19 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions.VirtualProducts
         /// should be given to the player. The method is called as many times,
         /// as the specified product quantity.
         /// </summary>
-        /// <param name="transaction"></param>
         public void GiveToPlayer(SteamTransactionEntity transaction)
         {
-            // NOTE: Implement your logic here.
+            Log.Info(
+                $"Giving item {nameof(ExampleVirtualProduct)} to the player..."
+            );
+            
+            // Implement your logic here.
             // Say you want to give gold to the player:
             //
             //    var player = Auth.GetPlayer<PlayerEntity>();
             //    player.gold += 1_000;
             //    player.Save();
             //
-            
-            Log.Info(
-                $"Giving item {nameof(ExampleVirtualProduct)} to the player..."
-            );
         }
     }
 }

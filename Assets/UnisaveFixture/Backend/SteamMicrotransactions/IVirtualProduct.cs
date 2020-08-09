@@ -2,6 +2,15 @@ using System.Collections.Generic;
 
 namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
+    /*
+     * SteamMicrotransactions template - v0.9.0
+     * ----------------------------------------
+     *
+     * This interface describes a product that can be purchased via Steam.
+     *
+     * See the ExampleVirtualProduct.cs file to learn more.
+     */
+    
     /// <summary>
     /// Interface for a virtual product (item)
     /// that can be purchased via a Steam microtransaction

@@ -157,7 +157,7 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
             }, 200));
             
             // Steamworks fires the callback
-            smm.AfterSteamHandledCheckout(
+            smm.SteamworksCallbackHandler(
                 new MicroTxnAuthorizationResponse_t {
                     m_ulOrderID = 111222333L,
                     m_unAppID = 440,

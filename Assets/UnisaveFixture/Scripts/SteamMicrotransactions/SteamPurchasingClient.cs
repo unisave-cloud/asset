@@ -7,27 +7,104 @@ using UnityEngine;
 
 namespace UnisaveFixture.SteamMicrotransactions
 {
+    /*
+     * SteamMicrotransactions template - v0.9.0
+     * ----------------------------------------
+     * 
+     * This script is where you initiate and finalize Steam transactions.
+     *
+     * You need to have Steamworks.NET installed in your project in order
+     * for this script to work. See:
+     * https://steamworks.github.io/installation/
+     *
+     * This script has been developed and tested on Steamworks.NET v14.0.0
+     */
+    
     public class SteamPurchasingClient : MonoBehaviour
     {
         /// <summary>
-        /// Emulates clicking "Buy" on an ExampleVirtualProduct.
-        /// Modify, rename, duplicate this method as you see fit.
+        /// This method is an example of transaction initiation.
+        /// Modify, duplicate, and rename it to implement what you need.
         /// </summary>
-        public async void PlayerClickedBuy()
+        public void PlayerClickedBuy()
         {
-            // NOTE: This method acts as an example. You can modify,
-            // duplicate, rename it to implement all the behaviour you need.
-            
             var transaction = new SteamTransactionEntity {
                 playerSteamId = GetSteamId(),
                 language = "en",
                 currency = "USD"
             };
+            transaction.AddProduct<ExampleVirtualProduct>(quantity: 3);
 
-            transaction.AddProduct<ExampleVirtualProduct>(
-                quantity: 3
+            SendTransactionProposalToPurchasingServer(transaction);
+        }
+
+        /// <summary>
+        /// Called when a transaction successfully finishes
+        /// </summary>
+        private void TransactionHasBeenSuccessful(
+            SteamTransactionEntity transaction
+        )
+        {
+            // Here you should display a dialog to the player, saying:
+            //
+            // +------------------------------------------------+
+            // | Your purchase has been successful, thank you.  |
+            // |                                       [- OK -] |
+            // +------------------------------------------------+
+            //
+            
+            // The purchased items have been already given to the player,
+            // see ExampleVirtualProduct.GiveToPlayer(...) to learn more.
+            
+            // Reload the scene or pull the new player data from the server,
+            // to make sure the player sees the bought products.
+            
+            Debug.Log(
+                "The transaction has succeeded and the products have been " +
+                "given to the player. Now it's time to refresh data from the " +
+                "server so that the player sees the purchased items."
             );
+        }
 
+        /// <summary>
+        /// Called when an error message should be displayed to the player
+        /// </summary>
+        private void ReportErrorToThePlayer(string message)
+        {
+            // Here you should display a dialog to the player, saying:
+            //
+            // +------------------------------------------------+
+            // | Sorry, your purchase failed. The reason is:    |
+            // | {message}                                      |
+            // |                                       [- OK -] |
+            // +------------------------------------------------+
+            //
+            
+            Debug.LogError("The transaction failed because of:\n" + message);
+        }
+        
+        
+        
+    // =========================================================================
+    //                    Don't worry about the code below
+    // =========================================================================
+  
+    
+        
+        #region "Utilities"
+    
+        /// <summary>
+        /// Returns Steam ID of the current player
+        /// </summary>
+        protected virtual ulong GetSteamId()
+        {
+            return SteamUser.GetSteamID().m_SteamID;
+        }
+        
+        private async void SendTransactionProposalToPurchasingServer(
+            SteamTransactionEntity transaction
+        )
+        {
             try
             {
                 await OnFacet<SteamPurchasingServerFacet>.CallAsync(
@@ -41,60 +118,15 @@ namespace UnisaveFixture.SteamMicrotransactions
             }
         }
         
-        /// <summary>
-        /// Called when a transaction successfully finishes
-        /// </summary>
-        /// <param name="transaction"></param>
-        public void TransactionHasBeenSuccessful(
-            SteamTransactionEntity transaction
-        )
-        {
-            // NOTE: Modify this method to perform the logic you want.
-            // - Load new player data from the server
-            //    - e.g. reload this scene / go to another scene / other reloading
-            // - Display a success dialog
-            
-            // WARNING: Don't give the purchased products to the player here,
-            // use ExampleVirtualProduct.GiveToPlayer(...) instead.
-            // Here we are on the untrusted client-side.
-            
-            Debug.Log(
-                "The transaction has succeeded and the products have been " +
-                "given to the player. Now it's time to refresh data from the " +
-                "server so that the player sees the purchased items."
-            );
-        }
-
-        /// <summary>
-        /// Displays error message to the player
-        /// </summary>
-        /// <param name="message">The technical message behind the error</param>
-        public void ReportErrorToThePlayer(string message)
-        {
-            // NOTE: Modify this method to perform the logic you want.
-            // - Display an error dialog
-            
-            Debug.LogError("Steam microtransaction failed: " + message);
-        }
+        #endregion
         
-        
-        //
-        // ====================================================
-        //
-        //           Don't worry about the code below.
-        //
-        //           (you can, but you don't have to)
-        //
-        // ====================================================
-        //
-  
-        
+        #region "Steamworks callback handling"
+    
         /// <summary>
         /// This method is called by Steamworks when the transaction finishes
-        /// (successfully or not - see the method argument)
+        /// (player either authorized or aborted the transaction)
         /// </summary>
-        /// <param name="response"></param>
-        public async void AfterSteamHandledCheckout(
+        public async void SteamworksCallbackHandler(
             MicroTxnAuthorizationResponse_t response
         )
         {
@@ -111,15 +143,14 @@ namespace UnisaveFixture.SteamMicrotransactions
             }
             catch (Exception e)
             {
-                throw; // TODO DEBUG
                 ReportErrorToThePlayer(e.Message);
                 return;
             }
             
-            // transaction has been rejected by the player
+            // transaction has been aborted by the player
             if (response.m_bAuthorized != 1)
             {
-                ReportErrorToThePlayer("User rejected the transaction");
+                ReportErrorToThePlayer("You've aborted the transaction.");
                 return;
             }
 
@@ -138,7 +169,7 @@ namespace UnisaveFixture.SteamMicrotransactions
             if (SteamManager.Initialized)
             {
                 callback = Callback<MicroTxnAuthorizationResponse_t>
-                    .Create(AfterSteamHandledCheckout);
+                    .Create(SteamworksCallbackHandler);
             }
         }
         
@@ -151,14 +182,7 @@ namespace UnisaveFixture.SteamMicrotransactions
                 callback = null;
             }
         }
-
-        /// <summary>
-        /// Returns steam ID of the current player.
-        /// (It's a separate method to allow for mocking and testing.)
-        /// </summary>
-        protected virtual ulong GetSteamId()
-        {
-            return SteamUser.GetSteamID().m_SteamID;
-        }
+        
+        #endregion
     }
 }

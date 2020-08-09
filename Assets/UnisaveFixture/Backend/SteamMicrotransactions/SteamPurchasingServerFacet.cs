@@ -2,83 +2,114 @@ using System;
 using System.Collections.Generic;
 using Unisave.Facades;
 using Unisave.Facets;
+using Unisave.Http.Client;
 using Unisave.Utils;
+
+// TODO: incorporate sandbox API:
+// https://partner.steamgames.com/doc/webapi/ISteamMicroTxnSandbox
+// TODO: test entire URLs, not just .Contains
 
 namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
+    /*
+     * SteamMicrotransactions template - v0.9.0
+     * ----------------------------------------
+     * 
+     * This facet acts as the purchasing server described by Steam.
+     * It makes requests to Steam API, initiating and finishing transactions.
+     *
+     * Read more from Steam:
+     * https://partner.steamgames.com/doc/features/microtransactions/implementation
+     *
+     * Environment variables needed:
+     * STEAM_API_URL=https://partner.steam-api.com/
+     * STEAM_APP_ID=480
+     * STEAM_PUBLISHER_KEY=secret
+     * STEAM_USE_MICROTRANSACTION_SANDBOX=false
+     */
+    
     public class SteamPurchasingServerFacet : Facet
     {
-        // TODO: incorporate sandbox API:
-        // https://partner.steamgames.com/doc/webapi/ISteamMicroTxnSandbox
-        // TODO: test entire URLs, not just .Contains
-        
         /// <summary>
-        /// URL of the Steam API, ending with a slash
+        /// Call this method from anywhere within your game
+        /// to initiate a new transaction
         /// </summary>
-        private string SteamApiUrl
-            => Str.Finish(
-                input: Env.GetString(
-                    key: "STEAM_API_URL",
-                    defaultValue: "https://partner.steam-api.com/"
-                ),
-                tail: "/"
-            );
-        
-        /// <summary>
-        /// Call this method to initiate a new transaction
-        /// </summary>
-        /// <param name="transaction"></param>
+        /// <param name="transaction">Proposal of a new transaction</param>
         public void InitiateTransaction(SteamTransactionEntity transaction)
         {
-            // check transaction has all the required values present
-            ValidateNewTransaction(transaction);
+            ValidateTransactionProposal(transaction);
             
-            // remember the transaction
-            //
-            // NOTE: Here you can add additional data into
-            // the transaction entity, like currently logged-in player, etc...
-            transaction.state = SteamTransactionEntity.BeingPreparedState;
-            transaction.Save();
+            // You can add additional data to the transaction entity
+            // e.g. the currently logged-in player ID
+            // transaction.player = Auth.GetPlayer<PlayerEntity>();
             
-            // tell Steam we want to initiate a transaction
-            var response = Http.Post(
-                SteamApiUrl + "ISteamMicroTxn/InitTxn/v3/",
-                BuildInitTxnRequestBody(transaction)
-            );
-            response.Throw();
+            StoreNewTransaction(transaction);
 
-            // Steam returned a non-OK response
+            Response response = SendInitiationRequestToSteam(transaction);
+
             if (response["response"]["result"].AsString != "OK")
-            {
-                transaction.state = SteamTransactionEntity.InitiationErrorState;
-                transaction.errorCode
-                    = response["response"]["error"]["errorcode"].AsString;
-                transaction.errorDescription
-                    = response["response"]["error"]["errordesc"].AsString;
-                transaction.Save();
-                
-                Log.Error(
-                    "Steam returned a non-OK initiation response.",
-                    transaction
-                );
-                throw new Exception(
-                    "Steam didn't like the transaction initiation:\n" +
-                    $"[{transaction.errorCode}] {transaction.errorDescription}"
-                );
-            }
+                StoreInitiationErrorAndThrow(transaction, response);
             
-            // remember the transaction ID and update transaction state
-            transaction.state = SteamTransactionEntity.InitiatedState;
-            transaction.transactionId
-                = ulong.Parse(response["response"]["params"]["transid"].AsString);
-            transaction.Save();
-            
-            // Now the player will be prompted by Steam app to authorize the
-            // transaction and after that, Steam will notify your game
-            // via a Steamworks callback.
-        }
+            MarkTransactionAsInitiated(transaction, response);
 
-        private void ValidateNewTransaction(SteamTransactionEntity transaction)
+            // The player will be prompted by the Steam App to authorize
+            // and pay the transaction. Then Steam will notify your game
+            // via a Steamworks callback that is handled automatically
+            // by the SteamPurchasingClient class.
+        }
+        
+        /// <summary>
+        /// This method is called by the SteamPurchasingClient class after
+        /// receiving the Steamworks callback. It finalizes the transaction
+        /// with Steam and then gives the bought products to the player.
+        /// </summary>
+        /// <param name="orderId">The order being finalized</param>
+        /// <param name="authorized">Player authorized or aborted?</param>
+        /// <returns>The final transaction data</returns>
+        public SteamTransactionEntity FinalizeTransaction(
+            ulong orderId,
+            bool authorized
+        )
+        {
+            var transaction = FindInitiatedTransaction(orderId);
+
+            if (!authorized)
+            {
+                MarkTransactionAsAborted(transaction);
+                
+                return transaction;
+            }
+
+            Response response = SendFinalizationRequestToSteam(transaction);
+            
+            if (response["response"]["result"].AsString != "OK")
+                StoreFinalizationErrorAndThrow(transaction, response);
+            
+            MarkTransactionAsAuthorized(transaction);
+            
+            GiveProductsToPlayer(transaction);
+            
+            // Here the proper IVirtualProduct.GiveToPlayer(...) methods
+            // are called so make sure you implement them.
+            
+            MarkTransactionAsCompleted(transaction);
+
+            return transaction;
+        }
+        
+        
+        
+    // =========================================================================
+    //                    Don't worry about the code below
+    // =========================================================================
+        
+        
+        
+        #region "InitiateTransaction implementation"
+
+        private void ValidateTransactionProposal(
+            SteamTransactionEntity transaction
+        )
         {
             if (transaction.EntityId != null)
                 throw new ArgumentException(
@@ -97,7 +128,29 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
                 );
         }
 
-        private Dictionary<string, string> BuildInitTxnRequestBody(
+        private void StoreNewTransaction(SteamTransactionEntity transaction)
+        {
+            transaction.state = SteamTransactionEntity.BeingPreparedState;
+            transaction.Save();
+        }
+
+        private Response SendInitiationRequestToSteam(
+            SteamTransactionEntity transaction
+        )
+        {
+            // https://partner.steamgames.com/doc/webapi/ISteamMicroTxn#InitTxn
+            
+            var response = Http.Post(
+                SteamApiUrl + "ISteamMicroTxn/InitTxn/v3/",
+                BuildInitiationRequestBody(transaction)
+            );
+            
+            response.Throw();
+
+            return response;
+        }
+        
+        private Dictionary<string, string> BuildInitiationRequestBody(
             SteamTransactionEntity transaction
         )
         {
@@ -126,73 +179,43 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
             return body;
         }
 
-        /// <summary>
-        /// This method is called after a transaction is authorized
-        /// by the player and it performs the finalization
-        /// (verifies transaction was paid and gives the player bought products)
-        /// </summary>
-        /// <param name="orderId"></param>
-        /// <param name="authorized">
-        /// Did the player authorize the transaction?
-        /// </param>
-        public SteamTransactionEntity FinalizeTransaction(
-            ulong orderId,
-            bool authorized
+        private void StoreInitiationErrorAndThrow(
+            SteamTransactionEntity transaction,
+            Response response
         )
         {
-            // get the whole transaction again from the order id
-            var transaction = FindInitiatedTransaction(orderId);
+            transaction.state = SteamTransactionEntity.InitiationErrorState;
+            transaction.errorCode
+                = response["response"]["error"]["errorcode"].AsString;
+            transaction.errorDescription
+                = response["response"]["error"]["errordesc"].AsString;
+            transaction.Save();
             
-            // tell Steam we want to finalize the transaction
-            var response = Http.Post(
-                SteamApiUrl + "ISteamMicroTxn/FinalizeTxn/v2/",
-                new Dictionary<string, string> {
-                    ["key"] = Env.GetString("STEAM_PUBLISHER_KEY"),
-                    ["orderid"] = orderId.ToString(),
-                    ["appid"] = Env.GetString("STEAM_APP_ID")
-                }
+            // TODO: custom exception here!
+            // SteamMicrotransactionException + store order id
+            throw new Exception(
+                "Steam rejected transaction initiation with the error:\n" +
+                $"[{transaction.errorCode}] {transaction.errorDescription}"
             );
-            response.Throw();
-
-            // The player didn't authorize the transaction
-            if (!authorized)
-            {
-                transaction.state = SteamTransactionEntity.AuthorizationDeniedState;
-                transaction.Save();
-                return transaction;
-            }
-            
-            // Steam returned a non-OK response
-            if (response["response"]["result"].AsString != "OK")
-            {
-                transaction.state = SteamTransactionEntity.FinalizationErrorState;
-                transaction.errorCode
-                    = response["response"]["error"]["errorcode"].AsString;
-                transaction.errorDescription
-                    = response["response"]["error"]["errordesc"].AsString;
-                transaction.Save();
-                
-                Log.Error(
-                    "Steam returned a non-OK finalization response.",
-                    transaction
-                );
-                throw new Exception(
-                    "Steam didn't finalize the transaction:\n" +
-                    $"[{transaction.errorCode}] {transaction.errorDescription}"
-                );
-            }
-            
-            // the transaction has been authorized by the player and paid
-            transaction.state = SteamTransactionEntity.AuthorizedState;
-            transaction.Save();
-            
-            // give the bought products to the player
-            GiveProductsToPlayer(transaction);
-            transaction.state = SteamTransactionEntity.CompletedState;
-            transaction.Save();
-
-            return transaction;
         }
+
+        private void MarkTransactionAsInitiated(
+            SteamTransactionEntity transaction,
+            Response response
+        )
+        {
+            transaction.state = SteamTransactionEntity.InitiatedState;
+            transaction.transactionId = ulong.Parse(
+                response["response"]["params"]["transid"].AsString
+            );
+            transaction.Save();
+            
+            Log.Info("Marked transaction as initiated.");
+        }
+        
+        #endregion
+
+        #region "FinalizeTransaction implementation"
 
         private SteamTransactionEntity FindInitiatedTransaction(ulong orderId)
         {
@@ -204,11 +227,71 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
                 .First();
             
             if (transaction == null)
-                throw new Exception(
-                    $"No initiated transaction with order id {orderId} was found."
+                throw new Exception( // TODO: SteamException here
+                    $"No initiated transaction with " +
+                    $"order id {orderId} was found."
                 );
 
             return transaction;
+        }
+
+        private void MarkTransactionAsAborted(
+            SteamTransactionEntity transaction
+        )
+        {
+            transaction.state = SteamTransactionEntity.AbortedState;
+            transaction.Save();
+            
+            Log.Info("Marked transaction as aborted.");
+        }
+
+        private Response SendFinalizationRequestToSteam(
+            SteamTransactionEntity transaction
+        )
+        {
+            // https://partner.steamgames.com/doc/webapi/ISteamMicroTxn#FinalizeTxn
+            
+            var response = Http.Post(
+                SteamApiUrl + "ISteamMicroTxn/FinalizeTxn/v2/",
+                new Dictionary<string, string> {
+                    ["key"] = Env.GetString("STEAM_PUBLISHER_KEY"),
+                    ["orderid"] = transaction.orderId.ToString(),
+                    ["appid"] = Env.GetString("STEAM_APP_ID")
+                }
+            );
+            
+            response.Throw();
+
+            return response;
+        }
+
+        private void StoreFinalizationErrorAndThrow(
+            SteamTransactionEntity transaction,
+            Response response
+        )
+        {
+            transaction.state = SteamTransactionEntity.FinalizationErrorState;
+            transaction.errorCode
+                = response["response"]["error"]["errorcode"].AsString;
+            transaction.errorDescription
+                = response["response"]["error"]["errordesc"].AsString;
+            transaction.Save();
+                
+            // TODO: steam exception here
+            throw new Exception(
+                "Steam rejected transaction finalization with the error:\n" +
+                $"[{transaction.errorCode}] {transaction.errorDescription}"
+            );
+        }
+        
+        private void MarkTransactionAsAuthorized(
+            SteamTransactionEntity transaction
+        )
+        {
+            transaction.state = SteamTransactionEntity.AuthorizedState;
+            transaction.Save();
+            
+            Log.Info("Marked transaction as authorized.");
         }
 
         private void GiveProductsToPlayer(SteamTransactionEntity transaction)
@@ -244,5 +327,33 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
                 }
             }
         }
+        
+        private void MarkTransactionAsCompleted(
+            SteamTransactionEntity transaction
+        )
+        {
+            transaction.state = SteamTransactionEntity.CompletedState;
+            transaction.Save();
+            
+            Log.Info("Marked transaction as completed.");
+        }
+        
+        #endregion
+        
+        #region "Utilities"
+        
+        /// <summary>
+        /// URL of the Steam API, ending with a slash
+        /// </summary>
+        private string SteamApiUrl
+            => Str.Finish(
+                input: Env.GetString(
+                    key: "STEAM_API_URL",
+                    defaultValue: "https://partner.steam-api.com/"
+                ),
+                tail: "/"
+            );
+        
+        #endregion
     }
 }

@@ -4,56 +4,20 @@ using Unisave.Entities;
 
 namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
-    /// <summary>
-    /// Represents one steam transaction
-    /// </summary>
+    /*
+     * SteamMicrotransactions template - v0.9.0
+     * ----------------------------------------
+     *
+     * This entity represent a single Steam transaction. It serves as a record
+     * of how the transaction went and what it contained. You can look
+     * transactions up in the database to resolve customer issues.
+     * 
+     * You can add additional data to the entity to be used during issue
+     * resolving or during product giving (IVirtualProduct.GiveToPlayer(...)).
+     */
+    
     public class SteamTransactionEntity : Entity
     {
-        #region "Transaction states"
-        
-        /// <summary>
-        /// The transaction is being prepared and it has not yet been initiated
-        /// </summary>
-        public const string BeingPreparedState = "being-prepared";
-        
-        /// <summary>
-        /// The transaction has been initiated and now it waits
-        /// for authentication by the player via the Steam app
-        /// </summary>
-        public const string InitiatedState = "initiated";
-        
-        /// <summary>
-        /// The transaction initiation HTTP request to Steam failed,
-        /// the transaction is dead now.
-        /// </summary>
-        public const string InitiationErrorState = "initiation-error";
-
-        /// <summary>
-        /// The transaction has been authorized by the player
-        /// but the virtual products have not yet been given to the player
-        /// </summary>
-        public const string AuthorizedState = "auhorized";
-        
-        /// <summary>
-        /// The transaction has been denied by the player,
-        /// the transaction is dead now.
-        /// </summary>
-        public const string AuthorizationDeniedState = "authorization-denied";
-        
-        /// <summary>
-        /// The transaction finalization HTTP request to Steam failed,
-        /// the transaction is dead now.
-        /// </summary>
-        public const string FinalizationErrorState = "finalization-error";
-
-        /// <summary>
-        /// The purchased products have been given to the player,
-        /// the transaction is dead now.
-        /// </summary>
-        public const string CompletedState = "completed";
-        
-        #endregion
-        
         /// <summary>
         /// State of the transaction
         /// </summary>
@@ -77,7 +41,7 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
         public ulong transactionId;
 
         /// <summary>
-        /// What language will the item descriptions have
+        /// What language will item descriptions have
         /// </summary>
         public string language = "en";
 
@@ -100,7 +64,60 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
         /// Description of the error, if an error occured
         /// </summary>
         public string errorDescription;
+        
+        
+        
+    // =========================================================================
+    //                    Don't worry about the code below
+    // =========================================================================
 
+    
+    
+        #region "Transaction states"
+            
+        /// <summary>
+        /// The transaction is being prepared and it has not yet been initiated
+        /// </summary>
+        public const string BeingPreparedState = "being-prepared";
+            
+        /// <summary>
+        /// The transaction has been initiated and now it waits
+        /// for authentication by the player via the Steam app
+        /// </summary>
+        public const string InitiatedState = "initiated";
+            
+        /// <summary>
+        /// The transaction initiation HTTP request to Steam failed,
+        /// the transaction is dead now.
+        /// </summary>
+        public const string InitiationErrorState = "initiation-error";
+
+        /// <summary>
+        /// The transaction has been authorized by the player
+        /// but the virtual products have not yet been given to the player
+        /// </summary>
+        public const string AuthorizedState = "auhorized";
+            
+        /// <summary>
+        /// The transaction has been aborted by the player,
+        /// the transaction is dead now.
+        /// </summary>
+        public const string AbortedState = "aborted";
+            
+        /// <summary>
+        /// The transaction finalization HTTP request to Steam failed,
+        /// the transaction is dead now.
+        /// </summary>
+        public const string FinalizationErrorState = "finalization-error";
+
+        /// <summary>
+        /// The purchased products have been given to the player,
+        /// the transaction is dead now.
+        /// </summary>
+        public const string CompletedState = "completed";
+            
+        #endregion
+    
         /// <summary>
         /// An item of the transaction
         /// </summary>
