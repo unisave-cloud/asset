@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
@@ -197,16 +198,270 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
                 )
             );
         }
+
+        [Test]
+        public void InitiatingTransactionWithNoProducts()
+        {
+            var transaction = new SteamTransactionEntity {
+                playerSteamId = 123456789L
+            };
+
+            Http.Fake();
+
+            Assert.Throws<ArgumentException>(() => {
+                OnFacet<SteamPurchasingServerFacet>.CallSync(
+                    nameof(SteamPurchasingServerFacet.InitiateTransaction),
+                    transaction
+                );
+            }, "Given transaction has no items inside of it.");
+            
+            Http.AssertNothingSent();
+        }
         
-        // TODO: finalizing transaction that does not exist
+        [Test]
+        public void FinalizingTransactionThatDoesNotExist()
+        {
+            Http.Fake();
+
+            Assert.Throws<SteamPurchasingServerFacet.SteamMicrotransactionException>(() => {
+                OnFacet<SteamPurchasingServerFacet>.CallSync<SteamTransactionEntity>(
+                    nameof(SteamPurchasingServerFacet.FinalizeTransaction),
+                    123456789L,
+                    true
+                );
+            }, "No initiated transaction with order id 123456789 was found.");
+            
+            Http.AssertNothingSent();
+        }
         
-        // TODO: finalizing transaction that isn't initiated
+        [Test]
+        public void FinalizingTransactionThatIsNotInitiated()
+        {
+            var transaction = new SteamTransactionEntity {
+                playerSteamId = 123456789L,
+                state = SteamTransactionEntity.BeingPreparedState
+            };
+            
+            Http.Fake();
+
+            Assert.Throws<SteamPurchasingServerFacet.SteamMicrotransactionException>(() => {
+                OnFacet<SteamPurchasingServerFacet>.CallSync<SteamTransactionEntity>(
+                    nameof(SteamPurchasingServerFacet.FinalizeTransaction),
+                    123456789L,
+                    true
+                );
+            }, "No initiated transaction with order id 123456789 was found.");
+            
+            Http.AssertNothingSent();
+        }
         
-        // TODO: user rejects transaction authentication
+        [UnityTest]
+        public IEnumerator PlayerAbortsTransaction()
+        {
+            // setup scene
+            var go = new GameObject();
+            var smm = go.AddComponent<SteamPurchasingClientMock>();
+            yield return null;
+            
+            // setup database
+            var transaction = new SteamTransactionEntity {
+                state = SteamTransactionEntity.InitiatedState,
+                playerSteamId = 123456789L,
+                orderId = 111222333L,
+                transactionId = 374839L,
+                language = "en",
+                currency = "USD",
+                items = new List<SteamTransactionEntity.Item> {
+                    new SteamTransactionEntity.Item {
+                        itemId = 1,
+                        quantity = 3,
+                        totalAmountInCents = 15_00,
+                        description = "An example product, that a user can buy.",
+                        category = null,
+                        productClass = typeof(ExampleVirtualProduct).FullName
+                    }
+                }
+            };
+            transaction.Save();
+            
+            Http.Fake();
+            
+            // Steamworks fires the callback
+            smm.SteamworksCallbackHandler(
+                new MicroTxnAuthorizationResponse_t {
+                    m_ulOrderID = 111222333L,
+                    m_unAppID = 440,
+                    m_bAuthorized = 0 // NOT authorized
+                }
+            );
+            
+            Http.AssertNothingSent();
+            
+            // transaction was updated accordingly
+            transaction.Refresh();
+            Assert.AreEqual(
+                SteamTransactionEntity.AbortedState,
+                transaction.state
+            );
+            
+            // client logs failure
+            LogAssert.Expect(
+                LogType.Error,
+                new Regex(
+                    "^The transaction failed because of:\n" +
+                    "You've aborted the transaction\\.$",
+                    RegexOptions.Multiline
+                )
+            );
+        }
         
-        // TODO: steam rejects transaction initiation
-        
-        // TODO: steam rejects transaction finalization
+        [UnityTest]
+        public IEnumerator SteamRejectsTransactionInitiation()
+        {
+            // setup scene
+            var go = new GameObject();
+            var smm = go.AddComponent<SteamPurchasingClientMock>();
+            yield return null;
+
+            // setup HTTP
+            Http.Fake(Http.Response(new JsonObject {
+                ["response"] = new JsonObject {
+                    ["result"] = "Failure",
+                    ["params"] = new JsonObject {
+                        // this order id is not used and
+                        // it does not match the generated
+                        ["orderid"] = "938473"
+                    },
+                    ["error"] = new JsonObject {
+                        ["errorcode"] = 1001,
+                        ["errordesc"] = "Action not allowed"
+                    }
+                }
+            }, 200));
+            
+            // click the button
+            smm.PlayerClickedBuy();
+            
+            // assert request to initiate transaction has been sent
+            Http.AssertSent(request =>
+                request.Url ==
+                "http://api.steam.com/ISteamMicroTxn/InitTxn/v3/" &&
+                request["key"] == "<steam-publisher-key>" &&
+                request["appid"] == "<steam-app-id>" &&
+                request["orderid"] != "0" &&
+                request["steamid"] == "123456789" &&
+                request["itemcount"] == "1" &&
+                request["language"] == "en" &&
+                request["currency"] == "USD" &&
+                request["itemid[0]"] == "1" &&
+                request["qty[0]"] == "3" &&
+                request["amount[0]"] == "1500" &&
+                request["description[0]"].AsString
+                    .Contains("An example product")
+            );
+            
+            // assert a transaction entity has been created
+            // with proper error state
+            var entities = DB.TakeAll<SteamTransactionEntity>().Get();
+            Assert.AreEqual(1, entities.Count);
+            var entity = entities[0];
+            Assert.AreEqual(SteamTransactionEntity.InitiationErrorState, entity.state);
+            Assert.AreEqual("1001", entity.errorCode);
+            Assert.AreEqual("Action not allowed", entity.errorDescription);
+            Assert.AreNotEqual(0L, entity.orderId);
+
+            // client logs failure
+            LogAssert.Expect(
+                LogType.Error,
+                new Regex(
+                    @"^The transaction failed because of:[\s\S]*" +
+                    @"Steam rejected transaction initiation\.[\s\S]*" +
+                    @"1001[\s\S]*Action not allowed[\s\S]*" + entity.orderId,
+                    RegexOptions.Multiline
+                )
+            );
+        }
+
+        [UnityTest]
+        public IEnumerator SteamRejectsTransactionFinalization()
+        {
+            // setup scene
+            var go = new GameObject();
+            var smm = go.AddComponent<SteamPurchasingClientMock>();
+            yield return null;
+            
+            // setup database
+            var transaction = new SteamTransactionEntity {
+                state = SteamTransactionEntity.InitiatedState,
+                playerSteamId = 123456789L,
+                orderId = 111222333L,
+                transactionId = 374839L,
+                language = "en",
+                currency = "USD",
+                items = new List<SteamTransactionEntity.Item> {
+                    new SteamTransactionEntity.Item {
+                        itemId = 1,
+                        quantity = 3,
+                        totalAmountInCents = 15_00,
+                        description = "An example product, that a user can buy.",
+                        category = null,
+                        productClass = typeof(ExampleVirtualProduct).FullName
+                    }
+                }
+            };
+            transaction.Save();
+            
+            Http.Fake(Http.Response(new JsonObject {
+                ["response"] = new JsonObject {
+                    ["result"] = "Failure",
+                    ["params"] = new JsonObject {
+                        ["orderid"] = "111222333",
+                        ["transid"] = "374839"
+                    },
+                    ["error"] = new JsonObject {
+                        ["errorcode"] = 100,
+                        ["errordesc"] = "Insufficient funds"
+                    }
+                }
+            }, 200));
+            
+            // Steamworks fires the callback
+            smm.SteamworksCallbackHandler(
+                new MicroTxnAuthorizationResponse_t {
+                    m_ulOrderID = 111222333L,
+                    m_unAppID = 440,
+                    m_bAuthorized = 1
+                }
+            );
+            
+            Http.AssertSent(request =>
+                request.Url ==
+                "http://api.steam.com/ISteamMicroTxn/FinalizeTxn/v2/" &&
+                request["key"] == "<steam-publisher-key>" &&
+                request["appid"] == "<steam-app-id>" &&
+                request["orderid"] == "111222333"
+            );
+            
+            // transaction was updated accordingly
+            transaction.Refresh();
+            Assert.AreEqual(
+                SteamTransactionEntity.FinalizationErrorState,
+                transaction.state
+            );
+            Assert.AreEqual("100", transaction.errorCode);
+            Assert.AreEqual("Insufficient funds", transaction.errorDescription);
+            
+            // client logs failure
+            LogAssert.Expect(
+                LogType.Error,
+                new Regex(
+                    @"^The transaction failed because of:[\s\S]*" +
+                    @"Steam rejected transaction finalization\.[\s\S]*" +
+                    @"100[\s\S]*Insufficient funds[\s\S]*111222333",
+                    RegexOptions.Multiline
+                )
+            );
+        }
 
         [Test]
         public void ItUsesSandboxDuringInitiation()

@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
+using System.Runtime.Serialization;
 using Unisave.Facades;
 using Unisave.Facets;
 using Unisave.Http.Client;
 using Unisave.Utils;
-
-// TODO: incorporate sandbox API:
-// https://partner.steamgames.com/doc/webapi/ISteamMicroTxnSandbox
-// TODO: test entire URLs, not just .Contains
 
 namespace UnisaveFixture.Backend.SteamMicrotransactions
 {
@@ -191,11 +188,11 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
                 = response["response"]["error"]["errordesc"].AsString;
             transaction.Save();
             
-            // TODO: custom exception here!
-            // SteamMicrotransactionException + store order id
-            throw new Exception(
-                "Steam rejected transaction initiation with the error:\n" +
-                $"[{transaction.errorCode}] {transaction.errorDescription}"
+            throw new SteamMicrotransactionException(
+                "Steam rejected transaction initiation.",
+                transaction.orderId,
+                transaction.errorCode,
+                transaction.errorDescription
             );
         }
 
@@ -227,7 +224,7 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
                 .First();
             
             if (transaction == null)
-                throw new Exception( // TODO: SteamException here
+                throw new SteamMicrotransactionException(
                     $"No initiated transaction with " +
                     $"order id {orderId} was found."
                 );
@@ -277,10 +274,11 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
                 = response["response"]["error"]["errordesc"].AsString;
             transaction.Save();
                 
-            // TODO: steam exception here
-            throw new Exception(
-                "Steam rejected transaction finalization with the error:\n" +
-                $"[{transaction.errorCode}] {transaction.errorDescription}"
+            throw new SteamMicrotransactionException(
+                "Steam rejected transaction finalization.",
+                transaction.orderId,
+                transaction.errorCode,
+                transaction.errorDescription
             );
         }
         
@@ -369,6 +367,39 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
             {
                 return steamApi + "ISteamMicroTxn/";
             }
+        }
+
+        [Serializable]
+        public class SteamMicrotransactionException : Exception
+        {
+            public SteamMicrotransactionException()
+                : this(
+                    "There was a problem with processing " +
+                    "a steam microtransaction."
+                ) { }
+
+            public SteamMicrotransactionException(string message)
+                : base(message) { }
+
+            public SteamMicrotransactionException(
+                string message,
+                Exception inner
+            ) : base(message, inner) { }
+            
+            public SteamMicrotransactionException(
+                string message,
+                ulong orderId,
+                string errorCode,
+                string errorDescription
+            ) : this(
+                $"{message}\n" +
+                $"[{errorCode}] {errorDescription}\n" +
+                $"Order ID: {orderId}"
+            ) { }
+
+            protected SteamMicrotransactionException(
+                SerializationInfo info,
+                StreamingContext context) : base(info, context) { }
         }
         
         #endregion
