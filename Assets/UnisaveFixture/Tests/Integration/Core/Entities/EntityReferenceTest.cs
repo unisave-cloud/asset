@@ -20,8 +20,10 @@ namespace UnisaveFixture.Tests.Core.Entities
         private StubMatchEntity match;
 
         [SetUp]
-        public void SetUp()
+        public override void SetUp()
         {
+            base.SetUp();
+            
             player = new StubPlayerEntity();
             match = new StubMatchEntity();
             player.Save();

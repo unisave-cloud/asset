@@ -46,6 +46,7 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
             Env.Set("STEAM_API_URL", "http://api.steam.com/");
             Env.Set("STEAM_PUBLISHER_KEY", "<steam-publisher-key>");
             Env.Set("STEAM_APP_ID", "<steam-app-id>");
+            Env.Set("STEAM_USE_MICROTRANSACTION_SANDBOX", false);
         }
 
         [UnityTest]
@@ -74,8 +75,8 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
             
             // assert request to initiate transaction has been sent
             Http.AssertSent(request =>
-                request.Url.Contains("api.steam.com") &&
-                request.Url.Contains("InitTxn/v3") &&
+                request.Url ==
+                "http://api.steam.com/ISteamMicroTxn/InitTxn/v3/" &&
                 request["key"] == "<steam-publisher-key>" &&
                 request["appid"] == "<steam-app-id>" &&
                 request["orderid"] != "0" &&
@@ -167,8 +168,8 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
             
             // steam received finalization request
             Http.AssertSent(request =>
-                request.Url.Contains("api.steam.com") &&
-                request.Url.Contains("FinalizeTxn/v2") &&
+                request.Url ==
+                "http://api.steam.com/ISteamMicroTxn/FinalizeTxn/v2/" &&
                 request["key"] == "<steam-publisher-key>" &&
                 request["appid"] == "<steam-app-id>" &&
                 request["orderid"] == "111222333"
@@ -206,5 +207,68 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
         // TODO: steam rejects transaction initiation
         
         // TODO: steam rejects transaction finalization
+
+        [Test]
+        public void ItUsesSandboxDuringInitiation()
+        {
+            Env.Set("STEAM_USE_MICROTRANSACTION_SANDBOX", true);
+            
+            var transaction = new SteamTransactionEntity {
+                playerSteamId = 123456789L
+            };
+            transaction.AddProduct<ExampleVirtualProduct>();
+
+            Http.Fake(Http.Response(new JsonObject {
+                ["response"] = new JsonObject {
+                    ["result"] = "OK",
+                    ["params"] = new JsonObject {
+                        ["orderid"] = transaction.orderId,
+                        ["transid"] = "11122233"
+                    }
+                }
+            }, 200));
+            
+            OnFacet<SteamPurchasingServerFacet>.CallSync(
+                nameof(SteamPurchasingServerFacet.InitiateTransaction),
+                transaction
+            );
+            
+            Http.AssertSent(request =>
+                request.Url ==
+                "http://api.steam.com/ISteamMicroTxnSandbox/InitTxn/v3/"
+            );
+        }
+        
+        [Test]
+        public void ItUsesSandboxDuringFinalization()
+        {
+            Env.Set("STEAM_USE_MICROTRANSACTION_SANDBOX", true);
+            
+            var transaction = new SteamTransactionEntity {
+                state = SteamTransactionEntity.InitiatedState
+            };
+            transaction.Save();
+            
+            Http.Fake(Http.Response(new JsonObject {
+                ["response"] = new JsonObject {
+                    ["result"] = "OK",
+                    ["params"] = new JsonObject {
+                        ["orderid"] = transaction.orderId,
+                        ["transid"] = transaction.transactionId
+                    }
+                }
+            }, 200));
+            
+            OnFacet<SteamPurchasingServerFacet>.CallSync<SteamTransactionEntity>(
+                nameof(SteamPurchasingServerFacet.FinalizeTransaction),
+                transaction.orderId,
+                true
+            );
+            
+            Http.AssertSent(request =>
+                request.Url ==
+                "http://api.steam.com/ISteamMicroTxnSandbox/FinalizeTxn/v2/"
+            );
+        }
     }
 }

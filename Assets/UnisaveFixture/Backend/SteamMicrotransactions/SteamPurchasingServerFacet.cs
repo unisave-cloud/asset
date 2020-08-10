@@ -141,7 +141,7 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
             // https://partner.steamgames.com/doc/webapi/ISteamMicroTxn#InitTxn
             
             var response = Http.Post(
-                SteamApiUrl + "ISteamMicroTxn/InitTxn/v3/",
+                GetSteamApiUrl() + "InitTxn/v3/",
                 BuildInitiationRequestBody(transaction)
             );
             
@@ -252,7 +252,7 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
             // https://partner.steamgames.com/doc/webapi/ISteamMicroTxn#FinalizeTxn
             
             var response = Http.Post(
-                SteamApiUrl + "ISteamMicroTxn/FinalizeTxn/v2/",
+                GetSteamApiUrl() + "FinalizeTxn/v2/",
                 new Dictionary<string, string> {
                     ["key"] = Env.GetString("STEAM_PUBLISHER_KEY"),
                     ["orderid"] = transaction.orderId.ToString(),
@@ -341,18 +341,35 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
         #endregion
         
         #region "Utilities"
-        
+
         /// <summary>
-        /// URL of the Steam API, ending with a slash
+        /// URL of the Steam microtransactions API, ending with a slash
         /// </summary>
-        private string SteamApiUrl
-            => Str.Finish(
-                input: Env.GetString(
-                    key: "STEAM_API_URL",
-                    defaultValue: "https://partner.steam-api.com/"
-                ),
-                tail: "/"
+        private string GetSteamApiUrl()
+        {
+            // base url for all Steam APIs
+            string steamApi = Env.GetString(
+                key: "STEAM_API_URL",
+                defaultValue: "https://partner.steam-api.com/"
             );
+            steamApi = Str.Finish(steamApi, "/");
+
+            // use sandbox or not
+            bool useSandbox = Env.GetBool(
+                key: "STEAM_USE_MICROTRANSACTION_SANDBOX",
+                defaultValue: true
+            );
+            
+            // create the microtransactions API URL
+            if (useSandbox)
+            {
+                return steamApi + "ISteamMicroTxnSandbox/";
+            }
+            else
+            {
+                return steamApi + "ISteamMicroTxn/";
+            }
+        }
         
         #endregion
     }
