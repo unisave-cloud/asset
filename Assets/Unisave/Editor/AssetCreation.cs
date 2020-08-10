@@ -62,13 +62,61 @@ namespace Unisave.Editor
             );
         }
         
-        [MenuItem("Assets/Create/Unisave/Auth/RegistrationController", false, 6)]
+        [MenuItem("Assets/Create/Unisave/Auth/RegistrationController", false, 7)]
         public static void CreateRegistrationController()
         {
             CreateScriptFromTemplate(
                 defaultName: "RegistrationController",
                 templateName: "Auth/RegistrationControllerTemplate.txt",
                 wildcard: "#CONTROLLERNAME#"
+            );
+        }
+
+        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Backend", false, 8)]
+        public static void CreateSteamMicrotransactionsBackend()
+        {
+            var path = GetCurrentDirectoryPath();
+
+            AssetDatabase.CreateFolder(
+                path,
+                "SteamMicrotransactions"
+            );
+            AssetDatabase.CreateFolder(
+                path + "/SteamMicrotransactions",
+                "VirtualProducts"
+            );
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/SteamMicrotransactions/VirtualProducts/ExampleVirtualProduct.cs",
+                "SteamMicrotransactions/ExampleVirtualProduct.txt",
+                null
+            );
+            Templates.CreateScriptFromTemplate(
+                path + "/SteamMicrotransactions/IVirtualProduct.cs",
+                "SteamMicrotransactions/IVirtualProduct.txt",
+                null
+            );
+            Templates.CreateScriptFromTemplate(
+                path + "/SteamMicrotransactions/SteamPurchasingServerFacet.cs",
+                "SteamMicrotransactions/SteamPurchasingServerFacet.txt",
+                null
+            );
+            Templates.CreateScriptFromTemplate(
+                path + "/SteamMicrotransactions/SteamTransactionEntity.cs",
+                "SteamMicrotransactions/SteamTransactionEntity.txt",
+                null
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Client", false, 9)]
+        public static void CreateSteamMicrotransactionsClient()
+        {
+            var path = GetCurrentDirectoryPath();
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/SteamPurchasingClient.cs",
+                "SteamMicrotransactions/SteamPurchasingClient.txt",
+                null
             );
         }
 

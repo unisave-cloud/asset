@@ -1,12 +1,9 @@
 using System;
 using Steamworks;
 using Unisave.Facades;
-using UnisaveFixture.Backend.SteamMicrotransactions; // $$ REMOVE_FROM_TEMPLATE
-using UnisaveFixture.Backend.SteamMicrotransactions.VirtualProducts; // $$ REMOVE_FROM_TEMPLATE
 using UnityEngine;
 
-namespace UnisaveFixture.SteamMicrotransactions
-{
+$NAMESPACE_BEGIN$
     /*
      * SteamMicrotransactions template - v0.9.0
      * ----------------------------------------
@@ -185,4 +182,5 @@ namespace UnisaveFixture.SteamMicrotransactions
         
         #endregion
     }
-}
+$NAMESPACE_END$
+
