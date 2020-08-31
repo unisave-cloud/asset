@@ -74,7 +74,7 @@ namespace Unisave.Examples.PlayerAuthentication.Backend
                 return RegistrationResult.EmailTaken;
             
             // register
-            var player = new PlayerEntity {
+            var player = new PlayerEntityX {
                 email = normalizedEmail,
                 password = Hash.Make(password)
             };
@@ -133,11 +133,11 @@ namespace Unisave.Examples.PlayerAuthentication.Backend
         /// Finds a player by the email address in the same way
         /// login method finds the player. Returns null if no player was found.
         /// </summary>
-        public static PlayerEntity FindPlayer(string email)
+        public static PlayerEntityX FindPlayer(string email)
         {
             // find as-is
             // (allows old players with invalid email addresses to login)
-            var player = DB.TakeAll<PlayerEntity>()
+            var player = DB.TakeAll<PlayerEntityX>()
                 .Filter(entity => entity.email == email)
                 .First();
 
@@ -146,7 +146,7 @@ namespace Unisave.Examples.PlayerAuthentication.Backend
             
             // find with normalized email address
             // (the default login method)
-            player = DB.TakeAll<PlayerEntity>()
+            player = DB.TakeAll<PlayerEntityX>()
                 .Filter(entity => entity.email == NormalizeEmail(email))
                 .First();
 

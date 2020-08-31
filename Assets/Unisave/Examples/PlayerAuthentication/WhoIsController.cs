@@ -31,7 +31,7 @@ namespace Unisave.Examples.PlayerAuthentication
 
         private async void WhoIsButtonClicked()
         {
-            var player = await OnFacet<WhoIsFacet>.CallAsync<PlayerEntity>(
+            var player = await OnFacet<WhoIsFacet>.CallAsync<PlayerEntityX>(
                 nameof(WhoIsFacet.WhoIsLoggedIn)
             );
 

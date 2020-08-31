@@ -10,9 +10,8 @@ rm -rf ./AssetForExport
 cp -r ./Asset ./AssetForExport
 cd ./AssetForExport
 
-# remove unnecessary files
+# remove unnecessary unisave files
 rm ./Assets/Unisave/Resources/UnisavePreferencesFile.asset*
-rm -r ./Assets/Unisave/Tests*
 
 # remove unisave fixture
 rm -r ./Assets/UnisaveFixture*

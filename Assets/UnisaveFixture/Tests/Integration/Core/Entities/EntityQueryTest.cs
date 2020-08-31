@@ -8,7 +8,7 @@ namespace UnisaveFixture.Tests.Core.Entities
 {
     public class EntityQueryTest : BackendTestCase
     {
-        private class PlayerEntity : Entity
+        private class PlayerEntityStub : Entity
         {
             public string name;
             public DateTime premiumUntil = DateTime.UtcNow;
@@ -17,17 +17,17 @@ namespace UnisaveFixture.Tests.Core.Entities
         [Test]
         public void ItCanFilterByDateTime()
         {
-            new PlayerEntity {
+            new PlayerEntityStub {
                 name = "HasPremium",
                 premiumUntil = DateTime.UtcNow.AddHours(1)
             }.Save();
             
-            new PlayerEntity {
+            new PlayerEntityStub {
                 name = "NoPremium",
                 premiumUntil = DateTime.UtcNow.AddHours(-1)
             }.Save();
 
-            var results = DB.TakeAll<PlayerEntity>()
+            var results = DB.TakeAll<PlayerEntityStub>()
                 .Filter(p => p.premiumUntil > DateTime.UtcNow)
                 .Get();
             
@@ -38,14 +38,14 @@ namespace UnisaveFixture.Tests.Core.Entities
         [Test]
         public void FirstOrCreateWorks()
         {
-            var player = DB.TakeAll<PlayerEntity>()
+            var player = DB.TakeAll<PlayerEntityStub>()
                 .Filter(p => p.name == "Bob")
                 .First();
             
             Assert.IsNull(player);
 
             bool creatorCalled = false;
-            player = DB.TakeAll<PlayerEntity>()
+            player = DB.TakeAll<PlayerEntityStub>()
                 .Filter(p => p.name == "Bob")
                 .FirstOrCreate(p => {
                     p.name = "Bob";
@@ -57,7 +57,7 @@ namespace UnisaveFixture.Tests.Core.Entities
             Assert.IsTrue(creatorCalled);
             
             creatorCalled = false;
-            player = DB.TakeAll<PlayerEntity>()
+            player = DB.TakeAll<PlayerEntityStub>()
                 .Filter(p => p.name == "Bob")
                 .FirstOrCreate(p => {
                     p.name = "Bob";

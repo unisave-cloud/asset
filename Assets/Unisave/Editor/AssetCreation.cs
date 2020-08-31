@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using Unisave.Foundation;
+using Unisave.Utils;
 
 namespace Unisave.Editor
 {
@@ -17,7 +19,7 @@ namespace Unisave.Editor
         {
             CreateScriptFromTemplate(
                 defaultName: "NewEntity",
-                templateName: "EntityTemplate.txt",
+                templateName: "Entity.txt",
                 wildcard: "#ENTITYNAME#"
             );
         }
@@ -27,55 +29,91 @@ namespace Unisave.Editor
         {
             CreateScriptFromTemplate(
                 defaultName: "NewFacet",
-                templateName: "FacetTemplate.txt",
+                templateName: "Facet.txt",
                 wildcard: "#FACETNAME#"
             );
         }
         
-        [MenuItem("Assets/Create/Unisave/Auth/PlayerEntity", false, 4)]
-        public static void CreatePlayerEntity()
+        [MenuItem("Assets/Create/Unisave/Email authentication/Backend", false, 20)]
+        public static void CreateEmailAuthenticationBackend()
         {
-            CreateScriptFromTemplate(
-                defaultName: "PlayerEntity",
-                templateName: "Auth/PlayerEntityTemplate.txt",
-                wildcard: "#ENTITYNAME#"
+            var path = GetCurrentDirectoryPath();
+            
+            if (AssetDatabase.IsValidFolder(path + "/EmailAuthentication"))
+            {
+                EditorUtility.DisplayDialog(
+                    "Email authentication",
+                    "Folder named 'EmailAuthentication' already exists in this directory.",
+                    "OK"
+                );
+                return;
+            }
+
+            AssetDatabase.CreateFolder(
+                path,
+                "EmailAuthentication"
+            );
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/EmailAuthentication/EmailAuthUtils.cs",
+                "EmailAuthentication/EmailAuthUtils.txt",
+                null
+            );
+            Templates.CreateScriptFromTemplate(
+                path + "/EmailAuthentication/EmailLoginFacet.cs",
+                "EmailAuthentication/EmailLoginFacet.txt",
+                null
+            );
+            Templates.CreateScriptFromTemplate(
+                path + "/EmailAuthentication/EmailRegisterFacet.cs",
+                "EmailAuthentication/EmailRegisterFacet.txt",
+                null
+            );
+            Templates.CreateScriptFromTemplate(
+                path + "/EmailAuthentication/EmailRegisterResponse.cs",
+                "EmailAuthentication/EmailRegisterResponse.txt",
+                null
             );
         }
         
-        [MenuItem("Assets/Create/Unisave/Auth/AuthFacet", false, 5)]
-        public static void CreateAuthFacet()
+        [MenuItem("Assets/Create/Unisave/Email authentication/Login form", false, 21)]
+        public static void CreateEmailAuthenticationLoginForm()
         {
-            CreateScriptFromTemplate(
-                defaultName: "AuthFacet",
-                templateName: "Auth/AuthFacetTemplate.txt",
-                wildcard: "#FACETNAME#"
+            var path = GetCurrentDirectoryPath();
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/EmailLoginForm.cs",
+                "EmailAuthentication/EmailLoginForm.txt",
+                null
             );
         }
         
-        [MenuItem("Assets/Create/Unisave/Auth/LoginController", false, 6)]
-        public static void CreateLoginController()
+        [MenuItem("Assets/Create/Unisave/Email authentication/Register form", false, 22)]
+        public static void CreateEmailAuthenticationRegisterForm()
         {
-            CreateScriptFromTemplate(
-                defaultName: "LoginController",
-                templateName: "Auth/LoginControllerTemplate.txt",
-                wildcard: "#CONTROLLERNAME#"
-            );
-        }
-        
-        [MenuItem("Assets/Create/Unisave/Auth/RegistrationController", false, 7)]
-        public static void CreateRegistrationController()
-        {
-            CreateScriptFromTemplate(
-                defaultName: "RegistrationController",
-                templateName: "Auth/RegistrationControllerTemplate.txt",
-                wildcard: "#CONTROLLERNAME#"
+            var path = GetCurrentDirectoryPath();
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/EmailRegisterForm.cs",
+                "EmailAuthentication/EmailRegisterForm.txt",
+                null
             );
         }
 
-        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Backend", false, 8)]
+        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Backend", false, 23)]
         public static void CreateSteamMicrotransactionsBackend()
         {
             var path = GetCurrentDirectoryPath();
+            
+            if (AssetDatabase.IsValidFolder(path + "/SteamMicrotransactions"))
+            {
+                EditorUtility.DisplayDialog(
+                    "Steam microtransactions",
+                    "Folder named 'SteamMicrotransactions' already exists in this directory.",
+                    "OK"
+                );
+                return;
+            }
 
             AssetDatabase.CreateFolder(
                 path,
@@ -108,7 +146,7 @@ namespace Unisave.Editor
             );
         }
         
-        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Client", false, 9)]
+        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Client", false, 24)]
         public static void CreateSteamMicrotransactionsClient()
         {
             var path = GetCurrentDirectoryPath();
@@ -119,27 +157,48 @@ namespace Unisave.Editor
                 null
             );
         }
+        
+        [MenuItem("Assets/Create/Unisave/Player entity", false, 99)]
+        public static void CreatePlayerEntity()
+        {
+            var path = GetCurrentDirectoryPath();
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/PlayerEntity.cs",
+                "PlayerEntity.txt",
+                null
+            );
+        }
 
-        [MenuItem("Assets/Create/Unisave/Backend folder", false, 20)]
+        [MenuItem("Assets/Create/Unisave/Backend folder", false, 100)]
         public static void CreateBackendFolder()
         {
             var path = GetCurrentDirectoryPath();
 
-            AssetDatabase.CreateFolder(path, "Backend");
-            AssetDatabase.CreateFolder(path + "/Backend", "Entities");
-            AssetDatabase.CreateFolder(path + "/Backend", "Facets");
+            if (AssetDatabase.IsValidFolder(path + "/Backend"))
+            {
+                EditorUtility.DisplayDialog(
+                    "Backend folder creation failed",
+                    "Folder named 'Backend' already exists in this directory.",
+                    "OK"
+                );
+                return;
+            }
             
-            CreateTextAssetFromTemplate(
-                path + "/Backend/Entities/PlayerEntity.cs",
-                "Auth/PlayerEntityTemplate.txt",
-                "#ENTITYNAME#",
-                "PlayerEntity"
+            AssetDatabase.CreateFolder(path, "Backend");
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/Backend/PlayerEntity.cs",
+                "PlayerEntity.txt",
+                null
             );
-            CreateTextAssetFromTemplate(
-                path + "/Backend/Facets/AuthFacet.cs",
-                "Auth/AuthFacetTemplate.txt",
-                "#FACETNAME#",
-                "AuthFacet"
+
+            var preferences = UnisavePreferences.LoadOrCreate();
+            preferences.BackendFolder = Str.Start(path + "/Backend", "Assets/")
+                .Substring("Assets/".Length); // remove the first assets folder
+            preferences.Save();
+            Debug.Log(
+                "New backend folder path has been stored in Unisave preferences"
             );
         }
 

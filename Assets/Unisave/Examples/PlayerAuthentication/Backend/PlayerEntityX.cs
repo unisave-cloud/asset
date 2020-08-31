@@ -2,7 +2,7 @@ using Unisave.Entities;
 
 namespace Unisave.Examples.PlayerAuthentication.Backend
 {
-    public class PlayerEntity : Entity
+    public class PlayerEntityX : Entity
     {
         /// <summary>
         /// Email of the player

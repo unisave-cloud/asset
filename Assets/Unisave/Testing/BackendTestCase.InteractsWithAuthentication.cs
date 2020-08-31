@@ -4,6 +4,7 @@ using Unisave.Contracts;
 using Unisave.Entities;
 using Unisave.Facades;
 using Unisave.Sessions;
+using Unisave.Utils;
 
 namespace Unisave.Testing
 {
@@ -20,10 +21,11 @@ namespace Unisave.Testing
             // HACK TO STORE THE UPDATED SESSION:
             // I need to figure out how to properly merge test facade access
             // with middleware logic so that it does not interfere.
+            var sessionRepo = ClientApp.Resolve<SessionIdRepository>();
+            if (sessionRepo.GetSessionId() == null)
+                sessionRepo.StoreSessionId(Str.Random(16));
             Session.Set(AuthenticateSession.SessionKey, player?.EntityId);
-            App.Resolve<ISession>().StoreSession(
-                ClientApp.Resolve<SessionIdRepository>().GetSessionId()
-            );
+            App.Resolve<ISession>().StoreSession(sessionRepo.GetSessionId());
             
             return this;
         }
