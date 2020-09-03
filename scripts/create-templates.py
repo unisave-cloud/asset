@@ -89,6 +89,17 @@ create_template(
     templates_path + "EmailAuthentication/EmailRegisterForm.txt"
 )
 
+# Steam authentication
+print("\nSTEAM AUTHENTICATION")
+create_template(
+    fixture_path + "Backend/SteamAuthentication/SteamLoginFacet.cs",
+    templates_path + "SteamAuthentication/SteamLoginFacet.txt"
+)
+create_template(
+    fixture_path + "Scripts/SteamAuthentication/SteamLoginClient.cs",
+    templates_path + "SteamAuthentication/SteamLoginClient.txt"
+)
+
 # Steam microtransactions
 print("\nSTEAM MICROTRANSACTIONS")
 create_template(

@@ -25,5 +25,10 @@ namespace UnisaveFixture.Backend.Authentication
         /// Last time the player logged in
         /// </summary>
         public DateTime lastLoginAt = DateTime.UtcNow;
+
+        /// <summary>
+        /// Steam ID of the player
+        /// </summary>
+        public string steamId;
     }
 }

@@ -99,8 +99,47 @@ namespace Unisave.Editor
                 null
             );
         }
+        
+        [MenuItem("Assets/Create/Unisave/Steam authentication/Backend", false, 23)]
+        public static void CreateSteamAuthenticationBackend()
+        {
+            var path = GetCurrentDirectoryPath();
+            
+            if (AssetDatabase.IsValidFolder(path + "/SteamAuthentication"))
+            {
+                EditorUtility.DisplayDialog(
+                    "Steam authentication",
+                    "Folder named 'SteamAuthentication' already exists in this directory.",
+                    "OK"
+                );
+                return;
+            }
 
-        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Backend", false, 23)]
+            AssetDatabase.CreateFolder(
+                path,
+                "SteamAuthentication"
+            );
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/SteamAuthentication/SteamLoginFacet.cs",
+                "SteamAuthentication/SteamLoginFacet.txt",
+                null
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Steam authentication/Login client", false, 24)]
+        public static void CreateSteamAuthenticationLoginClient()
+        {
+            var path = GetCurrentDirectoryPath();
+            
+            Templates.CreateScriptFromTemplate(
+                path + "/SteamLoginClient.cs",
+                "SteamAuthentication/SteamLoginClient.txt",
+                null
+            );
+        }
+
+        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Backend", false, 25)]
         public static void CreateSteamMicrotransactionsBackend()
         {
             var path = GetCurrentDirectoryPath();
@@ -146,7 +185,7 @@ namespace Unisave.Editor
             );
         }
         
-        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Client", false, 24)]
+        [MenuItem("Assets/Create/Unisave/Steam microtransactions/Client", false, 26)]
         public static void CreateSteamMicrotransactionsClient()
         {
             var path = GetCurrentDirectoryPath();
