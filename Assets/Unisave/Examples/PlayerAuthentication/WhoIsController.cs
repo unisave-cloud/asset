@@ -16,13 +16,13 @@ namespace Unisave.Examples.PlayerAuthentication
             if (whoIsButton == null)
                 throw new ArgumentNullException(
                     nameof(whoIsButton),
-                    nameof(LoginController) + " field has not been linked."
+                    nameof(whoIsButton) + " field has not been linked."
                 );
             
             if (callGuardedButton == null)
                 throw new ArgumentNullException(
                     nameof(callGuardedButton),
-                    nameof(LoginController) + " field has not been linked."
+                    nameof(callGuardedButton) + " field has not been linked."
                 );
             
             whoIsButton.onClick.AddListener(WhoIsButtonClicked);
@@ -31,7 +31,7 @@ namespace Unisave.Examples.PlayerAuthentication
 
         private async void WhoIsButtonClicked()
         {
-            var player = await OnFacet<WhoIsFacet>.CallAsync<PlayerEntityX>(
+            var player = await OnFacet<WhoIsFacet>.CallAsync<PlayerEntity>(
                 nameof(WhoIsFacet.WhoIsLoggedIn)
             );
 

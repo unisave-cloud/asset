@@ -1,5 +1,6 @@
 using System;
 using Unisave.Examples.PlayerAuthentication.Backend;
+using Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication;
 using Unisave.Facades;
 using UnityEngine;
 using UnityEngine.UI;
@@ -15,7 +16,7 @@ namespace Unisave.Examples.PlayerAuthentication
             if (logoutButton == null)
                 throw new ArgumentNullException(
                     nameof(logoutButton),
-                    nameof(LoginController) + " field has not been linked."
+                    nameof(logoutButton) + " field has not been linked."
                 );
             
             logoutButton.onClick.AddListener(LogoutButtonClicked);
@@ -23,8 +24,8 @@ namespace Unisave.Examples.PlayerAuthentication
 
         private async void LogoutButtonClicked()
         {
-            var wasLoggedIn = await OnFacet<AuthFacet>.CallAsync<bool>(
-                nameof(AuthFacet.Logout)
+            var wasLoggedIn = await OnFacet<EmailLoginFacet>.CallAsync<bool>(
+                nameof(EmailLoginFacet.Logout)
             );
             
             LogoutSucceeded(wasLoggedIn);

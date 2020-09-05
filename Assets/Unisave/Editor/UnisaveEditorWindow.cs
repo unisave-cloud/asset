@@ -17,7 +17,7 @@ namespace Unisave.Editor
 
 		private Vector2 windowScroll = Vector3.zero;
 
-		[MenuItem("Window/Unisave/Preferences")]
+		[MenuItem("Window/Unisave/Preferences", false, 1)]
 		public static void ShowWindow()
 		{
 			EditorWindow.GetWindow(
@@ -56,7 +56,7 @@ namespace Unisave.Editor
 		/// Called when preferences get reloaded
 		/// (usually on focus or creation)
 		/// </summary>
-		private void OnPrefencesLoaded()
+		private void OnPreferencesLoaded()
 		{
 			// ...
 		}
@@ -75,7 +75,7 @@ namespace Unisave.Editor
 			if (preferences == null)
 			{
 				preferences = UnisavePreferences.LoadOrCreate();
-				OnPrefencesLoaded();
+				OnPreferencesLoaded();
 			}
 
 			windowScroll = GUILayout.BeginScrollView(windowScroll);

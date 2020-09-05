@@ -1,24 +1,22 @@
 using System;
+using Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication;
 using Unisave.Facades;
-using UnisaveFixture.Backend.EmailAuthentication; // $$ REMOVE_FROM_TEMPLATE
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using EmailRegisterFacet = Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication.EmailRegisterFacet;
-using EmailRegisterResponse = Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication.EmailRegisterResponse;
 
-namespace UnisaveFixture.EmailAuthentication
+/*
+ * EmailAuthentication template - v0.9.1
+ * -------------------------------------
+ *
+ * This script controls the register form and makes registration requests.
+ *
+ * Reference required UI elements and specify what scene to load
+ * after registration.
+ */
+
+namespace Unisave.Examples.PlayerAuthentication
 {
-    /*
-     * EmailAuthentication template - v0.9.1
-     * -------------------------------------
-     *
-     * This script controls the register form and makes registration requests.
-     *
-     * Reference required UI elements and specify what scene to load
-     * after registration.
-     */
-    
     public class EmailRegisterForm : MonoBehaviour
     {
         public InputField emailField;
@@ -26,36 +24,34 @@ namespace UnisaveFixture.EmailAuthentication
         public InputField confirmPasswordField;
         public Button registerButton;
         public Text statusText;
-
-        public string sceneAfterRegistration;
-        
+    
         void Start()
         {
             if (emailField == null)
                 throw new ArgumentException(
                     $"Link the '{nameof(emailField)}' in the inspector."
                 );
-            
+        
             if (passwordField == null)
                 throw new ArgumentException(
                     $"Link the '{nameof(passwordField)}' in the inspector."
                 );
-            
+        
             if (confirmPasswordField == null)
                 throw new ArgumentException(
                     $"Link the '{nameof(confirmPasswordField)}' in the inspector."
                 );
-            
+        
             if (registerButton == null)
                 throw new ArgumentException(
                     $"Link the '{nameof(registerButton)}' in the inspector."
                 );
-            
+        
             if (statusText == null)
                 throw new ArgumentException(
                     $"Link the '{nameof(statusText)}' in the inspector."
                 );
-            
+        
             registerButton.onClick.AddListener(OnRegisterClicked);
 
             statusText.enabled = false;
@@ -71,7 +67,7 @@ namespace UnisaveFixture.EmailAuthentication
                 statusText.text = "Password confirmation does not match";
                 return;
             }
-            
+        
             var response = await OnFacet<EmailRegisterFacet>
                 .CallAsync<EmailRegisterResponse>(
                     nameof(EmailRegisterFacet.Register),
@@ -82,22 +78,22 @@ namespace UnisaveFixture.EmailAuthentication
             switch (response)
             {
                 case EmailRegisterResponse.Ok:
-                    SceneManager.LoadScene(sceneAfterRegistration);
+                    statusText.text = "Registration succeeded";
                     break;
-                
+            
                 case EmailRegisterResponse.EmailTaken:
                     statusText.text = "This email has already been registered";
                     break;
-                
+            
                 case EmailRegisterResponse.InvalidEmail:
                     statusText.text = "This is not a valid email address";
                     break;
-                
+            
                 case EmailRegisterResponse.WeakPassword:
                     statusText.text = "Password needs to be at least 8 " +
                                       "characters long";
                     break;
-                
+            
                 default:
                     statusText.text = "Unknown response: " + response;
                     break;
@@ -105,3 +101,4 @@ namespace UnisaveFixture.EmailAuthentication
         }
     }
 }
+

@@ -18,7 +18,7 @@ namespace Unisave.Editor.DataWindow
         private TreeViewState treeViewState;
         private DataWindowTreeView treeView;
 
-        [MenuItem("Window/Unisave/Data")]
+        [MenuItem("Window/Unisave/Data", false, 3)]
 		public static void ShowWindow()
 		{
 			EditorWindow.GetWindow(

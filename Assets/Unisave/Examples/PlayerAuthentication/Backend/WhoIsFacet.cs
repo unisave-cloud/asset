@@ -9,13 +9,13 @@ namespace Unisave.Examples.PlayerAuthentication.Backend
         /// <summary>
         /// Returns the logged-in player
         /// </summary>
-        public PlayerEntityX WhoIsLoggedIn()
+        public PlayerEntity WhoIsLoggedIn()
         {
             // WARNING: Be extremely careful about returning player entities
             // to clients in your game. You might accidentally leak someone
             // else's email address or password hash!
             
-            return Auth.GetPlayer<PlayerEntityX>();
+            return Auth.GetPlayer<PlayerEntity>();
         }
 
         [Middleware(typeof(Authenticate))]
@@ -23,10 +23,11 @@ namespace Unisave.Examples.PlayerAuthentication.Backend
         {
             // This method cannot be called unless a player is authenticated.
             // (thanks to the authentication middleware)
+            // see https://unisave.cloud/docs/authentication
             
             Log.Info(
                 "The guarded method has been called! The player is: "
-                + Auth.GetPlayer<PlayerEntityX>().email
+                + Auth.GetPlayer<PlayerEntity>().email
             );
         }
     }
