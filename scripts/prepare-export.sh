@@ -16,6 +16,3 @@ rm ./Assets/Unisave/Resources/UnisavePreferencesFile.asset*
 # remove unisave fixture
 rm -r ./Assets/UnisaveFixture*
 
-# remove example tests
-rm -r ./Assets/Unisave/Examples/Tests*
-
