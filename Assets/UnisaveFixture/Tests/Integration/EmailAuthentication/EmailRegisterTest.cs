@@ -6,8 +6,6 @@ using Unisave.Utils;
 using UnisaveFixture.Backend.Authentication;
 using UnisaveFixture.Backend.EmailAuthentication;
 using UnityEngine.TestTools;
-using EmailRegisterFacet = Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication.EmailRegisterFacet;
-using EmailRegisterResponse = Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication.EmailRegisterResponse;
 
 namespace UnisaveFixture.Tests.EmailAuthentication
 {

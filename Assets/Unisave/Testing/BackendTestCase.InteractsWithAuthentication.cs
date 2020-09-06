@@ -24,7 +24,7 @@ namespace Unisave.Testing
             var sessionRepo = ClientApp.Resolve<SessionIdRepository>();
             if (sessionRepo.GetSessionId() == null)
                 sessionRepo.StoreSessionId(Str.Random(16));
-            Session.Set(AuthenticateSession.SessionKey, player?.EntityId);
+            Session.Set(AuthenticationManager.SessionKey, player?.EntityId);
             App.Resolve<ISession>().StoreSession(sessionRepo.GetSessionId());
             
             return this;

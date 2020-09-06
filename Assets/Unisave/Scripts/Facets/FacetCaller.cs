@@ -94,7 +94,7 @@ namespace Unisave.Facets
             }
 
             return PerformFacetCall(
-                facetType.Name,
+                facetType.FullName,
                 methodName,
                 ExecutionHelper.SerializeArguments(arguments)
             )

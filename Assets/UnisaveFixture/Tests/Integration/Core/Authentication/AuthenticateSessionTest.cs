@@ -1,5 +1,6 @@
 using System.Collections;
 using NUnit.Framework;
+using Unisave.Authentication;
 using Unisave.Authentication.Middleware;
 using Unisave.Contracts;
 using Unisave.Facades;
@@ -29,7 +30,7 @@ namespace UnisaveFixture.Tests.Core.Authentication
             player.Save();
             GenerateSessionId();
             
-            Session.Set(AuthenticateSession.SessionKey, player.EntityId);
+            Session.Set(AuthenticationManager.SessionKey, player.EntityId);
             
             // HACK TO STORE THE UPDATED SESSION:
             // I need to figure out how to properly merge test facade access
@@ -52,7 +53,7 @@ namespace UnisaveFixture.Tests.Core.Authentication
             player.Save();
             
             Assert.IsNull(
-                Session.Get<string>(AuthenticateSession.SessionKey)
+                Session.Get<string>(AuthenticationManager.SessionKey)
             );
             
             OnFacet<AuthStubFacet>.CallSync(
@@ -61,7 +62,7 @@ namespace UnisaveFixture.Tests.Core.Authentication
             
             Assert.AreEqual(
                 player.EntityId,
-                Session.Get<string>(AuthenticateSession.SessionKey)
+                Session.Get<string>(AuthenticationManager.SessionKey)
             );
         }
 
@@ -71,14 +72,14 @@ namespace UnisaveFixture.Tests.Core.Authentication
             var player = new AuthStubPlayer { Name = "John" };
             player.Save();
             
-            Session.Set(AuthenticateSession.SessionKey, player.EntityId);
+            Session.Set(AuthenticationManager.SessionKey, player.EntityId);
             
             OnFacet<AuthStubFacet>.CallSync(
                 nameof(AuthStubFacet.Logout)
             );
             
             Assert.IsNull(
-                Session.Get<string>(AuthenticateSession.SessionKey)
+                Session.Get<string>(AuthenticationManager.SessionKey)
             );
         }
 
