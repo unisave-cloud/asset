@@ -1,4 +1,4 @@
-# Email authentication
+# Steam authentication
 
 ## 0.9.1
 
