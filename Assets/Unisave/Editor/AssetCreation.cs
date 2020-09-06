@@ -285,6 +285,8 @@ namespace Unisave.Editor
             CreateAsset(
                 GetCurrentDirectoryPath() + "/" + defaultName + ".cs",
                 AssetDatabase.LoadAssetAtPath<Texture2D>(
+                    EditorGUIUtility.isProSkin ?
+                    "Assets/Unisave/Images/NewAssetIconWhite.png" :
                     "Assets/Unisave/Images/NewAssetIcon.png"
                 ),
                 (pathName) => {

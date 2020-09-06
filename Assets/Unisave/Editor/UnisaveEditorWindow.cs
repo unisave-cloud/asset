@@ -3,6 +3,7 @@ using Unisave.Foundation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.UI;
+using Application = UnityEngine.Application;
 
 namespace Unisave.Editor
 {
@@ -30,6 +31,8 @@ namespace Unisave.Editor
 		void OnEnable()
 		{
 			titleContent.image = AssetDatabase.LoadAssetAtPath<Texture>(
+				EditorGUIUtility.isProSkin ?
+				"Assets/Unisave/Images/WindowIconWhite.png" :
 				"Assets/Unisave/Images/WindowIcon.png"
 			);
 		}
@@ -139,9 +142,13 @@ namespace Unisave.Editor
 			const float maxWidth = 400f;
 
 			if (unisaveLogo == null)
+			{
 				unisaveLogo = AssetDatabase.LoadAssetAtPath<Texture>(
+					EditorGUIUtility.isProSkin ?
+					"Assets/Unisave/Images/PropertiesLogoWhite.png" :
 					"Assets/Unisave/Images/PropertiesLogo.png"
 				);
+			}
 
 			float width = Mathf.Min(position.width, maxWidth) - 2 * margin;
 			float height = width * (unisaveLogo.height / (float)unisaveLogo.width);
