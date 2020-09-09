@@ -26,7 +26,7 @@ namespace Unisave.Facets
         public string GetDeviceId()
         {
             if (!loaded)
-                LoadSessionId();
+                LoadDeviceId();
 
             return id;
         }
@@ -69,17 +69,17 @@ namespace Unisave.Facets
                 .Add("processorType", processorType);
         }
         
-        private void LoadSessionId()
+        private void LoadDeviceId()
         {
             id = ObtainDeviceId();
 
             // cannot be obtained, so try to load it
-            if (id == null)
+            if (string.IsNullOrWhiteSpace(id))
             {
                 id = PlayerPrefs.GetString(PlayerPrefsKey, null);
                 
                 // is not stored, so generate random device id
-                if (id == null)
+                if (string.IsNullOrWhiteSpace(id))
                 {
                     id = Str.Random(32);
                     PlayerPrefs.SetString(PlayerPrefsKey, id);

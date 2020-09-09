@@ -4,11 +4,5 @@
 EditorBuildSettings:
   m_ObjectHideFlags: 0
   serializedVersion: 2
-  m_Scenes:
-  - enabled: 1
-    path: Assets/Unisave/Examples/NewsStream/NewsStream.unity
-    guid: 68cc5eb5e47a0ffc6aa96cd0760bfa35
-  - enabled: 1
-    path: Assets/UnisaveFixture/Scripts/ExampleTesting/ExampleTestingScene.unity
-    guid: aea229a1da954118fa89766c952bb898
+  m_Scenes: []
   m_configObjects: {}
