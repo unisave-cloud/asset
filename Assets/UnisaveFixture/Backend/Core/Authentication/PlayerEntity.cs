@@ -2,8 +2,8 @@ using Unisave.Entities;
 
 namespace UnisaveFixture.Backend.Core.Authentication
 {
-    public class AuthStubPlayer : Entity
+    public class PlayerEntity : Entity
     {
-        public string Name { get; set; }
+        public string name;
     }
 }

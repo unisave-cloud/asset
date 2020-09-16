@@ -11,13 +11,13 @@ using UnityEngine.TestTools;
 
 namespace UnisaveFixture.Tests.Core.Authentication
 {
-    public class AuthenticateSessionTest : BackendTestCase
+    public class IntegrationAuthenticationTest : BackendTestCase
     {
         [Test]
         public void ItLoadsNull()
         {
-            var returned = OnFacet<AuthStubFacet>.CallSync<AuthStubPlayer>(
-                nameof(AuthStubFacet.GetAuthenticatedPlayer)
+            var returned = OnFacet<AuthenticationFacet>.CallSync<PlayerEntity>(
+                nameof(AuthenticationFacet.GetPlayer)
             );
             
             Assert.IsNull(returned);
@@ -26,7 +26,7 @@ namespace UnisaveFixture.Tests.Core.Authentication
         [Test]
         public void ItLoadsAuthenticatedPlayer()
         {
-            var player = new AuthStubPlayer { Name = "John" };
+            var player = new PlayerEntity { name = "John" };
             player.Save();
             GenerateSessionId();
             
@@ -39,25 +39,25 @@ namespace UnisaveFixture.Tests.Core.Authentication
                 ClientApp.Resolve<SessionIdRepository>().GetSessionId()
             );
             
-            var returned = OnFacet<AuthStubFacet>.CallSync<AuthStubPlayer>(
-                nameof(AuthStubFacet.GetAuthenticatedPlayer)
+            var returned = OnFacet<AuthenticationFacet>.CallSync<PlayerEntity>(
+                nameof(AuthenticationFacet.GetPlayer)
             );
             
-            Assert.AreEqual("John", returned?.Name);
+            Assert.AreEqual("John", returned?.name);
         }
 
         [Test]
         public void ItStoresAuthenticatedPlayer()
         {
-            var player = new AuthStubPlayer { Name = "John" };
+            var player = new PlayerEntity { name = "John" };
             player.Save();
             
             Assert.IsNull(
                 Session.Get<string>(AuthenticationManager.SessionKey)
             );
             
-            OnFacet<AuthStubFacet>.CallSync(
-                nameof(AuthStubFacet.Login), "John"
+            OnFacet<AuthenticationFacet>.CallSync(
+                nameof(AuthenticationFacet.Login), "John"
             );
             
             Assert.AreEqual(
@@ -69,13 +69,13 @@ namespace UnisaveFixture.Tests.Core.Authentication
         [Test]
         public void ItStoresLogout()
         {
-            var player = new AuthStubPlayer { Name = "John" };
+            var player = new PlayerEntity { name = "John" };
             player.Save();
             
             Session.Set(AuthenticationManager.SessionKey, player.EntityId);
             
-            OnFacet<AuthStubFacet>.CallSync(
-                nameof(AuthStubFacet.Logout)
+            OnFacet<AuthenticationFacet>.CallSync(
+                nameof(AuthenticationFacet.Logout)
             );
             
             Assert.IsNull(
@@ -86,19 +86,19 @@ namespace UnisaveFixture.Tests.Core.Authentication
         [Test]
         public void ItPreservesAuthenticatedUserFromTestCase()
         {
-            var player = new AuthStubPlayer { Name = "John" };
+            var player = new PlayerEntity { name = "John" };
             player.Save();
             GenerateSessionId();
 
             ActingAs(player);
-            var returned = OnFacet<AuthStubFacet>.CallSync<AuthStubPlayer>(
-                nameof(AuthStubFacet.GetAuthenticatedPlayer)
+            var returned = OnFacet<AuthenticationFacet>.CallSync<PlayerEntity>(
+                nameof(AuthenticationFacet.GetPlayer)
             );
             Assert.AreEqual(player.EntityId, returned?.EntityId);
             
             ActingAs(null);
-            returned = OnFacet<AuthStubFacet>.CallSync<AuthStubPlayer>(
-                nameof(AuthStubFacet.GetAuthenticatedPlayer)
+            returned = OnFacet<AuthenticationFacet>.CallSync<PlayerEntity>(
+                nameof(AuthenticationFacet.GetPlayer)
             );
             Assert.IsNull(returned);
         }
