@@ -4,8 +4,8 @@ using UnisaveFixture.Backend.EmailAuthentication; // $$ REMOVE_FROM_TEMPLATE
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-using EmailRegisterFacet = Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication.EmailRegisterFacet;
-using EmailRegisterResponse = Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication.EmailRegisterResponse;
+using EmailRegisterFacet = UnisaveFixture.Backend.EmailAuthentication.EmailRegisterFacet; // $$ REMOVE_FROM_TEMPLATE
+using EmailRegisterResponse = UnisaveFixture.Backend.EmailAuthentication.EmailRegisterResponse; // $$ REMOVE_FROM_TEMPLATE
 
 namespace UnisaveFixture.EmailAuthentication
 {

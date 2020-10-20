@@ -1,12 +1,18 @@
 # Steam microtransactions
 
 
-## TODOs
+## 0.9.2
 
-- add `public string playerEntityId;` to the transaction entity and
-  assign it to `Auth.Id()` during transaction initiation. And during
-  transaction finalization check that it remained the same. `null` value
-  is ok, authentication is not a prerequisite for microtransactions.
+Added ID of the authenticated player's entity.
+
+What has changed:
+
+- The `SteamTransactionEntity` now contains the field `public string
+  authenticatedPlayerId;`
+- The field is assigned in
+  `SteamPurchasingServerFacet.InitiateTransaction` right after
+  transaction validation and it is assigned to the current `Auth.Id()`
+  value.
 
 
 ## 0.9.0

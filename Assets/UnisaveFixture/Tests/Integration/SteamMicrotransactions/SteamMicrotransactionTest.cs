@@ -5,8 +5,10 @@ using System.Text.RegularExpressions;
 using LightJson;
 using NUnit.Framework;
 using Steamworks;
+using Unisave.Authentication;
 using Unisave.Facades;
 using Unisave.Testing;
+using UnisaveFixture.Backend.Authentication;
 using UnisaveFixture.Backend.SteamMicrotransactions;
 using UnisaveFixture.Backend.SteamMicrotransactions.VirtualProducts;
 using UnisaveFixture.SteamMicrotransactions;
@@ -57,6 +59,12 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
             var go = new GameObject();
             var smm = go.AddComponent<SteamPurchasingClientMock>();
             yield return null;
+            
+            // setup authentication
+            var playerEntity = new PlayerEntity();
+            playerEntity.Save();
+            ActingAs(playerEntity);
+            Assert.IsNotNull(playerEntity.EntityId);
 
             // setup HTTP
             Http.Fake(Http.Response(new JsonObject {
@@ -102,6 +110,7 @@ namespace UnisaveFixture.Tests.SteamMicrotransactions
             Assert.AreNotEqual(0L, entity.orderId);
             Assert.AreEqual(374839L, entity.transactionId);
             Assert.AreEqual(123456789L, entity.playerSteamId);
+            Assert.AreEqual(playerEntity.EntityId, entity.authenticatedPlayerId);
             Assert.AreEqual(1, entity.items.Count);
             Assert.AreEqual(1, entity.items[0].itemId);
             Assert.AreEqual(15_00, entity.items[0].totalAmountInCents);

@@ -37,7 +37,7 @@ $NAMESPACE_BEGIN$
             
             // You can add additional data to the transaction entity
             // e.g. the currently logged-in player ID
-            // transaction.player = Auth.GetPlayer<PlayerEntity>();
+            transaction.authenticatedPlayerId = Auth.Id();
             
             StoreNewTransaction(transaction);
 

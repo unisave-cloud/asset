@@ -27,6 +27,11 @@ namespace UnisaveFixture.Backend.SteamMicrotransactions
         /// SteamID of the player that initiated the transaction
         /// </summary>
         public ulong playerSteamId;
+
+        /// <summary>
+        /// ID of the entity of the authenticated player
+        /// </summary>
+        public string authenticatedPlayerId;
         
         /// <summary>
         /// Unique ID of the order
