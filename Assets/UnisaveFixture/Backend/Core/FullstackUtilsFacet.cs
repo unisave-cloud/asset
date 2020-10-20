@@ -3,6 +3,7 @@ using Unisave.Arango;
 using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Facets;
+using Unisave.Sessions;
 
 namespace UnisaveFixture.Backend.Core
 {
@@ -24,6 +25,18 @@ namespace UnisaveFixture.Backend.Core
             
             foreach (string name in nonSystemCollectionNames)
                 arango.DeleteCollection(name);
+            
+            PreventSessionFromCreatingCollection();
+        }
+
+        private void PreventSessionFromCreatingCollection()
+        {
+            Facade.App.Instance<ISession>(
+                new SessionOverStorage(
+                    storage: null,
+                    sessionLifetime: 0
+                )
+            );
         }
     }
 }
