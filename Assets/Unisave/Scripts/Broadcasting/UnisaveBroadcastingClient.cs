@@ -1,21 +1,29 @@
+using System;
 using System.Threading.Tasks;
 using LightJson;
 using UnityEngine;
 
 namespace Unisave.Broadcasting
 {
+    public class SubscriptionRouter
+    {
+        public SubscriptionRouter Forward<TMessage>(Action<TMessage> action)
+        {
+            return this;
+        }
+    }
+    
     public abstract class UnisaveBroadcastingClient : MonoBehaviour
     {
-        protected Task SubscribeToChannelAsync(string channelId)
+        protected async Task<SubscriptionRouter> SubscribeTo<TChannel>(
+            params string[] parameters
+        ) where TChannel : BroadcastingChannel
         {
             // throw authentication exception or succeed (or connection exception)
+
+            await Task.Yield();
             
-            return Task.CompletedTask;
-        }
-        
-        protected virtual void OnDropletReceived(string channelId, JsonObject droplet)
-        {
-            // TODO: bake channel id into the droplet itself ??
+            return new SubscriptionRouter();
         }
         
         protected virtual void OnDisable()
