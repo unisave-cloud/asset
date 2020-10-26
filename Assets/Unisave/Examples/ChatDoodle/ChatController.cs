@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Unisave.Examples.ChatDoodle
 {
-    public class ChatMessage {}
+    public class ChatMessage {} // : BroadcastingMessage
     public class PlayerJoinedMessage {}
     
     public class ChatController : UnisaveBroadcastingClient
