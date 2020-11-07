@@ -77,7 +77,7 @@ namespace Unisave.Facets
             params object[] arguments
         )
         {
-            MethodInfo methodInfo = ExecutionHelper.FindMethodByName(
+            MethodInfo methodInfo = Facet.FindMethodByName(
                 facetType,
                 methodName
             );
@@ -96,7 +96,7 @@ namespace Unisave.Facets
             return PerformFacetCall(
                 facetType.FullName,
                 methodName,
-                ExecutionHelper.SerializeArguments(arguments)
+                Facet.SerializeArguments(methodInfo, arguments)
             )
             .Then((JsonValue returnedValue) => {
                 return Serializer.FromJson(returnedValue, returnType);
@@ -110,7 +110,7 @@ namespace Unisave.Facets
             Type facetType, string methodName, params object[] arguments
         )
         {
-            MethodInfo methodInfo = ExecutionHelper.FindMethodByName(
+            MethodInfo methodInfo = Facet.FindMethodByName(
                 facetType,
                 methodName
             );
@@ -128,7 +128,7 @@ namespace Unisave.Facets
             return PerformFacetCall(
                 facetType.Name,
                 methodName,
-                ExecutionHelper.SerializeArguments(arguments)
+                Facet.SerializeArguments(methodInfo, arguments)
             )
             .Then(v => {}); // forget the return value, which is null anyways
         }
