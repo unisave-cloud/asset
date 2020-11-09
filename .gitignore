@@ -5,6 +5,9 @@
 # Unisave preferences needn't be stored
 [Aa]ssets/Unisave/Resources/UnisavePreferencesFile.asset
 
+# Unisave framework dlls can be compiled from the framework repository
+[Aa]ssets/Unisave/Libraries/UnisaveFramework/*
+
 # Testing folder
 [Aa]ssets/TestingGame
 
