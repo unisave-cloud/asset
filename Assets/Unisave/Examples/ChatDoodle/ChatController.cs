@@ -7,7 +7,7 @@ using UnityEngine;
 
 namespace Unisave.Examples.ChatDoodle
 {
-    public class ChatMessage {} // : BroadcastingMessage
+    // TODO: use this message
     public class PlayerJoinedMessage {}
     
     public class ChatController : UnisaveBroadcastingClient
@@ -20,7 +20,9 @@ namespace Unisave.Examples.ChatDoodle
         }
 
         void ChatMessageReceived(ChatMessage msg)
-        { /* ... */ }
+        {
+            Debug.Log($"[{msg.nickname}]: {msg.message}");
+        }
 
         void PlayerJoined(PlayerJoinedMessage msg)
         { /* ... */ }

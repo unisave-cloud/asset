@@ -1,4 +1,4 @@
-using Unisave.Broadcasting;
+using Unisave.Facades;
 using Unisave.Facets;
 
 namespace Unisave.Examples.ChatDoodle.Backend
@@ -8,7 +8,10 @@ namespace Unisave.Examples.ChatDoodle.Backend
         public void SendMessage(string nickname, string message)
         {
             Broadcast.Channel<ChattingRoomChannel>("<room-id>")
-                .Send(/* BroadcastingMessage instance */);
+                .Send(new ChatMessage {
+                    nickname = nickname,
+                    message = message
+                });
         }
     }
 }

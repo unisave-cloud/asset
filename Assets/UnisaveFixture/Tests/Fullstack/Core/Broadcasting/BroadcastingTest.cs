@@ -29,16 +29,6 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
     
     public class BroadcastingTest
     {
-        [Test]
-        public void DoodleSimpleTest()
-        {
-            var socket = new ClientWebSocket();
-            socket.ConnectAsync(new Uri("wss://..."), CancellationToken.None);
-            //socket.SendAsync(null, )
-            
-            //
-        }
-
         [UnityTest]
         public IEnumerator DoodleEnumeratorTest()
         {
