@@ -1,3 +1,4 @@
+using Unisave.Broadcasting;
 using Unisave.Facets;
 using Unisave.Sessions;
 using Unisave.Utils;
@@ -33,6 +34,8 @@ namespace Unisave.Foundation
             Singleton<DeviceIdRepository>(_ => new DeviceIdRepository());
             
             Singleton<FacetCaller>(_ => new UnisaveFacetCaller(this));
+            
+            Singleton<BroadcastingReceiver>(_ => new BroadcastingReceiver());
         }
     }
 }

@@ -1,22 +1,21 @@
-using System;
-using System.Threading.Tasks;
-using LightJson;
 using Unisave.Broadcasting;
 using Unisave.Examples.ChatDoodle.Backend;
+using Unisave.Facades;
 using UnityEngine;
 
 namespace Unisave.Examples.ChatDoodle
 {
-    // TODO: use this message
-    public class PlayerJoinedMessage {}
-    
     public class ChatController : UnisaveBroadcastingClient
     {
-        async void Start()
+        private async void OnEnable()
         {
-            (await SubscribeTo<ChattingRoomChannel>("<chatting-room-id>"))
+            var subscription = await OnFacet<ChatFacet>
+                .CallAsync<ChannelSubscription>(nameof(ChatFacet.JoinRoom));
+            
+            FromSubscription(subscription)
                 .Forward<ChatMessage>(ChatMessageReceived)
-                .Forward<PlayerJoinedMessage>(PlayerJoined);
+                .Forward<PlayerJoinedMessage>(PlayerJoined)
+                .ElseLogWarning();
         }
 
         void ChatMessageReceived(ChatMessage msg)
@@ -25,6 +24,8 @@ namespace Unisave.Examples.ChatDoodle
         }
 
         void PlayerJoined(PlayerJoinedMessage msg)
-        { /* ... */ }
+        {
+            Debug.Log("Someone joined the room.");
+        }
     }
 }
