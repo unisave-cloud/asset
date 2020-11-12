@@ -35,7 +35,7 @@ namespace Unisave.Foundation
             
             Singleton<FacetCaller>(_ => new UnisaveFacetCaller(this));
             
-            Singleton<BroadcastingReceiver>(_ => new BroadcastingReceiver());
+            Singleton<ClientBroadcastingManager>(_ => new ClientBroadcastingManager());
         }
     }
 }

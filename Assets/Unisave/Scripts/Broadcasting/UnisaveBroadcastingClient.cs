@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using Unisave.Facades;
 using UnityEngine;
 
 namespace Unisave.Broadcasting
@@ -78,7 +79,10 @@ namespace Unisave.Broadcasting
 
         private SubscriptionRouter GetSubscriptionRouter()
         {
-            throw new NotImplementedException();
+            var manager = ClientFacade.ClientApp
+                .Resolve<ClientBroadcastingManager>();
+
+            return manager.SubscriptionRouter;
         }
     }
 }
