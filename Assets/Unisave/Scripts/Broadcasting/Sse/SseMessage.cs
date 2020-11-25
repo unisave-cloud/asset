@@ -1,3 +1,6 @@
+using System;
+using System.Text;
+
 namespace Unisave.Broadcasting.Sse
 {
     /// <summary>
@@ -29,14 +32,35 @@ namespace Unisave.Broadcasting.Sse
 
         public static SseMessage Parse(string text)
         {
-            // TODO: implement this
+            string[] lines = text.Split(
+                new[] { "\r\n", "\r", "\n" },
+                StringSplitOptions.RemoveEmptyEntries
+            );
             
-            return new SseMessage {
-                data = text,
+            var message = new SseMessage {
+                data = null,
                 @event = null,
                 id = null,
                 retry = null
             };
+            
+            StringBuilder data = new StringBuilder();
+
+            foreach (var line in lines)
+            {
+                if (line.StartsWith("id: "))
+                    message.id = int.Parse(line.Substring(4));
+                else if (line.StartsWith("event: "))
+                    message.@event = line.Substring(7);
+                else if (line.StartsWith("retry: "))
+                    message.retry = int.Parse(line.Substring(7));
+                else if (line.StartsWith("data: "))
+                    data.Append(line.Substring(6));
+            }
+
+            message.data = data.ToString();
+            
+            return message;
         }
     }
 }

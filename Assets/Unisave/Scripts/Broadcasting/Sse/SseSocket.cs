@@ -23,16 +23,17 @@ namespace Unisave.Broadcasting.Sse
         /// </summary>
         public event Action<SseMessage> OnMessageReceived;
 
-        public BroadcastingConnection connectionState
-            = BroadcastingConnection.Disconnected;
-        
         private UnityWebRequest runningRequest;
 
         private ClientApplication app;
         
-        private int lastReceivedMessageId = 0;
-        private int retryMilliseconds = 15_000;
-        private bool isRetrying = false;
+        public int lastReceivedMessageId = 0;
+        public int retryMilliseconds = 15_000;
+        public bool isRetrying = false;
+        public BroadcastingConnection connectionState
+            = BroadcastingConnection.Disconnected;
+
+        private bool intendedDisconnection = false;
 
         /// <summary>
         /// Call this right after this component is created
@@ -64,6 +65,7 @@ namespace Unisave.Broadcasting.Sse
         {
             if (runningRequest != null)
             {
+                intendedDisconnection = true;
                 runningRequest.Abort();
                 runningRequest = null;
                 isRetrying = false;
@@ -86,6 +88,10 @@ namespace Unisave.Broadcasting.Sse
             if (isRetrying)
             {
                 isRetrying = false;
+                
+                #if UNITY_EDITOR
+                AppendToDebugLog("WILL RETRY SOON\n\n");
+                #endif
 
                 yield return new WaitForSeconds(retryMilliseconds / 1000f);
             }
@@ -93,7 +99,10 @@ namespace Unisave.Broadcasting.Sse
             // === THE LOOP ===
 
             var downloadHandler = new SseDownloadHandler(HandleMessage);
+            
+            #if UNITY_EDITOR
             downloadHandler.OnDataReceived += AppendToDebugLog;
+            #endif
             
             var url = app.Resolve<ApiUrl>();
             var sessionIdRepo = app.Resolve<SessionIdRepository>();
@@ -122,12 +131,30 @@ namespace Unisave.Broadcasting.Sse
             // === LISTEN ===
             
             connectionState = BroadcastingConnection.Connected;
+            intendedDisconnection = false;
+            
+            #if UNITY_EDITOR
+            AppendToDebugLog("CONNECTING\n\n");
+            #endif
             
             yield return runningRequest.SendWebRequest();
+
+            #if UNITY_EDITOR
+            AppendToDebugLog("DISCONNECTED\n\n");
+            #endif
             
             connectionState = BroadcastingConnection.Reconnecting;
             
             // === HANDLE BREAKAGE ===
+
+            if (intendedDisconnection)
+            {
+                isRetrying = false;
+                runningRequest?.Dispose();
+                runningRequest = null;
+                connectionState = BroadcastingConnection.Disconnected;
+                yield break;
+            }
 
             Debug.LogWarning(
                 $"[Unisave] Broadcasting client connection broke, " +
