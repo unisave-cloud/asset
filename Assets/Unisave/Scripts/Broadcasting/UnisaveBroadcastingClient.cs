@@ -11,6 +11,8 @@ namespace Unisave.Broadcasting
     /// </summary>
     public abstract class UnisaveBroadcastingClient : MonoBehaviour
     {
+        // TODO: add handlers for OnConnectionLost OnConnectionRegained
+        
         /// <summary>
         /// Subscription this client owns
         /// </summary>

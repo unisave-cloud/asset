@@ -1,8 +1,11 @@
 using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using LightJson;
+using Unisave.Http;
 using Unisave.Serialization;
 using Unisave.Serialization.Context;
+using Unisave.Utils;
 using UnityEngine;
 using Subscription = Unisave.Broadcasting.ChannelSubscription;
 using Message = Unisave.Broadcasting.BroadcastingMessage;
@@ -16,15 +19,26 @@ namespace Unisave.Broadcasting
     {
         private readonly BroadcastingTunnel tunnel;
 
+        private readonly AssetHttpClient http;
+
+        /// <summary>
+        /// Active subscriptions that are both set up on the server
+        /// and consumed here by the client
+        /// </summary>
         private Dictionary<Subscription, Action<Message>> activeSubscriptions
             = new Dictionary<Subscription, Action<Message>>();
         
+        /// <summary>
+        /// Pending subscriptions are subscriptions that have been set up
+        /// on the server, but are not yet consumed here, by the client
+        /// </summary>
         private Dictionary<Subscription, Queue<Message>> pendingSubscriptions
             = new Dictionary<Subscription, Queue<Message>>();
         
-        public SubscriptionRouter(BroadcastingTunnel tunnel)
+        public SubscriptionRouter(BroadcastingTunnel tunnel, AssetHttpClient http)
         {
             this.tunnel = tunnel;
+            this.http = http;
             
             tunnel.OnEventReceived += OnTunnelEventReceived;
         }
@@ -92,6 +106,9 @@ namespace Unisave.Broadcasting
             // TODO: make pending subscription into a class
             
             throw new NotImplementedException();
+            
+            // if expires
+            CheckTunnelNeededness();
         }
         
         public void HandleSubscription(
@@ -120,6 +137,8 @@ namespace Unisave.Broadcasting
                 while (messages.Count > 0)
                     InvokeHandlerSafely(handler, messages.Dequeue());
             }
+            
+            tunnel.IsNeeded();
         }
 
         private void InvokeHandlerSafely(
@@ -145,14 +164,42 @@ namespace Unisave.Broadcasting
             
             // if the subscription isn't known, it's ok, do nothing
             
-            throw new NotImplementedException();
+            Debug.Log("PING");
+            http.Get("https://localhost/_broadcasting/", response => {
+                Debug.Log("PONG: " + response.Body());
+            });
+
+            foreach (var sub in subscriptions)
+            {
+                activeSubscriptions.Remove(sub);
+                pendingSubscriptions.Remove(sub);
+            }
+
+            CheckTunnelNeededness();
+        }
+
+        /// <summary>
+        /// Checks whether the tunnel is needed and if not, it will call
+        /// the tunnel.IsNotNeeded() method on it.
+        /// </summary>
+        private void CheckTunnelNeededness()
+        {
+            if (activeSubscriptions.Count > 0)
+                return;
+            
+            if (pendingSubscriptions.Count > 0)
+                return;
+            
+            tunnel.IsNotNeeded();
         }
 
         public void Dispose()
         {
-            tunnel.OnEventReceived -= OnTunnelEventReceived;
-            
             // TODO: end all subscriptions
+            
+            tunnel.IsNotNeeded();
+            
+            tunnel.OnEventReceived -= OnTunnelEventReceived;
         }
     }
 }

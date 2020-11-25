@@ -11,7 +11,10 @@ namespace Unisave.Broadcasting.Sse
 {
     // https://javascript.info/server-sent-events
     
-    public class SseClient : MonoBehaviour
+    /// <summary>
+    /// Represents an SSE connection to the Unisave broadcasting server
+    /// </summary>
+    public partial class SseSocket : MonoBehaviour
     {
         /// <summary>
         /// Called when a new message arrives
@@ -30,40 +33,6 @@ namespace Unisave.Broadcasting.Sse
         {
             app = givenApp;
         }
-
-        #region "Debug log"
-        #if UNITY_EDITOR
-        
-        public bool displayDebugLog = true; // TODO: false
-
-        private StringBuilder debugLog = new StringBuilder();
-
-        void AppendToDebugLog(string text)
-        {
-            const int maxLength = 1024 * 10;
-            
-            debugLog.Append(text);
-
-            if (debugLog.Length > maxLength)
-                debugLog.Remove(0, debugLog.Length - maxLength);
-        }
-        
-        void OnGUI()
-        {
-            if (!displayDebugLog)
-                return;
-
-            GUI.Label(
-                new Rect(20, 20, Screen.width - 40, Screen.height - 40),
-                debugLog.ToString(),
-                new GUIStyle(GUI.skin.textArea) {
-                    alignment = TextAnchor.LowerLeft
-                }
-            );
-        }
-        
-        #endif
-        #endregion
 
         private void OnEnable()
         {
@@ -109,6 +78,7 @@ namespace Unisave.Broadcasting.Sse
                             ["buildGuid"] = Application.buildGUID,
                             ["backendHash"] = app.Preferences.BackendHash,
                             ["sessionId"] = "<session-id>" // TODO: fix this
+                            // TODO: send lastReceivedMessageId
                         }.ToString()
                     )
                 )

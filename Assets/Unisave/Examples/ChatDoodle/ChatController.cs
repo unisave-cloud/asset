@@ -3,6 +3,7 @@ using Unisave.Broadcasting;
 using Unisave.Examples.ChatDoodle.Backend;
 using Unisave.Facades;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace Unisave.Examples.ChatDoodle
 {
@@ -40,7 +41,11 @@ namespace Unisave.Examples.ChatDoodle
         
         private IEnumerator Foo()
         {
-            yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(3);
+
+            SceneManager.LoadScene(1);
+
+            /*yield return new WaitForSeconds(1);
             
             while (true)
             {
@@ -50,7 +55,7 @@ namespace Unisave.Examples.ChatDoodle
                 Debug.Log("Message sent");
                 
                 yield return new WaitForSeconds(10);
-            }
+            }*/
         }
     }
 }

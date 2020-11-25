@@ -1,5 +1,6 @@
 using System;
 using Unisave.Foundation;
+using Unisave.Http;
 
 namespace Unisave.Broadcasting
 {
@@ -14,7 +15,10 @@ namespace Unisave.Broadcasting
         public ClientBroadcastingManager(ClientApplication app)
         {
             Tunnel = new BroadcastingTunnel(app);
-            SubscriptionRouter = new SubscriptionRouter(Tunnel);
+            SubscriptionRouter = new SubscriptionRouter(
+                Tunnel,
+                app.Resolve<AssetHttpClient>()
+            );
         }
 
         public void Dispose()

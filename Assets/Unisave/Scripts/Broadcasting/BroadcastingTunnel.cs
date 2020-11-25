@@ -18,16 +18,63 @@ namespace Unisave.Broadcasting
         /// </summary>
         public event Action<JsonObject> OnEventReceived;
 
-        private SseClient sseClient;
+        private ClientApplication app;
+
+        private SseSocket sseSocket;
+
+        private int lastReceivedMessageId = 0;
 
         public BroadcastingTunnel(ClientApplication app)
         {
-            // create the game object
-            GameObject go = new GameObject("UnisaveSseClient");
-            sseClient = go.AddComponent<SseClient>();
+            this.app = app;
+        }
+
+        /// <summary>
+        /// Called just before the tunnel becomes needed
+        /// (idempotent)
+        /// </summary>
+        public void IsNeeded()
+        {
+            Debug.Log("BT: IsNeeded");
             
-            sseClient.SetClientApplication(app);
-            sseClient.OnMessageReceived += OnSseMessageReceived;
+            if (sseSocket == null)
+                CreateSocket();
+        }
+
+        /// <summary>
+        /// Called right after the tunnel stops being needed
+        /// (idempotent)
+        /// </summary>
+        public void IsNotNeeded()
+        {
+            Debug.Log("BT: IsNotNeeded");
+            
+            DisposeSocket();
+        }
+
+        private void CreateSocket()
+        {
+            if (sseSocket != null)
+                throw new InvalidOperationException("Socket already created");
+            
+            // create the game object
+            GameObject go = new GameObject("UnisaveBroadcastingSseSocket");
+            UnityEngine.Object.DontDestroyOnLoad(go);
+            sseSocket = go.AddComponent<SseSocket>();
+            
+            sseSocket.SetClientApplication(app);
+            sseSocket.OnMessageReceived += OnSseMessageReceived;
+        }
+
+        private void DisposeSocket()
+        {
+            if (sseSocket == null)
+                return;
+            
+            sseSocket.OnMessageReceived -= OnSseMessageReceived;
+            
+            UnityEngine.Object.Destroy(sseSocket.gameObject);
+            sseSocket = null;
         }
 
         private void OnSseMessageReceived(SseMessage message)
@@ -47,11 +94,7 @@ namespace Unisave.Broadcasting
 
         public void Dispose()
         {
-            if (sseClient != null)
-            {
-                sseClient.OnMessageReceived -= OnSseMessageReceived;
-                sseClient = null;
-            }
+            DisposeSocket();
         }
     }
 }
