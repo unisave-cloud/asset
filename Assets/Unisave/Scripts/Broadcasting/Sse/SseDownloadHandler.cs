@@ -9,6 +9,8 @@ namespace Unisave.Broadcasting.Sse
         private readonly StringBuilder textStream = new StringBuilder();
         private readonly Action<SseMessage> messageHandler;
 
+        public event Action<string> OnDataReceived;
+
         public SseDownloadHandler(Action<SseMessage> messageHandler)
         {
             this.messageHandler = messageHandler
@@ -17,11 +19,13 @@ namespace Unisave.Broadcasting.Sse
         
         protected override bool ReceiveData(byte[] receivedData, int dataLength)
         {
-            textStream.Append(
-                Encoding.UTF8.GetString(receivedData, 0, dataLength)
-            );
+            string data = Encoding.UTF8.GetString(receivedData, 0, dataLength);
+            
+            textStream.Append(data);
             
             ExtractMessages();
+
+            OnDataReceived?.Invoke(data);
 
             // continue receiving data
             return true;

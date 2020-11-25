@@ -1,6 +1,7 @@
 using System;
 using LightJson;
 using Unisave.Broadcasting.Sse;
+using Unisave.Foundation;
 using Unisave.Serialization;
 using UnityEngine;
 
@@ -19,12 +20,13 @@ namespace Unisave.Broadcasting
 
         private SseClient sseClient;
 
-        public BroadcastingTunnel()
+        public BroadcastingTunnel(ClientApplication app)
         {
             // create the game object
             GameObject go = new GameObject("UnisaveSseClient");
             sseClient = go.AddComponent<SseClient>();
-
+            
+            sseClient.SetClientApplication(app);
             sseClient.OnMessageReceived += OnSseMessageReceived;
         }
 

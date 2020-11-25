@@ -71,8 +71,7 @@ namespace Unisave.Broadcasting
         {
             var subscriptionRouter = GetSubscriptionRouter();
             
-            foreach (var sub in subscriptions)
-                subscriptionRouter.EndSubscription(sub);
+            subscriptionRouter.EndSubscriptions(subscriptions);
 
             subscriptions.Clear();
         }

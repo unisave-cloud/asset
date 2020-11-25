@@ -1,3 +1,4 @@
+using System.Collections;
 using Unisave.Broadcasting;
 using Unisave.Examples.ChatDoodle.Backend;
 using Unisave.Facades;
@@ -16,6 +17,15 @@ namespace Unisave.Examples.ChatDoodle
                 .Forward<ChatMessage>(ChatMessageReceived)
                 .Forward<PlayerJoinedMessage>(PlayerJoined)
                 .ElseLogWarning();
+
+            //StartCoroutine(Foo());
+        }
+        
+        protected override void OnDisable()
+        {
+            base.OnDisable();
+            
+            StopAllCoroutines();
         }
 
         void ChatMessageReceived(ChatMessage msg)
@@ -26,6 +36,21 @@ namespace Unisave.Examples.ChatDoodle
         void PlayerJoined(PlayerJoinedMessage msg)
         {
             Debug.Log("Someone joined the room.");
+        }
+        
+        private IEnumerator Foo()
+        {
+            yield return new WaitForSeconds(1);
+            
+            while (true)
+            {
+                yield return OnFacet<ChatFacet>.Call(
+                    nameof(ChatFacet.SendMessage), "<nickname>", "Hello people!"
+                ).AsCoroutine();
+                Debug.Log("Message sent");
+                
+                yield return new WaitForSeconds(10);
+            }
         }
     }
 }

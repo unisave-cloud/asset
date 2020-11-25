@@ -137,9 +137,9 @@ namespace Unisave.Broadcasting
             }
         }
         
-        public void EndSubscription(ChannelSubscription subscription)
+        public void EndSubscriptions(IEnumerable<ChannelSubscription> subscriptions)
         {
-            // TODO: sends a request to the server that this subscription
+            // TODO: sends a request to the server that this subscription(s)
             // is dead and it should no longer send messages from the
             // corresponding channel, if this was the last subscription to it
             

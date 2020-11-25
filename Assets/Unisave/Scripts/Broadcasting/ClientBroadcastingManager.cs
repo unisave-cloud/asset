@@ -1,4 +1,5 @@
 using System;
+using Unisave.Foundation;
 
 namespace Unisave.Broadcasting
 {
@@ -9,10 +10,10 @@ namespace Unisave.Broadcasting
     {
         public BroadcastingTunnel Tunnel { get; }
         public SubscriptionRouter SubscriptionRouter { get; }
-        
-        public ClientBroadcastingManager()
+
+        public ClientBroadcastingManager(ClientApplication app)
         {
-            Tunnel = new BroadcastingTunnel();
+            Tunnel = new BroadcastingTunnel(app);
             SubscriptionRouter = new SubscriptionRouter(Tunnel);
         }
 
