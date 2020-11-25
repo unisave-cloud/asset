@@ -24,6 +24,11 @@ namespace Unisave.Broadcasting
 
         private int lastReceivedMessageId = 0;
 
+        public BroadcastingConnection ConnectionState
+            => sseSocket == null
+                ? BroadcastingConnection.Disconnected
+                : sseSocket.connectionState;
+
         public BroadcastingTunnel(ClientApplication app)
         {
             this.app = app;
@@ -35,8 +40,6 @@ namespace Unisave.Broadcasting
         /// </summary>
         public void IsNeeded()
         {
-            Debug.Log("BT: IsNeeded");
-            
             if (sseSocket == null)
                 CreateSocket();
         }
@@ -47,8 +50,6 @@ namespace Unisave.Broadcasting
         /// </summary>
         public void IsNotNeeded()
         {
-            Debug.Log("BT: IsNotNeeded");
-            
             DisposeSocket();
         }
 
@@ -56,13 +57,18 @@ namespace Unisave.Broadcasting
         {
             if (sseSocket != null)
                 throw new InvalidOperationException("Socket already created");
-            
-            // create the game object
-            GameObject go = new GameObject("UnisaveBroadcastingSseSocket");
+
+            GameObject go = new GameObject(
+                "UnisaveBroadcastingSseSocket",
+                typeof(SseSocket)
+            );
             UnityEngine.Object.DontDestroyOnLoad(go);
-            sseSocket = go.AddComponent<SseSocket>();
+
+            if (!app.InEditMode)
+                go.transform.parent = app.GameObject.transform;
             
-            sseSocket.SetClientApplication(app);
+            sseSocket = go.GetComponent<SseSocket>();
+            sseSocket.Initialize(app, lastReceivedMessageId);
             sseSocket.OnMessageReceived += OnSseMessageReceived;
         }
 
@@ -79,6 +85,9 @@ namespace Unisave.Broadcasting
 
         private void OnSseMessageReceived(SseMessage message)
         {
+            if (message.id != null)
+                lastReceivedMessageId = (int) message.id;
+            
             // TODO: dummy implementation
             
             var m = new Unisave.Examples.ChatDoodle.Backend.ChatMessage {

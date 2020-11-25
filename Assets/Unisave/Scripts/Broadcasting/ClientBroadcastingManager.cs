@@ -15,10 +15,7 @@ namespace Unisave.Broadcasting
         public ClientBroadcastingManager(ClientApplication app)
         {
             Tunnel = new BroadcastingTunnel(app);
-            SubscriptionRouter = new SubscriptionRouter(
-                Tunnel,
-                app.Resolve<AssetHttpClient>()
-            );
+            SubscriptionRouter = new SubscriptionRouter(Tunnel, app);
         }
 
         public void Dispose()

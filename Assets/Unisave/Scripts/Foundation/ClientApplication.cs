@@ -58,7 +58,7 @@ namespace Unisave.Foundation
         {
             Singleton<AssetHttpClient>(_ => new AssetHttpClient(this));
             
-            Bind<ApiUrl>(_ => new ApiUrl(Preferences.ServerUrl));
+            Singleton<ApiUrl>(_ => new ApiUrl(Preferences.ServerUrl));
             
             Singleton<SessionIdRepository>(_ => new SessionIdRepository());
             

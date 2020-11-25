@@ -1,12 +1,16 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Net.Http;
+using System.Linq;
 using LightJson;
+using Unisave.Foundation;
 using Unisave.Http;
 using Unisave.Serialization;
 using Unisave.Serialization.Context;
+using Unisave.Sessions;
 using Unisave.Utils;
 using UnityEngine;
+using Application = UnityEngine.Application;
 using Subscription = Unisave.Broadcasting.ChannelSubscription;
 using Message = Unisave.Broadcasting.BroadcastingMessage;
 
@@ -19,7 +23,7 @@ namespace Unisave.Broadcasting
     {
         private readonly BroadcastingTunnel tunnel;
 
-        private readonly AssetHttpClient http;
+        private readonly ClientApplication app;
 
         /// <summary>
         /// Active subscriptions that are both set up on the server
@@ -35,10 +39,13 @@ namespace Unisave.Broadcasting
         private Dictionary<Subscription, Queue<Message>> pendingSubscriptions
             = new Dictionary<Subscription, Queue<Message>>();
         
-        public SubscriptionRouter(BroadcastingTunnel tunnel, AssetHttpClient http)
+        public SubscriptionRouter(
+            BroadcastingTunnel tunnel,
+            ClientApplication app
+        )
         {
             this.tunnel = tunnel;
-            this.http = http;
+            this.app = app;
             
             tunnel.OnEventReceived += OnTunnelEventReceived;
         }
@@ -107,6 +114,9 @@ namespace Unisave.Broadcasting
             
             throw new NotImplementedException();
             
+            // to remove
+            EndSubscriptions(new[] { subscription });
+
             // if expires
             CheckTunnelNeededness();
         }
@@ -158,24 +168,60 @@ namespace Unisave.Broadcasting
         
         public void EndSubscriptions(IEnumerable<ChannelSubscription> subscriptions)
         {
-            // TODO: sends a request to the server that this subscription(s)
-            // is dead and it should no longer send messages from the
-            // corresponding channel, if this was the last subscription to it
+            JsonArray channelsToUnsubscribe = new JsonArray();
             
-            // if the subscription isn't known, it's ok, do nothing
-            
-            Debug.Log("PING");
-            http.Get("https://localhost/_broadcasting/", response => {
-                Debug.Log("PONG: " + response.Body());
-            });
-
             foreach (var sub in subscriptions)
             {
-                activeSubscriptions.Remove(sub);
-                pendingSubscriptions.Remove(sub);
+                bool lastForChannel = EndSubscription(sub);
+                
+                if (lastForChannel)
+                    channelsToUnsubscribe.Add(sub.ChannelName);
+            }
+
+            if (channelsToUnsubscribe.Count > 0)
+            {
+                var http = app.Resolve<AssetHttpClient>();
+                var url = app.Resolve<ApiUrl>();
+                var sessionIdRepo = app.Resolve<SessionIdRepository>();
+
+                http.Post(
+                    url.BroadcastingUnsubscribe(),
+                    new JsonObject {
+                        ["gameToken"] = app.Preferences.GameToken,
+                        ["editorKey"] = app.Preferences.EditorKey,
+                        ["buildGuid"] = Application.buildGUID,
+                        ["backendHash"] = app.Preferences.BackendHash,
+                        ["sessionId"] = sessionIdRepo.GetSessionId(),
+                        ["channels"] = channelsToUnsubscribe
+                    },
+                    null
+                );
             }
 
             CheckTunnelNeededness();
+        }
+
+        /// <summary>
+        /// Ends a subscription and returns true if it was
+        /// the last subscriptions for this channel, thus we should
+        /// unsubscribe from the channel
+        /// </summary>
+        /// <param name="subscription"></param>
+        /// <returns></returns>
+        private bool EndSubscription(ChannelSubscription subscription)
+        {
+            activeSubscriptions.Remove(subscription);
+            pendingSubscriptions.Remove(subscription);
+
+            if (activeSubscriptions.Keys
+                .Any(s => s.ChannelName == subscription.ChannelName))
+                return false;
+            
+            if (pendingSubscriptions.Keys
+                .Any(s => s.ChannelName == subscription.ChannelName))
+                return false;
+
+            return true;
         }
 
         /// <summary>
@@ -195,7 +241,10 @@ namespace Unisave.Broadcasting
 
         public void Dispose()
         {
-            // TODO: end all subscriptions
+            List<ChannelSubscription> subscriptions = new List<ChannelSubscription>();
+            subscriptions.AddRange(activeSubscriptions.Keys);
+            subscriptions.AddRange(pendingSubscriptions.Keys);
+            EndSubscriptions(subscriptions);
             
             tunnel.IsNotNeeded();
             
