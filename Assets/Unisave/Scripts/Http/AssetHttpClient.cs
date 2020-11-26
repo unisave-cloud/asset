@@ -1,9 +1,12 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
+using System.Text;
 using LightJson;
 using Unisave.Foundation;
 using Unisave.Http.Client;
 using UnityEngine;
+using UnityEngine.Networking;
 
 namespace Unisave.Http
 {
@@ -58,9 +61,62 @@ namespace Unisave.Http
             Action<Response> callback
         )
         {
+            // if there's no callback, just send the request synchronously
+            // and don't wait for anything. This is needed for requests
+            // that need to be fired during scene tear down.
+            if (callback == null)
+            {
+                var c = TheRequestCoroutine(method, url, headers, payload, null);
+                while (c.MoveNext()) {}
+                return;
+            }
+        
+            // execute regularly with the callback,
+            // via a MonoBehaviour that can run the coroutine asynchronously
             ResolveComponent().SendRequest(
                 method, url, headers, payload, callback
             );
+        }
+        
+        /// <summary>
+        /// The core logic that sends the request.
+        /// It has to send the request but do nothing to the response.
+        /// </summary>
+        internal static IEnumerator TheRequestCoroutine(
+            string method,
+            string url,
+            Dictionary<string, string> headers,
+            JsonObject payload,
+            Action<UnityWebRequest, DownloadHandlerBuffer> callback
+        )
+        {
+            // TODO: enforce SSL certificates
+            
+            var downloadHandler = new DownloadHandlerBuffer();
+
+            UploadHandler uploadHandler = null;
+            if (payload != null)
+                uploadHandler = new UploadHandlerRaw(
+                    Encoding.UTF8.GetBytes(payload.ToString())
+                );
+
+            var request = new UnityWebRequest(
+                url,
+                method,
+                downloadHandler,
+                uploadHandler
+            );
+            
+            if (headers != null)
+                foreach (var pair in headers)
+                    request.SetRequestHeader(pair.Key, pair.Value);
+            
+            if (payload != null)
+                request.SetRequestHeader("Content-Type", "application/json");
+
+            yield return request.SendWebRequest();
+            
+            callback?.Invoke(request, downloadHandler);
         }
     }
 }

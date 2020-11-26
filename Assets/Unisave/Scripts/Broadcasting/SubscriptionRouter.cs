@@ -22,8 +22,11 @@ namespace Unisave.Broadcasting
     public class SubscriptionRouter : IDisposable
     {
         private readonly BroadcastingTunnel tunnel;
-
         private readonly ClientApplication app;
+
+        private readonly AssetHttpClient http;
+        private readonly ApiUrl url;
+        private readonly ClientSessionIdRepository sessionIdRepository;
 
         /// <summary>
         /// Active subscriptions that are both set up on the server
@@ -46,6 +49,10 @@ namespace Unisave.Broadcasting
         {
             this.tunnel = tunnel;
             this.app = app;
+            
+            http = app.Resolve<AssetHttpClient>();
+            url = app.Resolve<ApiUrl>();
+            sessionIdRepository = app.Resolve<ClientSessionIdRepository>();
             
             tunnel.OnEventReceived += OnTunnelEventReceived;
         }
@@ -180,10 +187,11 @@ namespace Unisave.Broadcasting
 
             if (channelsToUnsubscribe.Count > 0)
             {
-                var http = app.Resolve<AssetHttpClient>();
-                var url = app.Resolve<ApiUrl>();
-                var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
-
+                // NOTE: It's important that the callback will remain null,
+                // since this request could be fired during disposal
+                // and we cannot wait for the response then.
+                // All sorts of unity errors would show up in the console.
+            
                 http.Post(
                     url.BroadcastingUnsubscribe(),
                     new JsonObject {
@@ -191,10 +199,10 @@ namespace Unisave.Broadcasting
                         ["editorKey"] = app.Preferences.EditorKey,
                         ["buildGuid"] = Application.buildGUID,
                         ["backendHash"] = app.Preferences.BackendHash,
-                        ["sessionId"] = sessionIdRepo.GetSessionId(),
+                        ["sessionId"] = sessionIdRepository.GetSessionId(),
                         ["channels"] = channelsToUnsubscribe
                     },
-                    null
+                    null // IMPORTANT! see the note above
                 );
             }
 

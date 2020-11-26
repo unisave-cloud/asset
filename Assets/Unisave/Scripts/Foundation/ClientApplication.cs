@@ -70,12 +70,12 @@ namespace Unisave.Foundation
         
         public override void Dispose()
         {
+            base.Dispose();
+            
             ClientFacade.UnsetIfEqualsGiven(this);
             
             // NOTE: the game object will be destroyed by Unity
             GameObject = null;
-            
-            base.Dispose();
         }
     }
 }
