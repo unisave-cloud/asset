@@ -24,7 +24,7 @@ namespace Unisave.Facets
             set => sessionIdRepository.StoreSessionId(value);
         }
 
-        private readonly SessionIdRepository sessionIdRepository;
+        private readonly ClientSessionIdRepository sessionIdRepository;
         
         /// <summary>
         /// Class that extracts information about the device
@@ -33,7 +33,7 @@ namespace Unisave.Facets
         
         public FacetCaller(ClientApplication clientApp)
         {
-            sessionIdRepository = clientApp.Resolve<SessionIdRepository>();
+            sessionIdRepository = clientApp.Resolve<ClientSessionIdRepository>();
             DeviceIdRepository = clientApp.Resolve<DeviceIdRepository>();
         }
         

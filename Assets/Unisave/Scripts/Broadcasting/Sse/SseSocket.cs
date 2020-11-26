@@ -105,7 +105,7 @@ namespace Unisave.Broadcasting.Sse
             #endif
             
             var url = app.Resolve<ApiUrl>();
-            var sessionIdRepo = app.Resolve<SessionIdRepository>();
+            var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
             
             runningRequest = new UnityWebRequest(
                 url.BroadcastingListen(),

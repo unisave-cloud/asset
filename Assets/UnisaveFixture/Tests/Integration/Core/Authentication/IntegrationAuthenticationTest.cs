@@ -36,7 +36,7 @@ namespace UnisaveFixture.Tests.Core.Authentication
             // I need to figure out how to properly merge test facade access
             // with middleware logic so that it does not interfere.
             App.Resolve<ISession>().StoreSession(
-                ClientApp.Resolve<SessionIdRepository>().GetSessionId()
+                ClientApp.Resolve<ClientSessionIdRepository>().GetSessionId()
             );
             
             var returned = OnFacet<AuthenticationFacet>.CallSync<PlayerEntity>(

@@ -1,5 +1,4 @@
 using System;
-using System.ComponentModel.Design;
 using Unisave.Broadcasting;
 using Unisave.Facades;
 using Unisave.Facets;
@@ -60,7 +59,7 @@ namespace Unisave.Foundation
             
             Singleton<ApiUrl>(_ => new ApiUrl(Preferences.ServerUrl));
             
-            Singleton<SessionIdRepository>(_ => new SessionIdRepository());
+            Singleton<ClientSessionIdRepository>(_ => new ClientSessionIdRepository());
             
             Singleton<DeviceIdRepository>(_ => new DeviceIdRepository());
             

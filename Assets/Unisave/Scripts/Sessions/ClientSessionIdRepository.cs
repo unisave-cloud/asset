@@ -9,7 +9,7 @@ namespace Unisave.Sessions
     /// <summary>
     /// Stores session id that is used for connecting to the server
     /// </summary>
-    public class SessionIdRepository
+    public class ClientSessionIdRepository
     {
         /// <summary>
         /// In how many minutes the session id expires

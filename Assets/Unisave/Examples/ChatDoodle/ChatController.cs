@@ -19,7 +19,7 @@ namespace Unisave.Examples.ChatDoodle
                 .Forward<PlayerJoinedMessage>(PlayerJoined)
                 .ElseLogWarning();
 
-            //StartCoroutine(Foo());
+            StartCoroutine(Foo());
         }
         
         protected override void OnDisable()
@@ -41,11 +41,10 @@ namespace Unisave.Examples.ChatDoodle
         
         private IEnumerator Foo()
         {
-            yield return new WaitForSeconds(3);
+//            yield return new WaitForSeconds(3);
+//            SceneManager.LoadScene(1);
 
-            SceneManager.LoadScene(1);
-
-            /*yield return new WaitForSeconds(1);
+            yield return new WaitForSeconds(1);
             
             while (true)
             {
@@ -55,7 +54,7 @@ namespace Unisave.Examples.ChatDoodle
                 Debug.Log("Message sent");
                 
                 yield return new WaitForSeconds(10);
-            }*/
+            }
         }
     }
 }

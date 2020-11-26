@@ -182,7 +182,7 @@ namespace Unisave.Broadcasting
             {
                 var http = app.Resolve<AssetHttpClient>();
                 var url = app.Resolve<ApiUrl>();
-                var sessionIdRepo = app.Resolve<SessionIdRepository>();
+                var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
 
                 http.Post(
                     url.BroadcastingUnsubscribe(),
