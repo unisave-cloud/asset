@@ -1,13 +1,15 @@
 using System;
 using System.Text;
+using LightJson;
+using LightJson.Serialization;
 
 namespace Unisave.Broadcasting.Sse
 {
     /// <summary>
-    /// Represents a single message received via the SSE protocol
+    /// Represents a single event received via the SSE protocol
     /// https://javascript.info/server-sent-events
     /// </summary>
-    public struct SseMessage
+    public struct SseEvent
     {
         /// <summary>
         /// Optional event name
@@ -15,12 +17,17 @@ namespace Unisave.Broadcasting.Sse
         public string @event;
         
         /// <summary>
-        /// Message data
+        /// Event string data
         /// </summary>
         public string data;
+
+        /// <summary>
+        /// Event data parsed as JSON object
+        /// </summary>
+        public JsonObject jsonData;
         
         /// <summary>
-        /// Message id
+        /// Event id
         /// </summary>
         public int? id;
         
@@ -30,14 +37,19 @@ namespace Unisave.Broadcasting.Sse
         /// </summary>
         public int? retry;
 
-        public static SseMessage Parse(string text)
+        /// <summary>
+        /// Parse the event from the text received over HTTP
+        /// </summary>
+        /// <param name="text"></param>
+        /// <returns></returns>
+        public static SseEvent Parse(string text)
         {
             string[] lines = text.Split(
                 new[] { "\r\n", "\r", "\n" },
                 StringSplitOptions.RemoveEmptyEntries
             );
             
-            var message = new SseMessage {
+            var message = new SseEvent {
                 data = null,
                 @event = null,
                 id = null,
@@ -59,6 +71,8 @@ namespace Unisave.Broadcasting.Sse
             }
 
             message.data = data.ToString();
+
+            message.jsonData = JsonReader.Parse(message.data).AsJsonObject;
             
             return message;
         }

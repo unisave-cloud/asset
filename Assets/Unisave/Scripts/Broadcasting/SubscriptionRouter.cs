@@ -53,37 +53,29 @@ namespace Unisave.Broadcasting
             http = app.Resolve<AssetHttpClient>();
             url = app.Resolve<ApiUrl>();
             sessionIdRepository = app.Resolve<ClientSessionIdRepository>();
-            
-            tunnel.OnEventReceived += OnTunnelEventReceived;
+
+            tunnel.OnMessageEvent += OnMessageEvent;
+            tunnel.OnSubscriptionEvent += OnSubscriptionEvent;
         }
-        
-        private void OnTunnelEventReceived(JsonObject e)
+
+        private void OnMessageEvent(JsonObject data)
         {
-            switch (e["type"].AsString)
-            {
-                case "subscription":
-                    var sub = Serializer.FromJson<ChannelSubscription>(
-                        e["subscription"],
-                        DeserializationContext.BroadcastingContext()
-                    );
-                    CreatePendingSubscription(sub);
-                    break;
-                
-                case "message":
-                    var message = Serializer.FromJson<BroadcastingMessage>(
-                        e["message"],
-                        DeserializationContext.BroadcastingContext()
-                    );
-                    RouteMessage(e["channel"].AsString, message);
-                    break;
-                
-                default:
-                    Debug.LogWarning(
-                        "Broadcasting tunnel received a message " +
-                        "of unknown type:\n" + e.ToString(true)
-                    );
-                    break;
-            }
+            var message = Serializer.FromJson<BroadcastingMessage>(
+                data["message"],
+                DeserializationContext.BroadcastingContext()
+            );
+            
+            RouteMessage(data["channel"].AsString, message);
+        }
+
+        private void OnSubscriptionEvent(JsonObject data)
+        {
+            // TODO:
+//            var sub = Serializer.FromJson<ChannelSubscription>(
+//                data["subscription"],
+//                DeserializationContext.BroadcastingContext()
+//            );
+//            CreatePendingSubscription(sub);
         }
 
         private void CreatePendingSubscription(ChannelSubscription subscription)
@@ -256,7 +248,8 @@ namespace Unisave.Broadcasting
             
             tunnel.IsNotNeeded();
             
-            tunnel.OnEventReceived -= OnTunnelEventReceived;
+            tunnel.OnMessageEvent -= OnMessageEvent;
+            tunnel.OnSubscriptionEvent -= OnSubscriptionEvent;
         }
     }
 }

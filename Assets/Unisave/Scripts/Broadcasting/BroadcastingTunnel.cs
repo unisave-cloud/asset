@@ -8,15 +8,20 @@ using UnityEngine;
 namespace Unisave.Broadcasting
 {
     /// <summary>
-    /// The tunnel that transports messages from the server to the client
+    /// The tunnel that transports events from the server to the client
     /// (all the channels combined with all the metadata)
     /// </summary>
     public class BroadcastingTunnel : IDisposable
     {
         /// <summary>
-        /// Called when a new event arrives through the tunnel
+        /// Called when a message event arrives through the SSE tunnel
         /// </summary>
-        public event Action<JsonObject> OnEventReceived;
+        public event Action<JsonObject> OnMessageEvent;
+        
+        /// <summary>
+        /// Called when a subscription event arrives through the SSE tunnel
+        /// </summary>
+        public event Action<JsonObject> OnSubscriptionEvent;
 
         private ClientApplication app;
 
@@ -69,7 +74,7 @@ namespace Unisave.Broadcasting
             
             sseSocket = go.GetComponent<SseSocket>();
             sseSocket.Initialize(app, lastReceivedMessageId);
-            sseSocket.OnMessageReceived += OnSseMessageReceived;
+            sseSocket.OnEventReceived += OnSseEventReceived;
         }
 
         private void DisposeSocket()
@@ -77,28 +82,34 @@ namespace Unisave.Broadcasting
             if (sseSocket == null)
                 return;
             
-            sseSocket.OnMessageReceived -= OnSseMessageReceived;
+            sseSocket.OnEventReceived -= OnSseEventReceived;
             
             UnityEngine.Object.Destroy(sseSocket.gameObject);
             sseSocket = null;
         }
 
-        private void OnSseMessageReceived(SseMessage message)
+        private void OnSseEventReceived(SseEvent @event)
         {
-            if (message.id != null)
-                lastReceivedMessageId = (int) message.id;
-            
-            // TODO: dummy implementation
-            
-            var m = new Unisave.Examples.ChatDoodle.Backend.ChatMessage {
-                message = message.data,
-                nickname = "NOPE"
-            };
-            
-            OnEventReceived?.Invoke(new JsonObject {
-                ["type"] = "message",
-                ["message"] = Serializer.ToJson<BroadcastingMessage>(m)
-            });
+            if (@event.id != null)
+                lastReceivedMessageId = (int) @event.id;
+
+            switch (@event.@event)
+            {
+                case "message":
+                    OnMessageEvent?.Invoke(@event.jsonData);
+                    break;
+                
+                case "subscription":
+                    OnSubscriptionEvent?.Invoke(@event.jsonData);
+                    break;
+                
+                default:
+                    Debug.LogWarning(
+                        "[Unisave] Unknown broadcasting event received: " +
+                        @event.@event
+                    );
+                    break;
+            }
         }
 
         public void Dispose()

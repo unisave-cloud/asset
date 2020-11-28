@@ -19,15 +19,15 @@ namespace Unisave.Broadcasting.Sse
     public partial class SseSocket : MonoBehaviour
     {
         /// <summary>
-        /// Called when a new message arrives
+        /// Called when a new event arrives
         /// </summary>
-        public event Action<SseMessage> OnMessageReceived;
+        public event Action<SseEvent> OnEventReceived;
 
         private UnityWebRequest runningRequest;
 
         private ClientApplication app;
         
-        public int lastReceivedMessageId = 0;
+        public int lastReceivedEventId = 0;
         public int retryMilliseconds = 15_000;
         public bool isRetrying = false;
         public BroadcastingConnection connectionState
@@ -40,11 +40,11 @@ namespace Unisave.Broadcasting.Sse
         /// </summary>
         public void Initialize(
             ClientApplication app,
-            int lastReceivedMessageId
+            int lastReceivedEventId
         )
         {
             this.app = app;
-            this.lastReceivedMessageId = lastReceivedMessageId;
+            this.lastReceivedEventId = lastReceivedEventId;
         }
 
         /// <summary>
@@ -98,7 +98,7 @@ namespace Unisave.Broadcasting.Sse
             
             // === THE LOOP ===
 
-            var downloadHandler = new SseDownloadHandler(HandleMessage);
+            var downloadHandler = new SseDownloadHandler(HandleEvent);
             
             #if UNITY_EDITOR
             downloadHandler.OnDataReceived += AppendToDebugLog;
@@ -119,7 +119,7 @@ namespace Unisave.Broadcasting.Sse
                             ["buildGuid"] = Application.buildGUID,
                             ["backendHash"] = app.Preferences.BackendHash,
                             ["sessionId"] = sessionIdRepo.GetSessionId(),
-                            ["lastReceivedMessageId"] = lastReceivedMessageId
+                            ["lastReceivedEventId"] = lastReceivedEventId
                         }.ToString()
                     )
                 )
@@ -168,15 +168,15 @@ namespace Unisave.Broadcasting.Sse
             StartCoroutine(ListeningLoop());
         }
 
-        private void HandleMessage(SseMessage message)
+        private void HandleEvent(SseEvent @event)
         {
-            if (message.id != null)
-                lastReceivedMessageId = (int) message.id;
+            if (@event.id != null)
+                lastReceivedEventId = (int) @event.id;
 
-            if (message.retry != null)
-                retryMilliseconds = (int) message.retry;
+            if (@event.retry != null)
+                retryMilliseconds = (int) @event.retry;
             
-            OnMessageReceived?.Invoke(message);
+            OnEventReceived?.Invoke(@event);
         }
     }
 }

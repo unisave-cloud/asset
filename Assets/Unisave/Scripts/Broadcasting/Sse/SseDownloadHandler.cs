@@ -7,48 +7,52 @@ namespace Unisave.Broadcasting.Sse
     public class SseDownloadHandler : DownloadHandlerScript
     {
         private readonly StringBuilder textStream = new StringBuilder();
-        private readonly Action<SseMessage> messageHandler;
+        private readonly Action<SseEvent> eventHandler;
 
         public event Action<string> OnDataReceived;
 
-        public SseDownloadHandler(Action<SseMessage> messageHandler)
+        public SseDownloadHandler(Action<SseEvent> eventHandler)
         {
-            this.messageHandler = messageHandler
-                ?? throw new ArgumentNullException(nameof(messageHandler));
+            this.eventHandler = eventHandler
+                ?? throw new ArgumentNullException(nameof(eventHandler));
         }
         
         protected override bool ReceiveData(byte[] receivedData, int dataLength)
         {
-            string data = Encoding.UTF8.GetString(receivedData, 0, dataLength);
+            string stringData = Encoding.UTF8.GetString(
+                receivedData,
+                0,
+                dataLength
+            );
             
-            textStream.Append(data);
+            textStream.Append(stringData);
             
-            ExtractMessages();
+            ExtractEvents();
 
-            OnDataReceived?.Invoke(data);
+            OnDataReceived?.Invoke(stringData);
 
             // continue receiving data
             return true;
         }
 
-        private void ExtractMessages()
+        private void ExtractEvents()
         {
             while (true)
             {
-                int length = GetMessageLength();
+                int length = GetEventLength();
                 
                 if (length == 0)
                     break;
 
-                char[] message = new char[length];
-                textStream.CopyTo(0, message, 0, length);
+                char[] rawEvent = new char[length];
+                textStream.CopyTo(0, rawEvent, 0, length);
                 textStream.Remove(0, length);
                 
-                HandleMessage(new string(message));
+                HandleEvent(new string(rawEvent));
             }
         }
 
-        private int GetMessageLength()
+        private int GetEventLength()
         {
             bool wasNewline = false;
 
@@ -71,11 +75,11 @@ namespace Unisave.Broadcasting.Sse
             return 0;
         }
 
-        private void HandleMessage(string message)
+        private void HandleEvent(string raw)
         {
-            var parsed = SseMessage.Parse(message);
+            var parsed = SseEvent.Parse(raw);
 
-            messageHandler.Invoke(parsed);
+            eventHandler.Invoke(parsed);
         }
     }
 }
