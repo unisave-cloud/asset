@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using NUnit.Framework;
 using Unisave.Facades;
@@ -28,6 +29,12 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
             go.SetActive(true);
         }
 
+        private IEnumerator WaitForClientToSettle()
+        {
+            while (!client.hasSettled)
+                yield return null;
+        }
+
         private IEnumerator WaitForMessages(int count, float timeout = 5f)
         {
             float start = Time.time;
@@ -43,30 +50,26 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
                 yield return null;
             }
         }
-
-        [UnityTearDown]
-        public IEnumerable TearDown()
-        {
-            // fully disconnect from the server so that the
-            // next test has level playing field
-            
-            if (client != null)
-                Object.Destroy(client);
-            yield return null;
-
-            var app = ClientFacade.ClientApp;
-            app.Dispose();
-            
-            // TODO: figure this thing out as well...
-            // each test should have a separate connection
-            
-            yield return new WaitForSeconds(1f);
-        }
         
+        [UnitySetUp]
+        public IEnumerator SetUp()
+        {
+            // if there is an app already, dispose it so that
+            // we are sure we will make a fresh connection
+            if (ClientFacade.HasApp)
+            {
+                var app = ClientFacade.ClientApp;
+                app.Dispose();
+            }
+            
+            yield return null;
+        }
+
         [UnityTest]
         public IEnumerator ItCanSubscribeToAChannelAndReceiveAMessage()
         {
             CreateClient(ChannelParameterOne);
+            yield return WaitForClientToSettle();
             
             Assert.IsEmpty(client.receivedMessages);
             
@@ -92,6 +95,7 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
         public IEnumerator ItDoesntReceiveMessageForDifferentChannel()
         {
             CreateClient(ChannelParameterOne);
+            yield return WaitForClientToSettle();
             
             Assert.IsEmpty(client.receivedMessages);
             
@@ -126,6 +130,7 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
         public IEnumerator ItRoutesMessagesByType()
         {
             CreateClient(ChannelParameterOne);
+            yield return WaitForClientToSettle();
             
             Assert.IsEmpty(client.receivedMessages);
             
@@ -173,6 +178,7 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
         public IEnumerator ItDoesntReceiveMessagesAfterUnsubscribing()
         {
             CreateClient(ChannelParameterOne);
+            yield return WaitForClientToSettle();
             
             Assert.IsEmpty(client.receivedMessages);
             
@@ -221,21 +227,13 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
             // would be buffered on the server.
             
             CreateClient("completely-different-channel", false);
+            yield return WaitForClientToSettle();
             client = null;
-            yield return new WaitForSeconds(1f);
-            
-            // TODO: implement the server-side backlog otherwise it consumes
-            // messages without sending them
-            // IMPORTANT !!!!!!!!!!
-            // (message can be consumed from rabbit but not sent if the tunnel
-            // is orphanned - this shouldnt happen!!!!!!!!!)
-            
-            // TODO: THERES SOMETHING STRANGE WITH THE SERVER
-            // how to handle connections within a tunnel? And rabbit consumption? so on...
 
             // now the proper test:
             
             CreateClient(ChannelParameterOne, true);
+            yield return WaitForClientToSettle();
 
             yield return WaitForMessages(1);
             
@@ -245,8 +243,6 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
                 "Message after subscribing",
                 ((MyMessage) client.receivedMessages[0]).foo
             );
-            
-            yield return new WaitForSeconds(10f);
             
             yield return null;
         }

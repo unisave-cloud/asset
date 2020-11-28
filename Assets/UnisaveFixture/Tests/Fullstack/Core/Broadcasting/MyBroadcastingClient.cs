@@ -18,6 +18,9 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
         // subscription parameters
         public string channelParameter;
         public bool sendMessageAfterSubscribing;
+
+        // set to true when the OnEnable method finishes
+        public bool hasSettled = false;
         
         private async void OnEnable()
         {
@@ -32,6 +35,9 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
                 .Forward<MyMessage>(OnMyMessage)
                 .Forward<MyOtherMessage>(OnMyOtherMessage)
                 .ElseLogWarning();
+
+            // now we can start doing experiments
+            hasSettled = true;
         }
 
         public void OnMyMessage(MyMessage msg)

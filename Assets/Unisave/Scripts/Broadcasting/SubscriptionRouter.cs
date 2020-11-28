@@ -39,8 +39,16 @@ namespace Unisave.Broadcasting
         /// Pending subscriptions are subscriptions that have been set up
         /// on the server, but are not yet consumed here, by the client
         /// </summary>
-        private Dictionary<Subscription, Queue<Message>> pendingSubscriptions
-            = new Dictionary<Subscription, Queue<Message>>();
+        private Dictionary<Subscription, PendingSubscription> pendingSubscriptions
+            = new Dictionary<Subscription, PendingSubscription>();
+        
+        private class PendingSubscription
+        {
+            public DateTime createdAt = DateTime.UtcNow;
+            
+            public Queue<BroadcastingMessage> pendingMessages
+                = new Queue<BroadcastingMessage>();
+        }
         
         public SubscriptionRouter(
             BroadcastingTunnel tunnel,
@@ -70,19 +78,25 @@ namespace Unisave.Broadcasting
 
         private void OnSubscriptionEvent(JsonObject data)
         {
-            // TODO:
-//            var sub = Serializer.FromJson<ChannelSubscription>(
-//                data["subscription"],
-//                DeserializationContext.BroadcastingContext()
-//            );
-//            CreatePendingSubscription(sub);
-        }
-
-        private void CreatePendingSubscription(ChannelSubscription subscription)
-        {
-            // TODO: handle timeout 5min and delete the pending sub. and print warning
+            var sub = Serializer.FromJson<ChannelSubscription>(
+                data["subscription"],
+                DeserializationContext.BroadcastingContext()
+            );
             
-            throw new NotImplementedException();
+            // ignore known subscriptions
+            if (activeSubscriptions.ContainsKey(sub))
+                return;
+            
+            if (pendingSubscriptions.ContainsKey(sub))
+                return;
+            
+            // create pending subscription
+            pendingSubscriptions.Add(sub, new PendingSubscription());
+            
+            // check existing pending subscriptions for expiration
+            // (remember keys to prevent modification during iteration)
+            foreach (var s in pendingSubscriptions.Keys.ToList())
+                CheckPendingSubscriptionExpiration(s);
         }
 
         private void RouteMessage(string channel, BroadcastingMessage message)
@@ -99,7 +113,7 @@ namespace Unisave.Broadcasting
             {
                 if (pair.Key.ChannelName == channel)
                 {
-                    pair.Value.Enqueue(message);
+                    pair.Value.pendingMessages.Enqueue(message);
                     CheckPendingSubscriptionExpiration(pair.Key);
                 }
             }
@@ -109,14 +123,24 @@ namespace Unisave.Broadcasting
             ChannelSubscription subscription
         )
         {
-            // TODO: make pending subscription into a class
-            
-            throw new NotImplementedException();
-            
-            // to remove
-            EndSubscriptions(new[] { subscription });
+            if (!pendingSubscriptions.ContainsKey(subscription))
+                throw new ArgumentException(
+                    "Given subscription is not pending."
+                );
 
-            // if expires
+            PendingSubscription pendingSub = pendingSubscriptions[subscription];
+
+            // still young enough
+            if ((pendingSub.createdAt - DateTime.UtcNow).TotalMinutes < 5.0)
+                return;
+            
+            // too old, remove
+            Debug.LogWarning(
+                "[Unisave] Removing expired pending subscription: " +
+                Serializer.ToJson(subscription).ToString(true)
+            );
+            EndSubscriptions(new[] { subscription });
+            
             CheckTunnelNeededness();
         }
         
@@ -140,11 +164,16 @@ namespace Unisave.Broadcasting
             
             if (pendingSubscriptions.ContainsKey(subscription))
             {
-                var messages = pendingSubscriptions[subscription];
+                var pendingSub = pendingSubscriptions[subscription];
                 pendingSubscriptions.Remove(subscription);
-                
-                while (messages.Count > 0)
-                    InvokeHandlerSafely(handler, messages.Dequeue());
+
+                while (pendingSub.pendingMessages.Count > 0)
+                {
+                    InvokeHandlerSafely(
+                        handler,
+                        pendingSub.pendingMessages.Dequeue()
+                    );
+                }
             }
             
             tunnel.IsNeeded();

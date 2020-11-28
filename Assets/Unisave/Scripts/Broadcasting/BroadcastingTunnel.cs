@@ -103,6 +103,10 @@ namespace Unisave.Broadcasting
                     OnSubscriptionEvent?.Invoke(@event.jsonData);
                     break;
                 
+                case "welcome":
+                    // do nothing
+                    break;
+                
                 default:
                     Debug.LogWarning(
                         "[Unisave] Unknown broadcasting event received: " +
