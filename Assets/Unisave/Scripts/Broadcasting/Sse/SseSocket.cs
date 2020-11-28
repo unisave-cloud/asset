@@ -19,6 +19,11 @@ namespace Unisave.Broadcasting.Sse
     public partial class SseSocket : MonoBehaviour
     {
         /// <summary>
+        /// The event ID that's sent when we aren't reconnecting
+        /// </summary>
+        public const int NullEventId = -1;
+        
+        /// <summary>
         /// Called when a new event arrives
         /// </summary>
         public event Action<SseEvent> OnEventReceived;
@@ -27,7 +32,7 @@ namespace Unisave.Broadcasting.Sse
 
         private ClientApplication app;
         
-        public int lastReceivedEventId = 0;
+        public int lastReceivedEventId = NullEventId;
         public int retryMilliseconds = 15_000;
         public bool isRetrying = false;
         public BroadcastingConnection connectionState
@@ -38,13 +43,10 @@ namespace Unisave.Broadcasting.Sse
         /// <summary>
         /// Call this right after this component is created
         /// </summary>
-        public void Initialize(
-            ClientApplication app,
-            int lastReceivedEventId
-        )
+        public void Initialize(ClientApplication app)
         {
             this.app = app;
-            this.lastReceivedEventId = lastReceivedEventId;
+            lastReceivedEventId = NullEventId;
         }
 
         /// <summary>
@@ -134,7 +136,9 @@ namespace Unisave.Broadcasting.Sse
             intendedDisconnection = false;
             
             #if UNITY_EDITOR
-            AppendToDebugLog("CONNECTING\n\n");
+            AppendToDebugLog(
+                $"CONNECTING, lastReceivedEventId: {lastReceivedEventId}\n\n"
+            );
             #endif
             
             yield return runningRequest.SendWebRequest();

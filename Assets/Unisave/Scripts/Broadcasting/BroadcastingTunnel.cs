@@ -25,14 +25,15 @@ namespace Unisave.Broadcasting
 
         private ClientApplication app;
 
-        private SseSocket sseSocket;
-
-        private int lastReceivedMessageId = 0;
+        /// <summary>
+        /// The underlying SSE socket. Can be null when not needed.
+        /// </summary>
+        public SseSocket Socket { get; set; }
 
         public BroadcastingConnection ConnectionState
-            => sseSocket == null
+            => Socket == null
                 ? BroadcastingConnection.Disconnected
-                : sseSocket.connectionState;
+                : Socket.connectionState;
 
         public BroadcastingTunnel(ClientApplication app)
         {
@@ -45,7 +46,7 @@ namespace Unisave.Broadcasting
         /// </summary>
         public void IsNeeded()
         {
-            if (sseSocket == null)
+            if (Socket == null)
                 CreateSocket();
         }
 
@@ -60,7 +61,7 @@ namespace Unisave.Broadcasting
 
         private void CreateSocket()
         {
-            if (sseSocket != null)
+            if (Socket != null)
                 throw new InvalidOperationException("Socket already created");
 
             GameObject go = new GameObject(
@@ -72,27 +73,24 @@ namespace Unisave.Broadcasting
             if (!app.InEditMode)
                 go.transform.parent = app.GameObject.transform;
             
-            sseSocket = go.GetComponent<SseSocket>();
-            sseSocket.Initialize(app, lastReceivedMessageId);
-            sseSocket.OnEventReceived += OnSseEventReceived;
+            Socket = go.GetComponent<SseSocket>();
+            Socket.Initialize(app);
+            Socket.OnEventReceived += OnEventReceived;
         }
 
         private void DisposeSocket()
         {
-            if (sseSocket == null)
+            if (Socket == null)
                 return;
             
-            sseSocket.OnEventReceived -= OnSseEventReceived;
+            Socket.OnEventReceived -= OnEventReceived;
             
-            UnityEngine.Object.Destroy(sseSocket.gameObject);
-            sseSocket = null;
+            UnityEngine.Object.Destroy(Socket.gameObject);
+            Socket = null;
         }
 
-        private void OnSseEventReceived(SseEvent @event)
+        private void OnEventReceived(SseEvent @event)
         {
-            if (@event.id != null)
-                lastReceivedMessageId = (int) @event.id;
-
             switch (@event.@event)
             {
                 case "message":
