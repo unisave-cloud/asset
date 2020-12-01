@@ -239,8 +239,12 @@ namespace Unisave.Broadcasting
         /// <returns></returns>
         private bool EndSubscription(ChannelSubscription subscription)
         {
-            activeSubscriptions.Remove(subscription);
-            pendingSubscriptions.Remove(subscription);
+            bool removed1 = activeSubscriptions.Remove(subscription);
+            bool removed2 = pendingSubscriptions.Remove(subscription);
+
+            // the subscription has already been removed long ago
+            if (!removed1 && !removed2)
+                return false;
 
             if (activeSubscriptions.Keys
                 .Any(s => s.ChannelName == subscription.ChannelName))
