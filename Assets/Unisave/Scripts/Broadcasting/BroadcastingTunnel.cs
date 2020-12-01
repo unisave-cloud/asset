@@ -125,7 +125,14 @@ namespace Unisave.Broadcasting
                 
                 case "welcome":
                     // do nothing
-                    // (used actually by the SseSocket to detect connection)
+                    // (used by the SseSocket to detect
+                    // connection establishment)
+                    break;
+                
+                case "end-connection":
+                    // do nothing
+                    // (used by the SseSocket to detect
+                    // server-requested disconnection)
                     break;
                 
                 default:

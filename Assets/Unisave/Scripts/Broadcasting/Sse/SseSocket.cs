@@ -262,6 +262,9 @@ namespace Unisave.Broadcasting.Sse
             if (@event.@event == "welcome")
                 WelcomeEventReceived();
             
+            if (@event.@event == "end-connection")
+                EndConnectionReceived();
+            
             OnEventReceived?.Invoke(@event);
         }
 
@@ -273,6 +276,16 @@ namespace Unisave.Broadcasting.Sse
         private void WelcomeEventReceived()
         {
             ConnectionState = BroadcastingConnection.Connected;
+        }
+
+        /// <summary>
+        /// Called when the end-connection event is received
+        /// (this means the last received event id should be
+        /// reset since we didn't loose any events'
+        /// </summary>
+        private void EndConnectionReceived()
+        {
+            lastReceivedEventId = NullEventId;
         }
     }
 }
