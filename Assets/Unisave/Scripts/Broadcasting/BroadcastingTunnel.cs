@@ -2,7 +2,6 @@ using System;
 using LightJson;
 using Unisave.Broadcasting.Sse;
 using Unisave.Foundation;
-using Unisave.Serialization;
 using UnityEngine;
 
 namespace Unisave.Broadcasting
@@ -22,6 +21,16 @@ namespace Unisave.Broadcasting
         /// Called when a subscription event arrives through the SSE tunnel
         /// </summary>
         public event Action<JsonObject> OnSubscriptionEvent;
+        
+        /// <summary>
+        /// Called when the server connection is lost
+        /// </summary>
+        public event Action OnConnectionLost;
+        
+        /// <summary>
+        /// Called when the server connection is regained
+        /// </summary>
+        public event Action OnConnectionRegained;
 
         private ClientApplication app;
 
@@ -30,10 +39,13 @@ namespace Unisave.Broadcasting
         /// </summary>
         public SseSocket Socket { get; set; }
 
+        /// <summary>
+        /// Status of the connection to the Unisave broadcasting server
+        /// </summary>
         public BroadcastingConnection ConnectionState
             => Socket == null
                 ? BroadcastingConnection.Disconnected
-                : Socket.connectionState;
+                : Socket.ConnectionState;
 
         public BroadcastingTunnel(ClientApplication app)
         {
@@ -76,6 +88,8 @@ namespace Unisave.Broadcasting
             Socket = go.GetComponent<SseSocket>();
             Socket.Initialize(app);
             Socket.OnEventReceived += OnEventReceived;
+            Socket.OnConnectionLost += ConnectionLostDelegator;
+            Socket.OnConnectionRegained += ConnectionRegainedDelegator;
         }
 
         private void DisposeSocket()
@@ -84,10 +98,18 @@ namespace Unisave.Broadcasting
                 return;
             
             Socket.OnEventReceived -= OnEventReceived;
+            Socket.OnConnectionLost -= ConnectionLostDelegator;
+            Socket.OnConnectionRegained -= ConnectionRegainedDelegator;
             
             UnityEngine.Object.Destroy(Socket.gameObject);
             Socket = null;
         }
+
+        private void ConnectionLostDelegator()
+            => OnConnectionLost?.Invoke();
+        
+        private void ConnectionRegainedDelegator()
+            => OnConnectionRegained?.Invoke();
 
         private void OnEventReceived(SseEvent @event)
         {
@@ -103,6 +125,7 @@ namespace Unisave.Broadcasting
                 
                 case "welcome":
                     // do nothing
+                    // (used actually by the SseSocket to detect connection)
                     break;
                 
                 default:

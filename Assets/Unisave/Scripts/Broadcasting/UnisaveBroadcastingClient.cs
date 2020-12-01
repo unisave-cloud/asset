@@ -7,17 +7,47 @@ using UnityEngine;
 namespace Unisave.Broadcasting
 {
     /// <summary>
-    /// Parent class for any MonoBehaviour that wants to subscribe to channels
+    /// Parent class for any MonoBehaviour that wants
+    /// to subscribe to broadcasting channels
     /// </summary>
     public abstract class UnisaveBroadcastingClient : MonoBehaviour
     {
-        // TODO: add handlers for OnConnectionLost OnConnectionRegained
-        
         /// <summary>
         /// Subscription this client owns
         /// </summary>
         private readonly HashSet<ChannelSubscription> subscriptions
             = new HashSet<ChannelSubscription>();
+
+        /// <summary>
+        /// Are the connection hooks registered or not?
+        /// </summary>
+        private bool hooksRegistered = false;
+
+        /// <summary>
+        /// The broadcasting manager instance
+        /// </summary>
+        private ClientBroadcastingManager Manager
+        {
+            get
+            {
+                if (manager == null)
+                {
+                    manager = ClientFacade.ClientApp
+                        .Resolve<ClientBroadcastingManager>();
+                }
+
+                return manager;
+            }
+        }
+        
+        // backing field
+        private ClientBroadcastingManager manager;
+ 
+        /// <summary>
+        /// Status of the connection to the Unisave broadcasting server
+        /// </summary>
+        public BroadcastingConnection ConnectionState
+            => Manager.Tunnel.ConnectionState;
         
         /// <summary>
         /// Receive messages from a channel subscription
@@ -62,28 +92,52 @@ namespace Unisave.Broadcasting
                 yield break;
             
             // register the handler
-            var subscriptionRouter = GetSubscriptionRouter();
-            subscriptionRouter.HandleSubscription(
+            Manager.SubscriptionRouter.HandleSubscription(
                 subscription,
                 messageRouter.RouteMessage
             );
+            
+            // register hooks
+            if (!hooksRegistered)
+            {
+                Manager.Tunnel.OnConnectionLost += OnConnectionLost;
+                Manager.Tunnel.OnConnectionRegained += OnConnectionRegained;
+                hooksRegistered = true;
+            }
         }
 
+        /// <summary>
+        /// Cancels all subscriptions for this script
+        /// </summary>
         protected virtual void OnDisable()
         {
-            var subscriptionRouter = GetSubscriptionRouter();
-            
-            subscriptionRouter.EndSubscriptions(subscriptions);
+            Manager.SubscriptionRouter.EndSubscriptions(subscriptions);
 
             subscriptions.Clear();
+            
+            // remove hooks
+            if (hooksRegistered)
+            {
+                Manager.Tunnel.OnConnectionLost -= OnConnectionLost;
+                Manager.Tunnel.OnConnectionRegained -= OnConnectionRegained;
+                hooksRegistered = false;
+            }
         }
 
-        private SubscriptionRouter GetSubscriptionRouter()
+        /// <summary>
+        /// Called when the broadcasting connection is broken
+        /// </summary>
+        protected virtual void OnConnectionLost()
         {
-            var manager = ClientFacade.ClientApp
-                .Resolve<ClientBroadcastingManager>();
+            // override hook
+        }
 
-            return manager.SubscriptionRouter;
+        /// <summary>
+        /// Called when the broadcasting connection is established again
+        /// </summary>
+        protected virtual void OnConnectionRegained()
+        {
+            // override hook
         }
     }
 }

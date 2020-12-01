@@ -62,11 +62,47 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
         [UnityTest]
         public IEnumerator ItCallsNetworkConnectivityHooks()
         {
-            // OnConnectionLost, OnConnectionRegained
+            CreateClient();
+            yield return WaitForClientToSettle();
             
-            Assert.Fail("Not implemented");
+            Assert.False(client.onConnectionLostCalled);
+            Assert.False(client.onConnectionRegainedCalled);
+
+            // check connection is made
+            yield return OnFacet<BroadcastingFacet>.Call(
+                nameof(BroadcastingFacet.SendMyMessage),
+                "foo",
+                "Hello world!"
+            ).AsCoroutine();
+            yield return WaitForMessages(1);
             
-            yield return null;
+            var tunnel = ClientFacade.ClientApp
+                .Resolve<ClientBroadcastingManager>()
+                .Tunnel;
+            
+            // drop connection
+
+            tunnel.Socket.retryMilliseconds = 500; // retry in 0.5s
+            tunnel.Socket.RunningRequest.Abort();
+
+            while (tunnel.Socket.RunningRequest != null)
+                yield return null;
+
+            Assert.True(client.onConnectionLostCalled);
+            Assert.False(client.onConnectionRegainedCalled);
+            client.onConnectionLostCalled = false;
+            
+            // wait for reconnect (by sending and waiting for a message)
+            yield return OnFacet<BroadcastingFacet>.Call(
+                nameof(BroadcastingFacet.SendMyMessage),
+                "foo",
+                "Hello world!"
+            ).AsCoroutine();
+            yield return WaitForMessages(2);
+            
+            // check the callback was called
+            Assert.False(client.onConnectionLostCalled);
+            Assert.True(client.onConnectionRegainedCalled);
         }
         
         [UnityTest]

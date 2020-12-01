@@ -19,26 +19,87 @@ namespace Unisave.Broadcasting.Sse
     public partial class SseSocket : MonoBehaviour
     {
         /// <summary>
-        /// The event ID that's sent when we aren't reconnecting
+        /// The event ID that's sent when we aren't reconnecting,
+        /// but connecting for the first time.
         /// </summary>
-        public const int NullEventId = -1;
+        private const int NullEventId = -1;
         
         /// <summary>
         /// Called when a new event arrives
         /// </summary>
         public event Action<SseEvent> OnEventReceived;
-
-        private UnityWebRequest runningRequest;
-
-        private ClientApplication app;
         
+        /// <summary>
+        /// Reference to the client app to resolve connection information
+        /// (keys, tokens and hashes)
+        /// </summary>
+        private ClientApplication app;
+
+        /// <summary>
+        /// Instance of the request that is currently representing
+        /// the connection, can be null if no connection exists
+        /// </summary>
+        public UnityWebRequest RunningRequest { get; private set; }
+
+        /// <summary>
+        /// Id of the last received SSE event
+        /// (updated with each received event,
+        /// used during connection establishment)
+        /// </summary>
         public int lastReceivedEventId = NullEventId;
-        public int retryMilliseconds = 15_000;
-        public bool isRetrying = false;
-        public BroadcastingConnection connectionState
+        
+        /// <summary>
+        /// How long to wait for in between during connection retrying
+        /// </summary>
+        public int retryMilliseconds = 5_000;
+
+        /// <summary>
+        /// Status of the connection to the Unisave broadcasting server
+        /// </summary>
+        public BroadcastingConnection ConnectionState
+        {
+            get => connectionState;
+
+            private set
+            {
+                if (connectionState == value)
+                    return;
+                
+                var before = connectionState;
+                
+                connectionState = value;
+                
+                #if UNITY_EDITOR
+                AppendToDebugLog($"STATE: {connectionState}\n\n");
+                #endif
+                
+                if (connectionState == BroadcastingConnection.Reconnecting)
+                    OnConnectionLost?.Invoke();
+                
+                if (connectionState == BroadcastingConnection.Connected
+                    && before == BroadcastingConnection.Reconnecting)
+                    OnConnectionRegained?.Invoke();
+            }
+        }
+
+        // backing field
+        private BroadcastingConnection connectionState
             = BroadcastingConnection.Disconnected;
 
+        /// <summary>
+        /// Flag to distinguish intended disconnection from a network crash
+        /// </summary>
         private bool intendedDisconnection = false;
+
+        /// <summary>
+        /// Event called when the connection unexpectedly breaks
+        /// </summary>
+        public event Action OnConnectionLost;
+        
+        /// <summary>
+        /// Event called when the connection is established again
+        /// </summary>
+        public event Action OnConnectionRegained;
 
         /// <summary>
         /// Call this right after this component is created
@@ -54,9 +115,13 @@ namespace Unisave.Broadcasting.Sse
         /// </summary>
         private void OnEnable()
         {
-            if (runningRequest == null)
+            if (ConnectionState == BroadcastingConnection.Disconnected)
             {
-                StartCoroutine(ListeningLoop());
+                // update state
+                ConnectionState = BroadcastingConnection.Connecting;
+                
+                // connect
+                StartCoroutine(TheRequestCoroutine());
             }
         }
 
@@ -65,19 +130,23 @@ namespace Unisave.Broadcasting.Sse
         /// </summary>
         private void OnDisable()
         {
-            if (runningRequest != null)
+            if (ConnectionState != BroadcastingConnection.Disconnected)
             {
                 intendedDisconnection = true;
-                runningRequest.Abort();
-                runningRequest = null;
-                isRetrying = false;
-                connectionState = BroadcastingConnection.Disconnected;
+                RunningRequest?.Abort();
+                RunningRequest?.Dispose();
+                RunningRequest = null;
+                ConnectionState = BroadcastingConnection.Disconnected;
             }
         }
         
-        private IEnumerator ListeningLoop()
+        /// <summary>
+        /// The coroutine that sends the request
+        /// representing a single SSE connection
+        /// </summary>
+        private IEnumerator TheRequestCoroutine()
         {
-            if (runningRequest != null)
+            if (RunningRequest != null)
                 throw new InvalidOperationException(
                     "A request is already running."
                 );
@@ -87,18 +156,21 @@ namespace Unisave.Broadcasting.Sse
             yield return null;
             
             // handle retrying
-            if (isRetrying)
+            if (ConnectionState == BroadcastingConnection.Reconnecting)
             {
-                isRetrying = false;
-                
                 #if UNITY_EDITOR
-                AppendToDebugLog("WILL RETRY SOON\n\n");
+                AppendToDebugLog(
+                    $"WAITING ON RETRY: {retryMilliseconds}ms\n\n"
+                );
                 #endif
 
                 yield return new WaitForSeconds(retryMilliseconds / 1000f);
             }
             
-            // === THE LOOP ===
+            // reset flags
+            intendedDisconnection = false;
+            
+            // === PREPARE THE REQUEST AND HANDLERS ===
 
             var downloadHandler = new SseDownloadHandler(HandleEvent);
             
@@ -109,7 +181,7 @@ namespace Unisave.Broadcasting.Sse
             var url = app.Resolve<ApiUrl>();
             var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
             
-            runningRequest = new UnityWebRequest(
+            RunningRequest = new UnityWebRequest(
                 url.BroadcastingListen(),
                 "POST",
                 downloadHandler,
@@ -127,51 +199,58 @@ namespace Unisave.Broadcasting.Sse
                 )
             );
             
-            runningRequest.SetRequestHeader("Content-Type", "application/json");
-            runningRequest.SetRequestHeader("Accept", "text/event-stream");
+            RunningRequest.SetRequestHeader("Content-Type", "application/json");
+            RunningRequest.SetRequestHeader("Accept", "text/event-stream");
             
             // === LISTEN ===
             
-            connectionState = BroadcastingConnection.Connected;
-            intendedDisconnection = false;
-            
             #if UNITY_EDITOR
             AppendToDebugLog(
-                $"CONNECTING, lastReceivedEventId: {lastReceivedEventId}\n\n"
+                $"SENDING REQUEST, {nameof(lastReceivedEventId)}: " +
+                $"{lastReceivedEventId}\n\n"
             );
             #endif
             
-            yield return runningRequest.SendWebRequest();
+            yield return RunningRequest.SendWebRequest();
 
             #if UNITY_EDITOR
-            AppendToDebugLog("DISCONNECTED\n\n");
+            AppendToDebugLog("REQUEST ENDED\n\n");
             #endif
             
-            connectionState = BroadcastingConnection.Reconnecting;
-            
             // === HANDLE BREAKAGE ===
-
+            
             if (intendedDisconnection)
             {
-                isRetrying = false;
-                runningRequest?.Dispose();
-                runningRequest = null;
-                connectionState = BroadcastingConnection.Disconnected;
-                yield break;
+                // get rid of the request object
+                RunningRequest?.Dispose();
+                RunningRequest = null;
+                
+                // update state
+                ConnectionState = BroadcastingConnection.Disconnected;
             }
-
-            Debug.LogWarning(
-                $"[Unisave] Broadcasting client connection broke, " +
-                $"retrying in {retryMilliseconds}ms"
-            );
-            
-            isRetrying = true;
-            runningRequest.Dispose();
-            runningRequest = null;
-            
-            StartCoroutine(ListeningLoop());
+            else
+            {
+                Debug.LogWarning(
+                    $"[Unisave] Broadcasting client connection broke, " +
+                    $"retrying in {retryMilliseconds}ms"
+                );
+                
+                // get rid of the request object
+                RunningRequest.Dispose();
+                RunningRequest = null;
+                
+                // update state
+                ConnectionState = BroadcastingConnection.Reconnecting;
+                
+                // retry
+                StartCoroutine(TheRequestCoroutine());
+            }
         }
 
+        /// <summary>
+        /// Called when an SSE event arrives over the connection
+        /// </summary>
+        /// <param name="event"></param>
         private void HandleEvent(SseEvent @event)
         {
             if (@event.id != null)
@@ -180,7 +259,20 @@ namespace Unisave.Broadcasting.Sse
             if (@event.retry != null)
                 retryMilliseconds = (int) @event.retry;
             
+            if (@event.@event == "welcome")
+                WelcomeEventReceived();
+            
             OnEventReceived?.Invoke(@event);
+        }
+
+        /// <summary>
+        /// Called when the initial welcome event is received
+        /// (this event is sent by the server as the very first event to be
+        /// sent on every new SSE connection)
+        /// </summary>
+        private void WelcomeEventReceived()
+        {
+            ConnectionState = BroadcastingConnection.Connected;
         }
     }
 }

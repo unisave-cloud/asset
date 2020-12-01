@@ -21,6 +21,10 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
 
         // set to true when the OnEnable method finishes
         public bool hasSettled = false;
+
+        // flags to detect hook calls
+        public bool onConnectionLostCalled = false;
+        public bool onConnectionRegainedCalled = false;
         
         private async void OnEnable()
         {
@@ -50,6 +54,16 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
         {
             receivedMessages.Add(msg);
             calledMethods.Add(nameof(OnMyOtherMessage));
+        }
+
+        protected override void OnConnectionLost()
+        {
+            onConnectionLostCalled = true;
+        }
+
+        protected override void OnConnectionRegained()
+        {
+            onConnectionRegainedCalled = true;
         }
     }
 }

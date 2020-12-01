@@ -7,9 +7,12 @@ namespace Unisave.Broadcasting.Sse
 {
     public partial class SseSocket
     {
-        public bool displayDebugLog = true; // TODO: false
+        /// <summary>
+        /// Check this in the inspector to see the detailed communication log
+        /// </summary>
+        public bool displayDebugLog = false;
 
-        private StringBuilder debugLog = new StringBuilder();
+        private readonly StringBuilder debugLog = new StringBuilder();
 
         void AppendToDebugLog(string text)
         {
