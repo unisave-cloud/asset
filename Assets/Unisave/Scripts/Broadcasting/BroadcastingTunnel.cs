@@ -129,6 +129,10 @@ namespace Unisave.Broadcasting
                     // connection establishment)
                     break;
                 
+                case "heartbeat":
+                    // do nothing
+                    break;
+                
                 case "end-connection":
                     // do nothing
                     // (used by the SseSocket to detect

@@ -72,8 +72,11 @@ namespace Unisave.Broadcasting.Sse
 
             message.data = data.ToString();
 
-            message.jsonData = JsonReader.Parse(message.data).AsJsonObject;
-            
+            if (!string.IsNullOrWhiteSpace(message.data))
+            {
+                message.jsonData = JsonReader.Parse(message.data).AsJsonObject;
+            }
+
             return message;
         }
     }

@@ -1,6 +1,5 @@
 using System.Collections;
 using Unisave.Broadcasting;
-using Unisave.Examples.ChatDoodle.Backend;
 using Unisave.Examples.InBeta.Chat.Backend;
 using Unisave.Facades;
 using UnityEngine;
@@ -55,6 +54,16 @@ namespace Unisave.Examples.InBeta.Chat
         void PlayerJoined(PlayerJoinedMessage msg)
         {
             chatLogField.text += $"{msg.userName} joined the room\n";
+        }
+
+        protected override void OnConnectionLost()
+        {
+            chatLogField.text += "Connection lost, reconnecting...\n";
+        }
+
+        protected override void OnConnectionRegained()
+        {
+            chatLogField.text += "Connection established.\n";
         }
     }
 }

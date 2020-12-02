@@ -232,7 +232,8 @@ namespace Unisave.Broadcasting.Sse
             {
                 Debug.LogWarning(
                     $"[Unisave] Broadcasting client connection broke, " +
-                    $"retrying in {retryMilliseconds}ms"
+                    $"retrying in {retryMilliseconds}ms\n" +
+                    $"The reason is: {RunningRequest.error}"
                 );
                 
                 // get rid of the request object
