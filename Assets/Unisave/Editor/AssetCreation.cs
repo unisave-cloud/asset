@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
+using Unisave.Editor.BackendUploading;
 using Unisave.Foundation;
 using Unisave.Utils;
 
@@ -31,6 +32,36 @@ namespace Unisave.Editor
                 defaultName: "NewFacet",
                 templateName: "Facet.txt",
                 wildcard: "#FACETNAME#"
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Broadcasting/Channel", false, 4)]
+        public static void CreateBroadcastingChannel()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "NewChannel",
+                templateName: "Broadcasting/Channel.txt",
+                wildcard: "#CLASSNAME#"
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Broadcasting/Message", false, 5)]
+        public static void CreateBroadcastingMessage()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "NewMessage",
+                templateName: "Broadcasting/Message.txt",
+                wildcard: "#CLASSNAME#"
+            );
+        }
+        
+        [MenuItem("Assets/Create/Unisave/Broadcasting/Client", false, 6)]
+        public static void CreateBroadcastingClient()
+        {
+            CreateScriptFromTemplate(
+                defaultName: "NewClient",
+                templateName: "Broadcasting/Client.txt",
+                wildcard: "#CLASSNAME#"
             );
         }
         
@@ -208,7 +239,7 @@ namespace Unisave.Editor
                 null
             );
         }
-
+        
         [MenuItem("Assets/Create/Unisave/Backend folder", false, 100)]
         public static void CreateBackendFolder()
         {
@@ -239,6 +270,32 @@ namespace Unisave.Editor
             Debug.Log(
                 "New backend folder path has been stored in Unisave preferences"
             );
+        }
+        
+        [MenuItem("Assets/Set folder as Unisave Backend", false, 500)]
+        public static void SetFolderAsBackend()
+        {
+            var path = GetSelectedDirectoryPath();
+
+            if (path == null)
+            {
+                Debug.LogError("Selected asset is not a folder");
+                return;
+            }
+
+            if (path.StartsWith("Assets/"))
+                path = path.Substring("Assets/".Length);
+            
+            var preferences = UnisavePreferences.LoadOrCreate();
+            preferences.BackendFolder = path;
+            preferences.Save();
+                    
+            Uploader
+                .GetDefaultInstance()
+                .UploadBackend(
+                    verbose: true,
+                    useAnotherThread: true
+                );
         }
 
         /////////////
@@ -309,8 +366,6 @@ namespace Unisave.Editor
         /// </summary>
         private static string GetCurrentDirectoryPath()
         {
-            var activeObject = Selection.activeObject;
-
             if (Selection.activeObject == null)
                 return "Assets";
 
@@ -320,6 +375,22 @@ namespace Unisave.Editor
                 return Path.GetDirectoryName(path);
 
             return path;
+        }
+        
+        /// <summary>
+        /// Get directory that we stand in, or that is selected
+        /// </summary>
+        private static string GetSelectedDirectoryPath()
+        {
+            if (Selection.activeObject == null)
+                return null;
+
+            var path = AssetDatabase.GetAssetPath(Selection.activeObject.GetInstanceID());
+
+            if (Directory.Exists(path))
+                return path;
+
+            return null;
         }
 
         /// <summary>

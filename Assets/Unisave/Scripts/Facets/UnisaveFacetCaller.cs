@@ -1,10 +1,13 @@
 ﻿using System;
+using System.Net.Http;
 using System.Runtime.Serialization;
 using LightJson;
 using RSG;
 using Unisave.Utils;
 using Unisave.Exceptions;
 using Unisave.Foundation;
+using Unisave.Http;
+using Unisave.Http.Client;
 using Unisave.Logging;
 using Unisave.Serialization;
 using UnityEngine;
@@ -16,9 +19,13 @@ namespace Unisave.Facets
     {
 		private readonly ClientApplication app;
 
+		private readonly AssetHttpClient http;
+
         public UnisaveFacetCaller(ClientApplication app) : base(app)
         {
 	        this.app = app;
+	        
+	        http = app.Resolve<AssetHttpClient>();
         }
 
 		protected override IPromise<JsonValue> PerformFacetCall(
@@ -28,8 +35,8 @@ namespace Unisave.Facets
         )
 		{
 			var promise = new Promise<JsonValue>();
-
-			HttpUtil.Post(
+			
+			http.Post(
 				app.Resolve<ApiUrl>().CallFacet(),
 				new JsonObject()
 					.Add("facetName", facetName)
@@ -47,61 +54,79 @@ namespace Unisave.Facets
 						.Add("buildGuid", Application.buildGUID)
 						.Add("versionString", Application.version)
 					),
-				"200"
-			).Then(response => {
-				JsonObject executionResult = response["executionResult"];
-
-				JsonObject specialValues = executionResult["special"].AsJsonObject
-				                           ?? new JsonObject();
-				
-				// remember the session id
-				string givenSessionId = specialValues["sessionId"].AsString;
-				if (givenSessionId != null)
-					SessionId = givenSessionId;
-				
-				// print logs
-				LogPrinter.PrintLogsFromFacetCall(specialValues["logs"]);
-				
-				switch (executionResult["result"].AsString)
-				{
-					case "ok":
-						promise.Resolve(executionResult["returned"]);
-						break;
-
-					case "exception":
-						var e = Serializer.FromJson<Exception>(
-							executionResult["exception"]
-						);
-						PreserveStackTrace(e);
-						promise.Reject(e);
-						break;
+				response => {
 					
-					default:
-						promise.Reject(
-							new UnisaveException(
-								"Server sent unknown response for facet call:\n"
-								+ response
-							)
-						);
-						break;
+					if (response.IsOk)
+						HandleSuccessfulRequest(response, promise);
+					else
+						HandleFailedRequest(response, promise);
+					
 				}
-				
-			}).Catch(e => {
-
-				if (e is HttpException he)
-				{
-					if (he.Response.StatusCode == 422)
-					{
-						Debug.LogError(
-							"Facet call failed:\n" + he.Response.TextContent
-						);
-					}
-				}
-				
-				promise.Reject(e);
-			});
-
+			);
+			
 			return promise;
+		}
+		
+		/// <summary>
+		/// The HTTP response was 200
+		/// </summary>
+		private void HandleSuccessfulRequest(
+			Response response,
+			Promise<JsonValue> promise
+		)
+		{
+			JsonObject executionResult = response["executionResult"];
+
+			JsonObject specialValues = executionResult["special"].AsJsonObject
+			                           ?? new JsonObject();
+				
+			// remember the session id
+			string givenSessionId = specialValues["sessionId"].AsString;
+			if (givenSessionId != null)
+				SessionId = givenSessionId;
+				
+			// print logs
+			LogPrinter.PrintLogsFromFacetCall(specialValues["logs"]);
+				
+			switch (executionResult["result"].AsString)
+			{
+				case "ok":
+					promise.Resolve(executionResult["returned"]);
+					break;
+
+				case "exception":
+					var e = Serializer.FromJson<Exception>(
+						executionResult["exception"]
+					);
+					PreserveStackTrace(e);
+					promise.Reject(e);
+					break;
+					
+				default:
+					promise.Reject(
+						new UnisaveException(
+							"Server sent unknown response for facet call:\n"
+							+ response.Body()
+						)
+					);
+					break;
+			}
+		}
+
+		/// <summary>
+		/// The HTTP response wasn't 200
+		/// </summary>
+		private void HandleFailedRequest(
+			Response response,
+			Promise<JsonValue> promise
+		)
+		{
+			var e = new HttpRequestException(
+				$"[Status {response.Status}] Facet call failed:\n" +
+				response.Body()
+			);
+			
+			promise.Reject(e);
 		}
 		
 		// magic

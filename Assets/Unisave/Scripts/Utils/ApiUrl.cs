@@ -25,6 +25,11 @@ namespace Unisave.Utils
         {
             return serverUrl + "_api/" + relativeUrl;
         }
+        
+        private string BroadcastingUrl(string relativeUrl)
+        {
+            return serverUrl + "_broadcasting/" + relativeUrl;
+        }
 
         public string CallFacet() => Url("call-facet");
         
@@ -33,5 +38,8 @@ namespace Unisave.Utils
         public string BackendUpload_Finish() => Url("backend-upload/finish");
 
         public string RegisterBuild() => Url("register-build");
+
+        public string BroadcastingListen() => BroadcastingUrl("listen");
+        public string BroadcastingUnsubscribe() => BroadcastingUrl("unsubscribe");
     }
 }

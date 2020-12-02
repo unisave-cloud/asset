@@ -12,15 +12,15 @@ namespace Unisave.Testing
         /// we are inside the test method in between facet calls)
         /// </summary>
         protected string SessionId
-            => ClientApp.Resolve<SessionIdRepository>().GetSessionId();
+            => ClientApp.Resolve<ClientSessionIdRepository>().GetSessionId();
 
         /// <summary>
         /// Generates a session ID and stores it in the client application
         /// </summary>
         protected void GenerateSessionId()
         {
-            ClientApp.Resolve<SessionIdRepository>().StoreSessionId(
-                FacetCallKernel.GenerateSessionId()
+            ClientApp.Resolve<ClientSessionIdRepository>().StoreSessionId(
+                ServerSessionIdRepository.GenerateSessionId()
             );
         }
     }

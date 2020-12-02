@@ -28,7 +28,7 @@ namespace Unisave.Editor.DataWindow
             };
 
             root.AddChild(new SessionIdItem(
-                ClientFacade.ClientApp.Resolve<SessionIdRepository>(),
+                ClientFacade.ClientApp.Resolve<ClientSessionIdRepository>(),
                 idAllocator
             ));
 

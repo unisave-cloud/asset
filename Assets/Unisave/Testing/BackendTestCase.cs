@@ -62,7 +62,7 @@ namespace Unisave.Testing
             ClientFacade.SetApplication(ClientApp);
             
             // start with a blank slate
-            ClientApp.Resolve<SessionIdRepository>().StoreSessionId(null);
+            ClientApp.Resolve<ClientSessionIdRepository>().StoreSessionId(null);
             ClearDatabase();
         }
 

@@ -21,7 +21,7 @@ namespace Unisave.Testing
             // HACK TO STORE THE UPDATED SESSION:
             // I need to figure out how to properly merge test facade access
             // with middleware logic so that it does not interfere.
-            var sessionRepo = ClientApp.Resolve<SessionIdRepository>();
+            var sessionRepo = ClientApp.Resolve<ClientSessionIdRepository>();
             if (sessionRepo.GetSessionId() == null)
                 sessionRepo.StoreSessionId(Str.Random(16));
             Session.Set(AuthenticationManager.SessionKey, player?.EntityId);

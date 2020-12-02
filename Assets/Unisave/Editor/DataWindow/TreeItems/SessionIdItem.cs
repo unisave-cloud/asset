@@ -7,11 +7,11 @@ namespace Unisave.Editor.DataWindow.TreeItems
 {
     public sealed class SessionIdItem : TreeViewItem
     {
-        public SessionIdRepository Repository { get; }
+        public ClientSessionIdRepository Repository { get; }
         private readonly IdAllocator idAllocator;
         
         public SessionIdItem(
-            SessionIdRepository repository,
+            ClientSessionIdRepository repository,
             IdAllocator idAllocator
         )
         {
