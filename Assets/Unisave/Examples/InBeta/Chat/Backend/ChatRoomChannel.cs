@@ -1,7 +1,6 @@
 using Unisave.Broadcasting;
-using Unisave.Facades;
 
-namespace Unisave.Examples.ChatDoodle.Backend
+namespace Unisave.Examples.InBeta.Chat.Backend
 {
     public class ChatRoomChannel : BroadcastingChannel
     {
