@@ -1,10 +1,10 @@
 using Unisave.Broadcasting;
 
-namespace Unisave.Examples.ChatDoodle.Backend
+namespace Unisave.Examples.InBeta.Chat.Backend
 {
     public class ChatMessage : BroadcastingMessage
     {
-        public string nickname;
+        public string userName;
         public string message;
     }
 }
