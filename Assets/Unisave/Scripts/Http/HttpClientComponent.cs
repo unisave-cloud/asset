@@ -36,7 +36,14 @@ namespace Unisave.Http
 
                 string body = downloadHandler.text;
 
-                if (request.isNetworkError)
+                #if UNITY_2020_1_OR_NEWER
+                    bool isNetworkError =
+                        request.result == UnityWebRequest.Result.ConnectionError;
+                #else
+                    bool isNetworkError = request.isNetworkError;
+                #endif
+                
+                if (isNetworkError)
                     body = request.error;
 
                 var response = Response.Create(
