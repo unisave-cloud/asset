@@ -2,11 +2,10 @@ using System;
 using System.Collections.Generic;
 using System.Net.Mime;
 using LightJson;
-using Unisave.Http.Client;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Unisave.Http
+namespace Unisave.HttpClient
 {
     public class HttpClientComponent : MonoBehaviour
     {

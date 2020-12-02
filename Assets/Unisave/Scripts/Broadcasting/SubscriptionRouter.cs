@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using LightJson;
 using Unisave.Foundation;
-using Unisave.Http;
+using Unisave.HttpClient;
 using Unisave.Serialization;
 using Unisave.Serialization.Context;
 using Unisave.Sessions;

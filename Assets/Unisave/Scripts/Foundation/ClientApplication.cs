@@ -2,7 +2,7 @@ using System;
 using Unisave.Broadcasting;
 using Unisave.Facades;
 using Unisave.Facets;
-using Unisave.Http;
+using Unisave.HttpClient;
 using Unisave.Sessions;
 using Unisave.Utils;
 using UnityEngine;

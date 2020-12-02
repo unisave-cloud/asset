@@ -4,11 +4,10 @@ using System.Collections.Generic;
 using System.Text;
 using LightJson;
 using Unisave.Foundation;
-using Unisave.Http.Client;
 using UnityEngine;
 using UnityEngine.Networking;
 
-namespace Unisave.Http
+namespace Unisave.HttpClient
 {
     /// <summary>
     /// Http client for the Unisave asset
