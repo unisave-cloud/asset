@@ -34,11 +34,18 @@ namespace Unisave.Http
                 var contentType = request.GetResponseHeader("Content-Type")
                     ?? "text/plain";
 
+                string body = downloadHandler.text;
+
+                if (request.isNetworkError)
+                    body = request.error;
+
                 var response = Response.Create(
-                    downloadHandler.text,
-                    new ContentType(contentType).Name,
+                    body,
+                    new ContentType(contentType).MediaType,
                     (int) request.responseCode
                 );
+                
+                // TODO: don't ignore headers but process them instead
 
                 callback?.Invoke(response);
 
