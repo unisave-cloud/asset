@@ -20,6 +20,9 @@
 [Aa]ssets/Scripts/Steamworks.NET
 steam_appid.txt
 
+# UnityFx.Async
+[Aa]ssets/Plugins/UnityFx.Async
+
 #########################
 # Unity gitignore rules #
 #########################
