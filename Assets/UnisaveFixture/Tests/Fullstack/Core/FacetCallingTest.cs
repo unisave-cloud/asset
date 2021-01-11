@@ -1,4 +1,5 @@
 using System.Collections;
+using LightJson;
 using NUnit.Framework;
 using Unisave.Facades;
 using UnisaveFixture.Backend.Core.FacetCalling;
@@ -30,6 +31,28 @@ namespace UnisaveFixture.Tests.Core
                 })
                 .Catch(e => {
                     Assert.AreEqual(message, e.Message);
+                })
+                .AsCoroutine();
+        }
+
+        [UnityTest]
+        public IEnumerator JsonCanBeSentCorrectlyThroughPhp()
+        {
+            yield return OnFacet<FcFacet>.Call<JsonValue>(
+                    nameof(FcFacet.JsonTest),
+                    new JsonObject()
+                )
+                .Then(json => {
+                    Assert.AreEqual("{}", json.ToString());
+                })
+                .AsCoroutine();
+            
+            yield return OnFacet<FcFacet>.Call<JsonValue>(
+                    nameof(FcFacet.JsonTest),
+                    new JsonArray()
+                )
+                .Then(json => {
+                    Assert.AreEqual("[]", json.ToString());
                 })
                 .AsCoroutine();
         }
