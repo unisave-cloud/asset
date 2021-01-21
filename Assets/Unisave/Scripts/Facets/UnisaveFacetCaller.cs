@@ -9,6 +9,7 @@ using Unisave.Foundation;
 using Unisave.HttpClient;
 using Unisave.Logging;
 using Unisave.Serialization;
+using Unisave.Serialization.Context;
 using UnityEngine;
 using Application = UnityEngine.Application;
 
@@ -95,7 +96,8 @@ namespace Unisave.Facets
 
 				case "exception":
 					var e = Serializer.FromJson<Exception>(
-						executionResult["exception"]
+						executionResult["exception"],
+						DeserializationContext.ServerToClient
 					);
 					PreserveStackTrace(e);
 					promise.Reject(e);

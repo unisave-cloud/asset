@@ -5,8 +5,8 @@ using LightJson;
 using Unisave.Exceptions;
 using Unisave.Foundation;
 using Unisave.Serialization;
+using Unisave.Serialization.Context;
 using Unisave.Sessions;
-using Unisave.Utils;
 
 namespace Unisave.Facets
 {
@@ -54,7 +54,7 @@ namespace Unisave.Facets
                     methodName,
                     arguments
                 )
-                .Then((object ret) => (TReturn) ret);
+                .Then((object ret) => (TReturn) (ret ?? default(TReturn)));
         }
         
         /// <summary>
@@ -99,7 +99,11 @@ namespace Unisave.Facets
                 Facet.SerializeArguments(methodInfo, arguments)
             )
             .Then((JsonValue returnedValue) => {
-                return Serializer.FromJson(returnedValue, returnType);
+                return Serializer.FromJson(
+                    returnedValue,
+                    returnType,
+                    DeserializationContext.ServerToClient
+                );
             });
         }
 

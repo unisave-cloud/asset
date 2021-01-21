@@ -70,7 +70,7 @@ namespace Unisave.Broadcasting
         {
             var message = Serializer.FromJson<BroadcastingMessage>(
                 data["message"],
-                DeserializationContext.BroadcastingContext()
+                DeserializationContext.ServerToClient
             );
             
             RouteMessage(data["channel"].AsString, message);
@@ -80,7 +80,7 @@ namespace Unisave.Broadcasting
         {
             var sub = Serializer.FromJson<ChannelSubscription>(
                 data["subscription"],
-                DeserializationContext.BroadcastingContext()
+                DeserializationContext.ServerToClient
             );
             
             // ignore known subscriptions

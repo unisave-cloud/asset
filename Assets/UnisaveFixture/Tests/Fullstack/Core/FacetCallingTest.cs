@@ -55,6 +55,15 @@ namespace UnisaveFixture.Tests.Core
                     Assert.AreEqual("[]", json.ToString());
                 })
                 .AsCoroutine();
+            
+            yield return OnFacet<FcFacet>.Call<JsonValue>(
+                    nameof(FcFacet.JsonTest),
+                    new object[] { null } // "null" would be an object[], not object
+                )
+                .Then(json => {
+                    Assert.AreEqual("null", json.ToString());
+                })
+                .AsCoroutine();
         }
     }
 }

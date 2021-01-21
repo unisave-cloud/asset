@@ -61,9 +61,9 @@ namespace UnisaveFixture.Tests.Core.Entities
         [Test]
         public void ReferenceTargetCanBeTested()
         {
-            Assert.IsFalse(match.Owner == null); // not a valid comparison
-            Assert.IsTrue(match.Owner.TargetId == null); // ok
-            Assert.IsTrue(match.Owner.IsNull); // ok
+            Assert.IsTrue(match.Owner == null);
+            Assert.IsTrue(match.Owner.TargetId == null);
+            Assert.IsTrue(match.Owner.IsNull);
             
             match.Owner = player;
             

@@ -1,5 +1,6 @@
 using System;
 using System.Collections;
+using System.Runtime.ExceptionServices;
 using RSG;
 
 namespace Unisave.Facades
@@ -25,7 +26,7 @@ namespace Unisave.Facades
                 yield return null;
 
             if (exception != null)
-                throw exception;
+                ExceptionDispatchInfo.Capture(exception).Throw();
         }
 
         /// <summary>
