@@ -37,13 +37,11 @@ namespace UnisaveFixture.Tests.Core.Entities
 
             match.Owner = player;
             Assert.AreEqual(player.EntityId, match.Owner.TargetId);
-            Assert.AreEqual(player.EntityId, match["Owner"].AsString);
             
             match.Save();
             match.Refresh();
             
             Assert.AreEqual(player.EntityId, match.Owner.TargetId);
-            Assert.AreEqual(player.EntityId, match["Owner"].AsString);
         }
 
         [Test]
