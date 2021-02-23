@@ -56,17 +56,29 @@ namespace Unisave.Editor.BackendUploading
             {
                 if (e is WebException)
                 {
-                    if ((int)((HttpWebResponse)((WebException)e).Response).StatusCode == 401)
+                    WebException we = (WebException) e;
+                    HttpWebResponse response = (HttpWebResponse) we.Response;
+                    
+                    if ((int)response.StatusCode == 401)
                         throw new UnisaveException(
                             "Server response to backend uploader was 401 unauthorized.\n"
                             + "Check that your game token and editor key are correctly set up."
                         );
 
-                    if ((int)((HttpWebResponse)((WebException)e).Response).StatusCode == 429)
+                    if ((int)response.StatusCode == 429)
                         throw new UnisaveException(
                             "Server refuses backend uploader requests due to their amount. This happens when Unity editor does a lot of recompiling.\n"
                             + "Simply wait for a while and this problem will go away."
                         );
+                    
+                    // read the response
+                    using (var sr = new StreamReader(response.GetResponseStream()))
+                        responseString = sr.ReadToEnd();
+                        
+                    throw new UnisaveException(
+                        "Server responded with non 200 response:\n" +
+                        responseString
+                    );
                 }
 
                 throw;
