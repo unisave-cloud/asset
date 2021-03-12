@@ -109,9 +109,12 @@ namespace Unisave.HttpClient
             if (headers != null)
                 foreach (var pair in headers)
                     request.SetRequestHeader(pair.Key, pair.Value);
-            
+
             if (payload != null)
+            {
+                request.SetRequestHeader("Accept", "application/json");
                 request.SetRequestHeader("Content-Type", "application/json");
+            }
 
             yield return request.SendWebRequest();
             

@@ -86,7 +86,7 @@ namespace Unisave.Testing
             
             env["SESSION_DRIVER"] = "arango";
             env["ARANGO_DRIVER"] = "http";
-            env["ARANGO_BASE_URL"] = "http://127.0.0.1:8529/";
+            env["ARANGO_BASE_URL"] = "http://arango.unisave.local/";
             env["ARANGO_DATABASE"] = "db_Jj0Y3Fu6";
             env["ARANGO_USERNAME"] = "db_user_Jj0Y3Fu6";
             env["ARANGO_PASSWORD"] = "JSmhb08w9fDCweT+ux/CM/Ur";
