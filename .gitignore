@@ -58,6 +58,7 @@ steam_appid.txt
 ExportedObj/
 .consulo/
 *.csproj
+*.csproj.DotSettings
 *.unityproj
 *.sln
 *.suo
