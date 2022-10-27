@@ -5,6 +5,9 @@
 # Unisave preferences needn't be stored
 [Aa]ssets/Unisave/Resources/UnisavePreferencesFile*
 
+# Packages are not needed, not even the manifest
+/[Pp]ackages/
+
 # Most special folders in root are from other assets (e.g. Steamworks.NET)
 /[Aa]ssets/Plugins*
 /[Aa]ssets/Editor*

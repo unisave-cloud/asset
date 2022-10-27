@@ -1,17 +1,26 @@
 {
     "name": "UnisaveFixture",
+    "rootNamespace": "",
     "references": [
         "Unisave",
-        "Unisave.Testing"
-    ],
-    "optionalUnityReferences": [
-        "TestAssemblies"
+        "Unisave.Testing",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
-    "overrideReferences": false,
-    "precompiledReferences": [],
-    "autoReferenced": true,
-    "defineConstraints": []
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "nunit.framework.dll",
+        "UnisaveFramework.dll",
+        "LightJson.dll",
+        "RSG.Promise.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
 }
