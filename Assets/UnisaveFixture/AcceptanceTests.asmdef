@@ -2,9 +2,7 @@
     "name": "UnisaveFixture",
     "references": [
         "Unisave",
-        "Unisave.Testing",
-        "Steamworks",
-        "Steamworks.SteamManager"
+        "Unisave.Testing"
     ],
     "optionalUnityReferences": [
         "TestAssemblies"
