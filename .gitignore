@@ -16,6 +16,10 @@
 # Steamworks.NET
 steam_appid.txt
 
+# Rider
+.idea/
+*.csproj.DotSettings
+
 
 ############################################
 # Official Unity gitignore rules by GitHub #

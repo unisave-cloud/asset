@@ -1,10 +1,13 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading;
 using LightJson;
+using Unisave.Editor.BackendFolders;
 using Unisave.Foundation;
 using Unisave.Utils;
+using UnityEditor;
 using UnityEngine;
 
 namespace Unisave.Editor.BackendUploading
@@ -239,14 +242,15 @@ namespace Unisave.Editor.BackendUploading
         )
         {
             // list all backend folders
-            var backendFolders = new string[] {
-                "Assets/" + preferences.BackendFolder
-            };
+            string[] backendFolders = ListBackendFolders();
 
             // get list of files to be uploaded
             var files = new List<BackendFile>();
-            files.AddRange(CSharpFile.FindFiles(backendFolders));
-            files.AddRange(SOFile.FindFiles(backendFolders));
+            if (backendFolders.Length > 0)
+            {
+                files.AddRange(CSharpFile.FindFiles(backendFolders));
+                // add other file types later
+            }
             
             // compute file hashes
             files.ForEach(f => f.ComputeHash());
@@ -261,10 +265,23 @@ namespace Unisave.Editor.BackendUploading
             backendHash = Hash.CompositeMD5(hashes);
             
             // store the backend hash
-            preferences.BackendHash = backendHash;
-            preferences.Save();
+            if (preferences.BackendHash != backendHash)
+            {
+                preferences.BackendHash = backendHash;
+                preferences.Save();
+            }
 
             return files;
+        }
+
+        private string[] ListBackendFolders()
+        {
+            BackendFolderDefinition[] defs = BackendFolderDefinition.LoadAll();
+
+            return defs
+                .Where(d => d.IsEligibleForUpload())
+                .Select(d => d.FolderPath)
+                .ToArray();
         }
     }
 }

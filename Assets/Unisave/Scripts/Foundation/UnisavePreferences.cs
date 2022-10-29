@@ -168,7 +168,7 @@ namespace Unisave.Foundation
 		}
 
 		[SerializeField]
-		private string backendFolder = "Backend";
+		private string backendFolder = null;
 
 		/// <summary>
 		/// Upload backend automatically after compilation finishes
