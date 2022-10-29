@@ -79,7 +79,8 @@ namespace Unisave.Editor
 			GUILayout.Space(30f);
 			GUILayout.Label("Changes to configuration are saved automatically.");
 			GUILayout.Space(30f);
-			GUILayout.Label("Unisave framework version: " + FrameworkMeta.Version);
+			EditorGUILayout.LabelField("Framework version", FrameworkMeta.Version);
+			EditorGUILayout.LabelField("Asset version", AssetMeta.Version);
 			
 			GUILayout.EndScrollView();
 
