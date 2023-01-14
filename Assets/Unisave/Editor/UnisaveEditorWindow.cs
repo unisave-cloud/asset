@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Unisave.Editor.BackendFolders;
@@ -11,6 +12,7 @@ using Application = UnityEngine.Application;
 
 namespace Unisave.Editor
 {
+	[Obsolete("Replaced by the UnisaveWindow namespace")]
 	public class UnisaveEditorWindow : EditorWindow
 	{
 		// === Edited state ===

@@ -1,0 +1,16 @@
+.tab-head {
+    flex-grow: 1;
+    border-right-width: 0;
+}
+
+.tab-head > VisualElement {
+    justify-content: center;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content--active {
+    display: flex;
+}
