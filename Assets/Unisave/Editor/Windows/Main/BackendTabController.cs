@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using Unisave.Editor.BackendFolders;
+using Unisave.Editor.BackendUploading;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -91,10 +92,10 @@ namespace Unisave.Editor.Windows.Main
                 );
                 button.clicked += () => {
                     if (def.UploadBehaviour == UploadBehaviour.Always)
-                        def.UploadBehaviour = UploadBehaviour.Never;
+                        DisableBackendFolder(def);
                     else if (def.UploadBehaviour == UploadBehaviour.Never)
-                        def.UploadBehaviour = UploadBehaviour.Always;
-                    OnObserveExternalState();
+                        EnableBackendFolder(def);
+                    OnObserveExternalState(); // refresh window
                 };
                 
                 var field = item.Q<ObjectField>(className: "backend-def__field");
@@ -106,6 +107,41 @@ namespace Unisave.Editor.Windows.Main
                 else
                     disabledBackendDefinitions.Add(item);
             }
+        }
+        
+        ////////////////////
+        // Action Methods //
+        ////////////////////
+		
+        void RunManualCodeUpload()
+        {
+            Uploader
+                .GetDefaultInstance()
+                .UploadBackend(
+                    verbose: true,
+                    useAnotherThread: true // yes, here we can run in background
+                );
+        }
+
+        void EnableBackendFolder(BackendFolderDefinition def)
+        {
+            def.UploadBehaviour = UploadBehaviour.Always;
+            EditorUtility.SetDirty(def);
+			
+            HighlightBackendFolderInInspector(def);
+        }
+		
+        void DisableBackendFolder(BackendFolderDefinition def)
+        {
+            def.UploadBehaviour = UploadBehaviour.Never;
+            EditorUtility.SetDirty(def);
+			
+            HighlightBackendFolderInInspector(def);
+        }
+
+        void HighlightBackendFolderInInspector(BackendFolderDefinition def)
+        {
+            Selection.activeObject = def;
         }
         
         private void AddExistingBackendFolder()
