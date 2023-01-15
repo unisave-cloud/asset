@@ -7,10 +7,17 @@ namespace Unisave.Editor.Windows.Main
     public class TabController
     {
         private readonly VisualElement root;
+        private readonly Action<MainWindowTab> openTabCallback;
 
-        public TabController(VisualElement root)
+        public MainWindowTab CurrentTab { get; private set; } = MainWindowTab.None;
+
+        public TabController(
+            VisualElement root,
+            Action<MainWindowTab> openTabCallback
+        )
         {
             this.root = root;
+            this.openTabCallback = openTabCallback;
         }
 
         public void RegisterCallbacks()
@@ -23,8 +30,10 @@ namespace Unisave.Editor.Windows.Main
                 });
         }
         
-        public void OpenTab(MainWindowTab tab)
+        public void RenderOpenedTab(MainWindowTab tab)
         {
+            CurrentTab = tab;
+            
             string tabName = Enum.GetName(typeof(MainWindowTab), tab);
             string headName = "tab-head__" + tabName;
             string contentName = "tab-content__" + tabName;
@@ -53,7 +62,7 @@ namespace Unisave.Editor.Windows.Main
 
             string tabName = tabHead.name.Substring("tab-head__".Length);
             var tab = (MainWindowTab)Enum.Parse(typeof(MainWindowTab), tabName);
-            OpenTab(tab);
+            openTabCallback.Invoke(tab);
         }
     }
 }

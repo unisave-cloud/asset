@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd"
+>
+    <engine:Style src="BackendTab.uss"/>
+    
+    <engine:Label text="TODO: backend uploading and errors here"/>
+
+    <engine:Label class="backend-folders__titlebar" text="Backend folders"/>
+
+    <engine:VisualElement name="enabled-backend-definitions">
+        <!-- visual elements go here -->
+        <!-- BackendDefinitionItem.uxml -->
+    </engine:VisualElement>
+    
+    <engine:VisualElement class="add-backend-folder__container">
+        <engine:Button class="add-backend-folder__button" text="Add Existing Folder..."/>
+    </engine:VisualElement>
+    
+    <engine:Label class="backend-folders__titlebar" text="Disabled backend folders"/>
+    
+    <engine:VisualElement name="disabled-backend-definitions">
+        <!-- visual elements go here -->
+        <!-- BackendDefinitionItem.uxml -->
+    </engine:VisualElement>
+    
+</engine:UXML>

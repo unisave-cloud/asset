@@ -91,10 +91,16 @@ namespace Unisave.Editor.BackendFolders
             }
             
             // === Apply changes and set dirty ===
+            bool hadModifiedProperties = serializedObject.hasModifiedProperties;
             serializedObject.ApplyModifiedProperties();
-            
+
             // we use serializedObject, and it does this automatically
             // EditorUtility.SetDirty(definition);
+            
+            // === Emit event that a backend definition file was changed ===
+            
+            if (hadModifiedProperties)
+                BackendFolderDefinition.InvokeAnyChangeEvent();
         }
     }
 }

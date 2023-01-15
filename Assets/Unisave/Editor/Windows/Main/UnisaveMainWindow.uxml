@@ -24,7 +24,8 @@
             <engine:Label text="Cloud connection tab!"/>
         </engine:VisualElement>
         <engine:VisualElement name="tab-content__Backend" class="tab-content">
-            <engine:Label text="Backend code tab!"/>
+            <engine:Template name="BackendTabTemplate" src="BackendTab.uxml"/>
+            <engine:Instance template="BackendTabTemplate"/>
         </engine:VisualElement>
         <engine:VisualElement name="tab-content__Databases" class="tab-content">
             <engine:Label text="Databases tab!"/>

@@ -1,0 +1,56 @@
+.backend-folders__titlebar {
+    padding: 3px 5px;
+    -unity-font-style: bold;
+    background-color: var(--unity-colors-inspector_titlebar-background);
+
+    border-top-width: 1px;
+    border-top-color: var(--unity-colors-inspector_titlebar-border_accent);
+    border-bottom-width: 1px;
+    border-bottom-color: var(--unity-colors-inspector_titlebar-border);
+}
+
+/****************************
+* Add Backend Folder Button *
+****************************/
+
+.add-backend-folder__container {
+    align-content: center;
+    align-items: center;
+    padding: 15px 0;
+}
+
+.add-backend-folder__button {
+    padding: 3px 25px;
+    flex-grow: 0;
+}
+
+/****************************
+* Backend Folder Definition *
+****************************/
+
+.backend-def {
+    padding: 8px 10px;
+}
+
+.backend-def:hover {
+    background-color: var(--unity-colors-inspector_titlebar-background-hover);
+}
+
+.backend-def__label {
+    margin: 0 3px;
+}
+
+.backend-def__actions {
+    flex-direction: row;
+}
+
+.backend-def__field {
+    width: 50px; /* and then flex-grows beyond */
+    flex-grow: 1;
+}
+
+.backend-def__field .unity-object-field__selector {
+    /* hides the selector button that displays
+    the little dialog window when clicked */
+    display: none;
+}

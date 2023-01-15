@@ -15,6 +15,21 @@ namespace Unisave.Editor.BackendFolders
     public class BackendFolderDefinition : ScriptableObject
     {
         /// <summary>
+        /// Event is invoked whenever any backend folder definition file is modified
+        /// (modified, created, deleted, moved). Use this event to refresh any
+        /// GUI related to backend folder definition files.
+        /// </summary>
+        public static event Action OnAnyChange;
+
+        /// <summary>
+        /// Invokes the event that notifies about backend folder definition changes
+        /// </summary>
+        public static void InvokeAnyChangeEvent()
+        {
+            OnAnyChange?.Invoke();
+        }
+    
+        /// <summary>
         /// Use this method to load all existing backend folder definitions
         /// </summary>
         public static BackendFolderDefinition[] LoadAll()

@@ -5,6 +5,11 @@ namespace Unisave.Editor.Windows.Main
     /// </summary>
     public enum MainWindowTab
     {
+        /// <summary>
+        /// Value represents no tab opened
+        /// </summary>
+        None = 0,
+        
         Home,
         Connection,
         Backend,
