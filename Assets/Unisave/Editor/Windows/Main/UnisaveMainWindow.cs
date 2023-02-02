@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using Unisave.Editor.Windows.Main.Tabs;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine;
@@ -11,8 +12,15 @@ namespace Unisave.Editor.Windows.Main
     {
         public const string WindowTitle = "Unisave";
 
-        private TabController tabController;
-        private Dictionary<MainWindowTab, ITabContentController> tabContent;
+        /// <summary>
+        /// Controls the tab opening and tab heads
+        /// </summary>
+        private TabsController tabsController;
+        
+        /// <summary>
+        /// Tab content controllers for each tab
+        /// </summary>
+        private Dictionary<MainWindowTab, ITabContentController> tabContents;
         
         [MenuItem("Window/Unisave/Unisave Main Window", false, 1)]
         public static void ShowWindow()
@@ -42,7 +50,7 @@ namespace Unisave.Editor.Windows.Main
             OnWriteExternalState();
             
             // open the new tab
-            tabController.RenderOpenedTab(tab);
+            tabsController.RenderOpenedTab(tab);
             
             // let the new tab refresh its content
             OnObserveExternalState();
@@ -58,7 +66,7 @@ namespace Unisave.Editor.Windows.Main
             
             // set up UI tree
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Assets/Unisave/Editor/Windows/Main/UnisaveMainWindow.uxml"
+                "Assets/Unisave/Editor/Windows/Main/UI/UnisaveMainWindow.uxml"
             );
             rootVisualElement.Add(visualTree.Instantiate());
             
@@ -66,18 +74,21 @@ namespace Unisave.Editor.Windows.Main
             rootVisualElement.RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
             
             // create individual tab controllers
-            tabContent = new Dictionary<MainWindowTab, ITabContentController>();
+            tabContents = new Dictionary<MainWindowTab, ITabContentController>();
             
-            tabContent[MainWindowTab.Backend] = new BackendTabController(
+            tabContents[MainWindowTab.Backend] = new BackendTabController(
                 rootVisualElement.Q(name: "tab-content__Backend")
             );
+            tabContents[MainWindowTab.Connection] = new ConnectionTabController(
+                rootVisualElement.Q(name: "tab-content__Connection")
+            );
             
-            foreach (var content in tabContent.Values)
+            foreach (var content in tabContents.Values)
                 content.OnCreateGUI();
 
             // set up the tab head controller
-            tabController = new TabController(rootVisualElement, OpenTab);
-            tabController.RegisterCallbacks();
+            tabsController = new TabsController(rootVisualElement, OpenTab);
+            tabsController.RegisterCallbacks();
             
             // open the home tab
             OpenTab(MainWindowTab.Home);
@@ -94,11 +105,11 @@ namespace Unisave.Editor.Windows.Main
         /// </summary>
         private void OnObserveExternalState()
         {
-            if (tabContent == null || tabController == null)
+            if (tabContents == null || tabsController == null)
                 return;
             
-            if (tabContent.ContainsKey(tabController.CurrentTab))
-                tabContent[tabController.CurrentTab].OnObserveExternalState();
+            if (tabContents.ContainsKey(tabsController.CurrentTab))
+                tabContents[tabsController.CurrentTab].OnObserveExternalState();
         }
 
         /// <summary>
@@ -108,11 +119,11 @@ namespace Unisave.Editor.Windows.Main
         /// </summary>
         private void OnWriteExternalState()
         {
-            if (tabContent == null || tabController == null)
+            if (tabContents == null || tabsController == null)
                 return;
             
-            if (tabContent.ContainsKey(tabController.CurrentTab))
-                tabContent[tabController.CurrentTab].OnWriteExternalState();
+            if (tabContents.ContainsKey(tabsController.CurrentTab))
+                tabContents[tabsController.CurrentTab].OnWriteExternalState();
         }
     }
 }

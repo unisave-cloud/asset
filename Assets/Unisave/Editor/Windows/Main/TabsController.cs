@@ -4,14 +4,17 @@ using UnityEngine.UIElements;
 
 namespace Unisave.Editor.Windows.Main
 {
-    public class TabController
+    /// <summary>
+    /// Controls tabs, how they are opened and their headers
+    /// </summary>
+    public class TabsController
     {
         private readonly VisualElement root;
         private readonly Action<MainWindowTab> openTabCallback;
 
         public MainWindowTab CurrentTab { get; private set; } = MainWindowTab.None;
 
-        public TabController(
+        public TabsController(
             VisualElement root,
             Action<MainWindowTab> openTabCallback
         )

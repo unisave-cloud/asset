@@ -3,7 +3,7 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns:engine="UnityEngine.UIElements"
     xmlns:editor="UnityEditor.UIElements"
-    xsi:noNamespaceSchemaLocation="../../../../../UIElementsSchema/UIElements.xsd"
+    xsi:noNamespaceSchemaLocation="../../../../../../UIElementsSchema/UIElements.xsd"
 >
     <engine:Style src="UnisaveMainWindow.uss"/>
 
@@ -11,8 +11,8 @@
         <editor:ToolbarToggle name="tab-head__Home" class="tab-head" text="Home"/>
         <editor:ToolbarToggle name="tab-head__Connection" class="tab-head" text="Cloud Connection"/>
         <editor:ToolbarToggle name="tab-head__Backend" class="tab-head" text="Backend Code"/>
-        <editor:ToolbarToggle name="tab-head__Databases" class="tab-head" text="Databases"/>
-        <editor:ToolbarToggle name="tab-head__Quotas" class="tab-head" text="Quotas"/>
+<!--        <editor:ToolbarToggle name="tab-head__Databases" class="tab-head" text="Databases"/>-->
+<!--        <editor:ToolbarToggle name="tab-head__Quotas" class="tab-head" text="Quotas"/>-->
     </editor:Toolbar>
     
     <engine:ScrollView>
@@ -21,7 +21,8 @@
             <engine:Instance template="HomeTabTemplate"/>
         </engine:VisualElement>
         <engine:VisualElement name="tab-content__Connection" class="tab-content">
-            <engine:Label text="Cloud connection tab!"/>
+            <engine:Template name="ConnectionTabTemplate" src="ConnectionTab.uxml"/>
+            <engine:Instance template="ConnectionTabTemplate"/>
         </engine:VisualElement>
         <engine:VisualElement name="tab-content__Backend" class="tab-content">
             <engine:Template name="BackendTabTemplate" src="BackendTab.uxml"/>

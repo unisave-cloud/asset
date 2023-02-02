@@ -1,0 +1,41 @@
+.container {
+    padding: 20px;
+}
+
+.dashboard-link__container {
+    position: relative;
+    flex-direction: row;
+    margin-bottom: 10px;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.dashboard-link__container Label {
+    margin-right: 10px;
+    white-space: normal;
+    flex-grow: 1;
+    width: 20px;
+}
+
+.dashboard-link__container Button {
+    flex-shrink: 0;
+}
+
+.connection-box {
+    padding: 20px;
+    
+    border-width: 2px;
+    border-color: rgba(0, 0, 0, 0.3);
+}
+
+.field-line {
+    flex-direction: row;
+}
+
+.field-line > * {
+    flex-grow: 1;
+}
+
+.field-line Label {
+    max-width: 130px;
+}

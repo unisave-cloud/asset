@@ -1,15 +1,11 @@
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 using Unisave.Editor.BackendFolders;
 using Unisave.Editor.BackendUploading;
 using UnityEditor;
 using UnityEditor.UIElements;
-using UnityEngine;
 using UnityEngine.UIElements;
 
-namespace Unisave.Editor.Windows.Main
+namespace Unisave.Editor.Windows.Main.Tabs
 {
     public class BackendTabController : ITabContentController
     {
@@ -33,7 +29,7 @@ namespace Unisave.Editor.Windows.Main
             // === Backend folder definition files ===
             
             backendDefinitionItem = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Assets/Unisave/Editor/Windows/Main/BackendDefinitionItem.uxml"
+                "Assets/Unisave/Editor/Windows/Main/UI/BackendDefinitionItem.uxml"
             );
             enabledBackendDefinitions = root.Q(name: "enabled-backend-definitions");
             disabledBackendDefinitions = root.Q(name: "disabled-backend-definitions");
@@ -60,9 +56,6 @@ namespace Unisave.Editor.Windows.Main
             var defs = BackendFolderDefinition.LoadAll();
             
             RenderBackendFolderDefinitions(defs);
-
-            // field.value = defs[0];
-            // field.objectType = typeof(BackendFolderDefinition);
         }
 
         public void OnWriteExternalState()
