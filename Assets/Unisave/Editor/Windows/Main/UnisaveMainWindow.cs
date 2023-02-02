@@ -75,12 +75,15 @@ namespace Unisave.Editor.Windows.Main
             
             // create individual tab controllers
             tabContents = new Dictionary<MainWindowTab, ITabContentController>();
-            
-            tabContents[MainWindowTab.Backend] = new BackendTabController(
-                rootVisualElement.Q(name: "tab-content__Backend")
+
+            tabContents[MainWindowTab.Home] = new HomeTabController(
+                rootVisualElement.Q(name: "tab-content__Home")
             );
             tabContents[MainWindowTab.Connection] = new ConnectionTabController(
                 rootVisualElement.Q(name: "tab-content__Connection")
+            );
+            tabContents[MainWindowTab.Backend] = new BackendTabController(
+                rootVisualElement.Q(name: "tab-content__Backend")
             );
             
             foreach (var content in tabContents.Values)

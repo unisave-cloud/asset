@@ -7,7 +7,7 @@
 >
     <engine:Style src="UnisaveMainWindow.uss"/>
 
-    <editor:Toolbar>
+    <editor:Toolbar class="tabs-bar">
         <editor:ToolbarToggle name="tab-head__Home" class="tab-head" text="Home"/>
         <editor:ToolbarToggle name="tab-head__Connection" class="tab-head" text="Cloud Connection"/>
         <editor:ToolbarToggle name="tab-head__Backend" class="tab-head" text="Backend Code"/>

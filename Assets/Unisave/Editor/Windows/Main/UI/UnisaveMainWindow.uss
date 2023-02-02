@@ -1,3 +1,7 @@
+.tabs-bar {
+    flex-shrink: 0;
+}
+
 .tab-head {
     flex-grow: 1;
     border-right-width: 0;
