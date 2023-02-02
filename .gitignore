@@ -23,6 +23,9 @@ steam_appid.txt
 .idea/
 *.csproj.DotSettings
 
+# VS Code
+.vscode/
+
 
 ############################################
 # Official Unity gitignore rules by GitHub #

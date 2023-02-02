@@ -29,19 +29,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
             openDashboardButton = root.Q<Button>(name: "open-dashboard-button");
 
             openDashboardButton.clicked += () => {
-                Application.OpenURL("https://unisave.cloud/");
+                Application.OpenURL("https://unisave.cloud/app");
             };
-            
-            // === Other ===
-            
-            root.RegisterCallback<DetachFromPanelEvent>(e => {
-                OnDetachFromPanel();
-            });
-        }
-        
-        private void OnDetachFromPanel()
-        {
-            // de-register event handlers here
         }
 
         public void OnObserveExternalState()

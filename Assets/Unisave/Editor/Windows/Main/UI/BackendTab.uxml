@@ -7,7 +7,24 @@
 >
     <engine:Style src="BackendTab.uss"/>
     
-    <engine:Label text="TODO: backend uploading and errors here"/>
+    <engine:VisualElement class="container">
+        <engine:VisualElement class="field">
+            <engine:Label class="field-label" text="Automatic uploading"/>
+            <engine:Toggle name="automatic-upload-toggle"/>
+        </engine:VisualElement>
+        <engine:VisualElement class="field">
+            <engine:Label class="field-label" text="Manual upload"/>
+            <engine:Button name="manual-upload-button" text="Upload"/>
+        </engine:VisualElement>
+        <engine:VisualElement class="field">
+            <engine:Label class="field-label" text="Last upload at"/>
+            <engine:Label name="last-upload-at-label" text="123"/>
+        </engine:VisualElement>
+        <engine:VisualElement class="field">
+            <engine:Label class="field-label" text="Backend hash"/>
+            <engine:Label name="backend-hash-label" text="123"/>
+        </engine:VisualElement>
+    </engine:VisualElement>
 
     <engine:Label class="backend-folders__titlebar" text="Backend folders"/>
 

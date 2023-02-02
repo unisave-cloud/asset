@@ -1,6 +1,7 @@
 using System.IO;
 using Unisave.Editor.BackendFolders;
 using Unisave.Editor.BackendUploading;
+using Unisave.Foundation;
 using UnityEditor;
 using UnityEditor.UIElements;
 using UnityEngine.UIElements;
@@ -15,6 +16,11 @@ namespace Unisave.Editor.Windows.Main.Tabs
         private VisualElement enabledBackendDefinitions;
         private VisualElement disabledBackendDefinitions;
 
+        private Toggle automaticUploadToggle;
+        private Button manualUploadButton;
+        private Label lastUploadAtLabel;
+        private Label backendHashLabel;
+
         public BackendTabController(VisualElement root)
         {
             this.root = root;
@@ -24,7 +30,12 @@ namespace Unisave.Editor.Windows.Main.Tabs
         {
             // === Backend upload and compilation ===
             
-            // ...
+            automaticUploadToggle = root.Q<Toggle>(name: "automatic-upload-toggle");
+            manualUploadButton = root.Q<Button>(name: "manual-upload-button");
+            lastUploadAtLabel = root.Q<Label>(name: "last-upload-at-label");
+            backendHashLabel = root.Q<Label>(name: "backend-hash-label");
+            
+            manualUploadButton.clicked += RunManualCodeUpload;
             
             // === Backend folder definition files ===
             
@@ -53,14 +64,26 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnObserveExternalState()
         {
-            var defs = BackendFolderDefinition.LoadAll();
+            // === Backend upload and compilation ===
             
+            var preferences = UnisavePreferences.LoadOrCreate();
+            automaticUploadToggle.value = preferences.AutomaticBackendUploading;
+            lastUploadAtLabel.text = preferences.LastBackendUploadAt
+                ?.ToString("yyyy-MM-dd H:mm:ss") ?? "Never";
+            backendHashLabel.text = string.IsNullOrWhiteSpace(preferences.BackendHash)
+                ? "<not computed yet>"
+                : preferences.BackendHash;
+            
+            // === Backend folder definition files ===
+            
+            var defs = BackendFolderDefinition.LoadAll();
             RenderBackendFolderDefinitions(defs);
         }
 
         public void OnWriteExternalState()
         {
-            // nothing so far
+            var preferences = UnisavePreferences.LoadOrCreate();
+            preferences.AutomaticBackendUploading = automaticUploadToggle.value;
         }
 
         private void RenderBackendFolderDefinitions(BackendFolderDefinition[] defs)

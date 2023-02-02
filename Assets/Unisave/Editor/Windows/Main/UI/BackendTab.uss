@@ -1,3 +1,25 @@
+/**************************
+* Upper uploading section *
+***************************/
+
+.container {
+    padding: 8px 10px;
+}
+
+.field {
+    padding: 2px 0;
+    flex-direction: row;
+    align-items: flex-start;
+}
+
+.field .field-label {
+    width: 150px;
+}
+
+/******************
+* Backend Folders *
+*******************/
+
 .backend-folders__titlebar {
     padding: 3px 5px;
     -unity-font-style: bold;
