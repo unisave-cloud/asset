@@ -32,10 +32,11 @@
     flex-direction: row;
 }
 
-.field-line > * {
-    flex-grow: 1;
+.field-line Label {
+    width: 90px;
 }
 
-.field-line Label {
-    max-width: 130px;
+.field-line TextField {
+    width: 50px;
+    flex-grow: 1;
 }
