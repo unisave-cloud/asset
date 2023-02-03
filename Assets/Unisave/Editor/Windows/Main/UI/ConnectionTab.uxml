@@ -10,7 +10,7 @@
     <engine:VisualElement class="container">
         
         <engine:VisualElement class="dashboard-link__container">
-            <engine:Label text="Copy connection details from the web dashboard"/>
+            <engine:Label text="Copy connection credentials from the web dashboard"/>
             <engine:Button name="open-dashboard-button" text="Open Dashboard"/>
         </engine:VisualElement>
         
@@ -24,6 +24,12 @@
                 <engine:Label text="Editor Key" />
                 <engine:TextField name="editor-key-field" password="true" mask-character="*"/>
             </engine:VisualElement>
+            
+            <engine:HelpBox
+                    name="empty-warning"
+                    text="Connection credentials are missing. Copy them from the web dashboard."
+                    message-type="Warning"
+            />
             
         </engine:VisualElement>
     </engine:VisualElement>

@@ -11,6 +11,16 @@
     justify-content: center;
 }
 
+.tab-head.is-warning > VisualElement {
+    border-bottom-width: 2px;
+    border-bottom-color: var(--unity-colors-warning-text);
+}
+
+.tab-head.is-error > VisualElement {
+    border-bottom-width: 2px;
+    border-bottom-color: var(--unity-colors-error-text);
+}
+
 .tab-content {
     display: none;
 }

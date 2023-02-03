@@ -72,6 +72,10 @@ namespace Unisave.Editor.Windows.Main
             
             // register mouse leave event
             rootVisualElement.RegisterCallback<MouseLeaveEvent>(OnMouseLeave);
+
+            // set up the tab head controller
+            tabsController = new TabsController(rootVisualElement, OpenTab);
+            tabsController.RegisterCallbacks();
             
             // create individual tab controllers
             tabContents = new Dictionary<MainWindowTab, ITabContentController>();
@@ -85,13 +89,14 @@ namespace Unisave.Editor.Windows.Main
             tabContents[MainWindowTab.Backend] = new BackendTabController(
                 rootVisualElement.Q(name: "tab-content__Backend")
             );
-            
-            foreach (var content in tabContents.Values)
-                content.OnCreateGUI();
 
-            // set up the tab head controller
-            tabsController = new TabsController(rootVisualElement, OpenTab);
-            tabsController.RegisterCallbacks();
+            foreach (var pair in tabContents)
+            {
+                pair.Value.SetTaint = (taint) => {
+                    tabsController.RenderTabTaint(pair.Key, taint);
+                };
+                pair.Value.OnCreateGUI();
+            }
             
             // open the home tab
             OpenTab(MainWindowTab.Home);
@@ -111,8 +116,9 @@ namespace Unisave.Editor.Windows.Main
             if (tabContents == null || tabsController == null)
                 return;
             
-            if (tabContents.ContainsKey(tabsController.CurrentTab))
-                tabContents[tabsController.CurrentTab].OnObserveExternalState();
+            // refresh all tabs, since they might update their header
+            foreach (ITabContentController tab in tabContents.Values)
+                tab.OnObserveExternalState();
         }
 
         /// <summary>
@@ -125,6 +131,7 @@ namespace Unisave.Editor.Windows.Main
             if (tabContents == null || tabsController == null)
                 return;
             
+            // write only the opened tab
             if (tabContents.ContainsKey(tabsController.CurrentTab))
                 tabContents[tabsController.CurrentTab].OnWriteExternalState();
         }

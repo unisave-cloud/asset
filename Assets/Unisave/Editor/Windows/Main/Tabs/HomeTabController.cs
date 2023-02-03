@@ -1,3 +1,4 @@
+using System;
 using Unisave.Foundation;
 using UnityEditor.SceneManagement;
 using UnityEngine.UIElements;
@@ -7,6 +8,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
 {
     public class HomeTabController : ITabContentController
     {
+        public Action<TabTaint> SetTaint { get; set; }
+        
         private readonly VisualElement root;
 
         private VisualElement checklistItemRegister;

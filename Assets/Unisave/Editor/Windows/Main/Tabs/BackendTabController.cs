@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using Unisave.Editor.BackendFolders;
 using Unisave.Editor.BackendUploading;
@@ -10,6 +11,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
 {
     public class BackendTabController : ITabContentController
     {
+        public Action<TabTaint> SetTaint { get; set; }
+        
         private readonly VisualElement root;
         
         private VisualTreeAsset backendDefinitionItem;

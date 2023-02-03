@@ -57,6 +57,15 @@ namespace Unisave.Editor.Windows.Main
                 });
         }
 
+        public void RenderTabTaint(MainWindowTab tab, TabTaint taint)
+        {
+            string tabName = Enum.GetName(typeof(MainWindowTab), tab);
+            var tabHead = root.Q<ToolbarToggle>(name: "tab-head__" + tabName);
+            
+            tabHead.EnableInClassList("is-warning", enable: taint == TabTaint.Warning);
+            tabHead.EnableInClassList("is-error", enable: taint == TabTaint.Error);
+        }
+
         private void TabHeadClick(ToolbarToggle tabHead, ChangeEvent<bool> e)
         {
             // ignore setting to false

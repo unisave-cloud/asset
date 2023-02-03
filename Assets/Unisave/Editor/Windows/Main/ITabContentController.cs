@@ -1,7 +1,14 @@
+using System;
+
 namespace Unisave.Editor.Windows.Main
 {
     public interface ITabContentController
     {
+        /// <summary>
+        /// Sets the rendered tab taint value
+        /// </summary>
+        public Action<TabTaint> SetTaint { get; set; }
+
         /// <summary>
         /// Called after tab controller creation to query all elements
         /// and register needed events. You can also load any additional
