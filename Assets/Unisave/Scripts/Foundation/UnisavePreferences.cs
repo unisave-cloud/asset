@@ -34,6 +34,8 @@ namespace Unisave.Foundation
 					UnityEditor.AssetDatabase.CreateAsset(preferences, path);
 					UnityEditor.AssetDatabase.SaveAssets();
 					UnityEditor.AssetDatabase.Refresh();
+					
+					Debug.Log("[Unisave] Created the Unisave preferences file.");
 				#else
 					throw new InvalidOperationException(
 						"Unisave preferences have not been found. " +

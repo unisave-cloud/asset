@@ -16,6 +16,72 @@
     width: 150px;
 }
 
+/**********************
+* Uploader State (us) *
+***********************/
+
+#us-uploading {
+    margin-top: 10px;
+    padding: 5px;
+    border-width: 1px;
+    border-color: rgba(0, 0, 0, 0.5);
+    border-radius: 3px;
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+#us-uploading.is-hidden {
+    display: none;
+}
+
+#us-uploading__head {
+    flex-direction: row;
+    justify-content: space-between;
+}
+
+#us-uploading__head > * {
+    flex-grow: 0;
+}
+
+#us-uploading__progress-bar {
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#us-uploading__cancel {
+    align-self: flex-end;
+}
+
+#us-done {
+    margin-top: 10px;
+}
+
+#us-done.is-hidden {
+    display: none;
+}
+
+#us-done__message {
+    margin: 0;
+    margin-bottom: 10px;
+}
+
+#us-done__output-container.is-hidden {
+    display: none;
+}
+
+#us-done__output {
+    white-space: normal;
+    margin-left: 0;
+    margin-right: 0;
+}
+
+#us-done ScrollView {
+    max-height: 100px;
+}
+
+#us-done__print {
+    align-self: flex-end;
+}
+
 /******************
 * Backend Folders *
 *******************/

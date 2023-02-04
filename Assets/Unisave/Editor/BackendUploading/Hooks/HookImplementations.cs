@@ -15,7 +15,7 @@ namespace Unisave.Editor.BackendUploading.Hooks
         /// </summary>
         public static void OnAssemblyCompilationFinished()
         {
-            var uploader = Uploader.GetDefaultInstance();
+            var uploader = Uploader.Instance;
             
             bool upload = uploader.RecalculateBackendHash();
 
@@ -23,7 +23,7 @@ namespace Unisave.Editor.BackendUploading.Hooks
             {
                 uploader.UploadBackend(
                     verbose: false,
-                    useAnotherThread: false
+                    blockThread: true
                 );
             }
         }
@@ -51,13 +51,13 @@ namespace Unisave.Editor.BackendUploading.Hooks
         /// </summary>
         private static void PerformAutomaticUploadIfEnabled()
         {
-            var uploader = Uploader.GetDefaultInstance();
+            var uploader = Uploader.Instance;
             
             if (uploader.AutomaticUploadingEnabled)
             {
                 uploader.UploadBackend(
                     verbose: true, // here we ARE verbose, since we're building
-                    useAnotherThread: false
+                    blockThread: true
                 );
             }
         }
@@ -69,8 +69,7 @@ namespace Unisave.Editor.BackendUploading.Hooks
         private static void TryToRegisterTheBuild(BuildReport report)
         {
             // check that the backendHash in preferences is up to date
-            bool uploadNeeded = Uploader.GetDefaultInstance()
-                .RecalculateBackendHash();
+            bool uploadNeeded = Uploader.Instance.RecalculateBackendHash();
 
             if (uploadNeeded)
             {

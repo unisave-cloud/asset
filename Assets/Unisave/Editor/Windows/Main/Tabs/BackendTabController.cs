@@ -2,9 +2,11 @@ using System;
 using System.IO;
 using Unisave.Editor.BackendFolders;
 using Unisave.Editor.BackendUploading;
+using Unisave.Editor.BackendUploading.States;
 using Unisave.Foundation;
 using UnityEditor;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unisave.Editor.Windows.Main.Tabs
@@ -14,15 +16,31 @@ namespace Unisave.Editor.Windows.Main.Tabs
         public Action<TabTaint> SetTaint { get; set; }
         
         private readonly VisualElement root;
+
+        private UnisavePreferences preferences;
         
-        private VisualTreeAsset backendDefinitionItem;
-        private VisualElement enabledBackendDefinitions;
-        private VisualElement disabledBackendDefinitions;
+        private readonly Uploader uploader = Uploader.Instance;
 
         private Toggle automaticUploadToggle;
         private Button manualUploadButton;
         private Label lastUploadAtLabel;
         private Label backendHashLabel;
+
+        private VisualElement uploadingSection;
+        private Label uploadingNumbers;
+        private ProgressBar uploadingProgressBar;
+        private Button cancelUploadButton;
+
+        private VisualElement doneSection;
+        private VisualElement uploadingOutputContainer;
+        private Label uploadingOutputLabel;
+        private HelpBox uploadResultMessage;
+        private TextField uploadingOutput;
+        private Button printOutputButton;
+        
+        private VisualTreeAsset backendDefinitionItem;
+        private VisualElement enabledBackendDefinitions;
+        private VisualElement disabledBackendDefinitions;
 
         public BackendTabController(VisualElement root)
         {
@@ -31,14 +49,30 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnCreateGUI()
         {
+            preferences = UnisavePreferences.LoadOrCreate();
+            
             // === Backend upload and compilation ===
             
             automaticUploadToggle = root.Q<Toggle>(name: "automatic-upload-toggle");
             manualUploadButton = root.Q<Button>(name: "manual-upload-button");
             lastUploadAtLabel = root.Q<Label>(name: "last-upload-at-label");
             backendHashLabel = root.Q<Label>(name: "backend-hash-label");
+
+            uploadingSection = root.Q(name: "us-uploading");
+            uploadingNumbers = root.Q<Label>(name: "us-uploading__numbers");
+            uploadingProgressBar = root.Q<ProgressBar>(name: "us-uploading__progress-bar");
+            cancelUploadButton = root.Q<Button>(name: "us-uploading__cancel");
+
+            doneSection = root.Q(name: "us-done");
+            uploadResultMessage = root.Q<HelpBox>(name: "us-done__message");
+            uploadingOutputContainer = root.Q(name: "us-done__output-container");
+            uploadingOutputLabel = root.Q<Label>(name: "us-done__output-label");
+            uploadingOutput = root.Q<TextField>(name: "us-done__output");
+            printOutputButton = root.Q<Button>(name: "us-done__print");
             
             manualUploadButton.clicked += RunManualCodeUpload;
+            cancelUploadButton.clicked += CancelBackendUpload;
+            printOutputButton.clicked += PrintCompilerOutput;
             
             // === Backend folder definition files ===
             
@@ -52,6 +86,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
                 += AddExistingBackendFolder;
             
             BackendFolderDefinition.OnAnyChange += OnObserveExternalState;
+            uploader.OnStateChange += OnObserveExternalState;
             
             // === Other ===
             
@@ -63,13 +98,18 @@ namespace Unisave.Editor.Windows.Main.Tabs
         private void OnDetachFromPanel()
         {
             BackendFolderDefinition.OnAnyChange -= OnObserveExternalState;
+            uploader.OnStateChange -= OnObserveExternalState;
         }
 
+        // ReSharper disable Unity.PerformanceAnalysis
         public void OnObserveExternalState()
         {
+            RenderTabTaint();
+            
+            RenderUploaderState();
+            
             // === Backend upload and compilation ===
             
-            var preferences = UnisavePreferences.LoadOrCreate();
             automaticUploadToggle.value = preferences.AutomaticBackendUploading;
             lastUploadAtLabel.text = preferences.LastBackendUploadAt
                 ?.ToString("yyyy-MM-dd H:mm:ss") ?? "Never";
@@ -85,8 +125,70 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnWriteExternalState()
         {
-            var preferences = UnisavePreferences.LoadOrCreate();
+            // is in editor prefs, need not be save
             preferences.AutomaticBackendUploading = automaticUploadToggle.value;
+        }
+
+        private void RenderTabTaint()
+        {
+            if (uploader.State is StateException
+                || uploader.State is StateCompilationError)
+            {
+                SetTaint(TabTaint.Error);
+            }
+            else
+            {
+                SetTaint(TabTaint.None);
+            }
+        }
+
+        private void RenderUploaderState()
+        {
+            uploadingSection.EnableInClassList(
+                "is-hidden", !(uploader.State is StateUploading)
+            );
+            doneSection.EnableInClassList(
+                "is-hidden", uploader.State is StateUploading
+            );
+            uploadingOutputContainer.EnableInClassList(
+                "is-hidden", uploader.State == null
+            );
+            
+            switch (uploader.State)
+            {
+                case null:
+                    uploadResultMessage.messageType = HelpBoxMessageType.None;
+                    uploadResultMessage.text = "No compilation info available. " +
+                        "Click the manual upload button above to download it.";
+                    uploadingOutput.value = "";
+                    break;
+                
+                case StateUploading state:
+                    uploadingProgressBar.value = state.Progress;
+                    uploadingNumbers.text = $"{state.PerformedSteps} / {state.TotalSteps}";
+                    break;
+                
+                case StateException state:
+                    uploadResultMessage.messageType = HelpBoxMessageType.Error;
+                    uploadResultMessage.text = "An exception was thrown!\n" + state.ExceptionMessage;
+                    uploadingOutputLabel.text = "Exception body";
+                    uploadingOutput.value = state.ExceptionBody?.Trim() ?? "";
+                    break;
+                
+                case StateCompilationError state:
+                    uploadResultMessage.messageType = HelpBoxMessageType.Error;
+                    uploadResultMessage.text = "Backend compilation failed!";
+                    uploadingOutputLabel.text = "Backend compiler output";
+                    uploadingOutput.value = state.CompilerOutput?.Trim() ?? "";
+                    break;
+                
+                case StateSuccess state:
+                    uploadResultMessage.messageType = HelpBoxMessageType.Info;
+                    uploadResultMessage.text = "Backend has been compiled successfully.";
+                    uploadingOutputLabel.text = "Backend compiler output";
+                    uploadingOutput.value = state.CompilerOutput?.Trim() ?? "";
+                    break;
+            }
         }
 
         private void RenderBackendFolderDefinitions(BackendFolderDefinition[] defs)
@@ -134,12 +236,33 @@ namespace Unisave.Editor.Windows.Main.Tabs
 		
         void RunManualCodeUpload()
         {
-            Uploader
-                .GetDefaultInstance()
-                .UploadBackend(
-                    verbose: true,
-                    useAnotherThread: true // yes, here we can run in background
-                );
+            uploader.UploadBackend(
+                verbose: true,
+                blockThread: false
+            );
+        }
+
+        void CancelBackendUpload()
+        {
+            uploader.CancelRunningUpload();
+        }
+
+        void PrintCompilerOutput()
+        {
+            switch (uploader.State)
+            {
+                case StateSuccess state:
+                    Debug.Log(state.CompilerOutput);
+                    break;
+                
+                case StateException state:
+                    Debug.LogError(state.ExceptionBody);
+                    break;
+                
+                case StateCompilationError state:
+                    Debug.LogError(state.CompilerOutput);
+                    break;
+            }
         }
 
         void EnableBackendFolder(BackendFolderDefinition def)

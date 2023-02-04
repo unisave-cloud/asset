@@ -1,5 +1,6 @@
 using System;
 using UnityEditor.UIElements;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 namespace Unisave.Editor.Windows.Main
@@ -38,6 +39,17 @@ namespace Unisave.Editor.Windows.Main
             CurrentTab = tab;
             
             string tabName = Enum.GetName(typeof(MainWindowTab), tab);
+
+            if (tabName == null)
+            {
+                CurrentTab = MainWindowTab.Home;
+                tabName = "Home";
+                Debug.LogWarning(
+                    "Resetting Unisave window to Home tab, " +
+                    "since the given tab was unexpected: " + tab
+                );
+            }
+            
             string headName = "tab-head__" + tabName;
             string contentName = "tab-content__" + tabName;
             

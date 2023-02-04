@@ -12,6 +12,9 @@ namespace Unisave.Editor.Windows.Main
     {
         public const string WindowTitle = "Unisave";
 
+        private const string OpenedTabPrefsKey =
+            "unisave.openedUnisaveWindowTab";
+
         /// <summary>
         /// Controls the tab opening and tab heads
         /// </summary>
@@ -50,7 +53,10 @@ namespace Unisave.Editor.Windows.Main
             OnWriteExternalState();
             
             // open the new tab
-            tabsController.RenderOpenedTab(tab);
+            tabsController?.RenderOpenedTab(tab); // skipped if called before CreateGUI
+            
+            // store the opened tab
+            EditorPrefs.SetInt(OpenedTabPrefsKey, (int) tab);
             
             // let the new tab refresh its content
             OnObserveExternalState();
@@ -98,8 +104,11 @@ namespace Unisave.Editor.Windows.Main
                 pair.Value.OnCreateGUI();
             }
             
-            // open the home tab
-            OpenTab(MainWindowTab.Home);
+            // restore the last opened tab
+            MainWindowTab lastOpenedTab = (MainWindowTab) EditorPrefs.GetInt(
+                OpenedTabPrefsKey, (int) MainWindowTab.Home
+            );
+            OpenTab(lastOpenedTab);
         }
 
         private void OnFocus() => OnObserveExternalState();

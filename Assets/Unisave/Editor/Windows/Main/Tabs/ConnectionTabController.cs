@@ -12,6 +12,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
         
         private readonly VisualElement root;
 
+        private UnisavePreferences preferences;
+
         private TextField serverUrlField;
         private TextField gameTokenField;
         private TextField editorKeyField;
@@ -27,6 +29,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnCreateGUI()
         {
+            preferences = UnisavePreferences.LoadOrCreate();
+            
             openDashboardButton = root.Q<Button>(name: "open-dashboard-button");
             serverUrlField = root.Q<TextField>(name: "server-url-field");
             gameTokenField = root.Q<TextField>(name: "game-token-field");
@@ -48,11 +52,11 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnObserveExternalState()
         {
-            var preferences = UnisavePreferences.LoadOrCreate();
-            
             serverUrlField.value = preferences.ServerUrl;
             gameTokenField.value = preferences.GameToken;
             editorKeyField.value = preferences.EditorKey;
+
+            RenderNotConnectedWarning();
         }
 
         private void RenderNotConnectedWarning()
@@ -69,7 +73,10 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnWriteExternalState()
         {
-            var preferences = UnisavePreferences.LoadOrCreate();
+            if (preferences.ServerUrl == serverUrlField.value
+                && preferences.GameToken == gameTokenField.value
+                && preferences.EditorKey == editorKeyField.value)
+                return; // no need to save anything (IMPORTANT!)
             
             preferences.ServerUrl = serverUrlField.value;
             preferences.GameToken = gameTokenField.value;

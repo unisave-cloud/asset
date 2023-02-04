@@ -1,7 +1,7 @@
 using System;
 using UnityEditor;
 
-namespace Unisave.Editor.BackendUploading
+namespace Unisave.Editor.BackendUploading.Snapshotting
 {
     /// <summary>
     /// Represents a single backend file that will be uploaded

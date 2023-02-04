@@ -278,12 +278,12 @@ namespace Unisave.Editor
 		
 		void RunManualCodeUpload()
 		{
-			Uploader
-				.GetDefaultInstance()
-				.UploadBackend(
-					verbose: true,
-					useAnotherThread: true // yes, here we can run in background
-				);
+			// Uploader
+			// 	.GetDefaultInstance()
+			// 	.UploadBackend(
+			// 		verbose: true,
+			// 		useAnotherThread: true // yes, here we can run in background
+			// 	);
 		}
 
 		void EnableBackendFolder(BackendFolderDefinition def)

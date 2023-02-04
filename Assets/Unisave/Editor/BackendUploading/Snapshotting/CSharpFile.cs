@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using UnityEditor;
 
-namespace Unisave.Editor.BackendUploading
+namespace Unisave.Editor.BackendUploading.Snapshotting
 {
     /// <summary>
     /// Represents a C# source code file in the backend folder

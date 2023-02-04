@@ -24,6 +24,26 @@
             <engine:Label class="field-label" text="Backend hash"/>
             <engine:Label name="backend-hash-label" text="123"/>
         </engine:VisualElement>
+
+        <engine:VisualElement name="us-uploading">
+            <engine:VisualElement name="us-uploading__head">
+                <engine:Label text="Uploading..."/>
+                <engine:Label name="us-uploading__numbers" text="X / Y"/>
+            </engine:VisualElement>
+            <editor:ProgressBar name="us-uploading__progress-bar" high-value="1"/>
+            <engine:Button name="us-uploading__cancel" text="Cancel"/>
+        </engine:VisualElement>
+        
+        <engine:VisualElement name="us-done">
+            <engine:HelpBox name="us-done__message" message-type="Info" text="Backend has been compiled successfully."/>
+            <engine:VisualElement name="us-done__output-container">
+                <engine:Label name="us-done__output-label" text="Backend compiler output"/>
+                <engine:ScrollView>
+                    <engine:TextField name="us-done__output" multiline="true" readonly="true"/>
+                </engine:ScrollView>
+                <engine:Button name="us-done__print" text="Print to console"/>
+            </engine:VisualElement>
+        </engine:VisualElement>
     </engine:VisualElement>
 
     <engine:Label class="backend-folders__titlebar" text="Backend folders"/>
