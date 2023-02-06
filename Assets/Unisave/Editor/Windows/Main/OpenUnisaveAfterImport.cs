@@ -25,7 +25,10 @@ namespace Unisave.Editor.Windows.Main
                         "opened. If not, you can open it manually " +
                         $"from menu '{UnisaveMainWindow.UnityMenuPath}'."
                     );
-                    UnisaveMainWindow.ShowWindow();
+                    
+                    var window = UnisaveMainWindow.ShowTab(MainWindowTab.Home);
+                    window.CenterOnMainWin();
+                    
                     return;
                 }
             }

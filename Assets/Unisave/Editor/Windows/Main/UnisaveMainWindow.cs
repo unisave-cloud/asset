@@ -28,7 +28,7 @@ namespace Unisave.Editor.Windows.Main
         /// <summary>
         /// Where can the window be opened in the Unity menus
         /// </summary>
-        public const string UnityMenuPath = "Window/Unisave/Unisave Main Window";
+        public const string UnityMenuPath = "Window/Unisave/Unisave Window";
         
         [MenuItem(UnityMenuPath, false, 1)]
         public static void ShowWindow()
@@ -41,7 +41,7 @@ namespace Unisave.Editor.Windows.Main
         /// important happens and the user needs to know about it
         /// </summary>
         /// <param name="tab">Which tab should the window show</param>
-        public static void ShowTab(MainWindowTab tab)
+        public static UnisaveMainWindow ShowTab(MainWindowTab tab)
         {
             var window = EditorWindow.GetWindow<UnisaveMainWindow>(
                 utility: false,
@@ -50,6 +50,7 @@ namespace Unisave.Editor.Windows.Main
             );
             window.Show();
             window.OpenTab(tab);
+            return window;
         }
 
         private void OpenTab(MainWindowTab tab)
