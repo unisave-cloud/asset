@@ -54,7 +54,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
             };
             root.Q<Button>(name: "cb-ex-chat").clicked += () => {
                 EditorSceneManager.OpenScene(
-                    "Assets/Unisave/Examples/InBeta/Chat/Chat.unity"
+                    "Assets/Unisave/Examples/Chat/Chat.unity"
                 );
             };
             root.Q<Button>(name: "cb-ex-email-auth").clicked += () => {
