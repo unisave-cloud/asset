@@ -24,8 +24,13 @@ namespace Unisave.Editor.Windows.Main
         /// Tab content controllers for each tab
         /// </summary>
         private Dictionary<MainWindowTab, ITabContentController> tabContents;
+
+        /// <summary>
+        /// Where can the window be opened in the Unity menus
+        /// </summary>
+        public const string UnityMenuPath = "Window/Unisave/Unisave Main Window";
         
-        [MenuItem("Window/Unisave/Unisave Main Window", false, 1)]
+        [MenuItem(UnityMenuPath, false, 1)]
         public static void ShowWindow()
         {
             ShowTab(MainWindowTab.Home);
