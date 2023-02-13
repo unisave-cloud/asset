@@ -26,20 +26,27 @@ namespace Unisave.Editor.BackendUploading.Hooks
         public static void OnAssemblyCompilationFinished()
         {
             var uploader = Uploader.Instance;
+
+            // disabled automatic uploading -> do nothing
+            if (!uploader.AutomaticUploadingEnabled)
+                return;
             
+            // no cloud connection -> do nothing
+            if (!uploader.IsCloudConnectionSetUp)
+                return;
+            
+            // recalculate hash and save it in the preferences file
             bool upload = uploader.RecalculateBackendHash();
             
-            if (
-                upload
-                && uploader.AutomaticUploadingEnabled
-                && uploader.IsCloudConnectionSetUp
-            )
-            {
-                uploader.UploadBackend(
-                    verbose: false,
-                    blockThread: true
-                );
-            }
+            // if no upload needed, do nothing
+            if (!upload)
+                return;
+            
+            // run the upload
+            uploader.UploadBackend(
+                verbose: false,
+                blockThread: true
+            );
         }
 
         /// <summary>
