@@ -126,10 +126,18 @@ namespace Unisave.Facets
 
             for (int i = 0; i < arguments.Length; i++)
             {
+                object arg = arguments[i];
+                Type scope = typeof(object); // most-generic type-scope
+
+                // raw JSON cannot have the "$type" field added,
+                // that would break the business logic
+                if (arg is JsonObject)
+                    scope = typeof(JsonObject);
+                
                 jsonArgs.Add(
                     Serializer.ToJson(
-                        arguments[i],
-                        typeof(object), // most-generic type-scope
+                        arg,
+                        scope,
                         SerializationContext.ClientToServer
                     )
                 );
