@@ -1,10 +1,4 @@
 <linker>
-    <assembly fullname="UnisaveFramework">
-        <namespace fullname="Unisave.Arango" preserve="all"/>
-        <namespace fullname="Unisave.Authentication" preserve="all"/>
-        <namespace fullname="Unisave.Broadcasting" preserve="all"/>
-        <namespace fullname="Unisave.Serialization" preserve="all"/>
-        <namespace fullname="Unisave.Entities" preserve="all"/>
-    </assembly>
-    <assembly fullname="Unisave" preserve="all"/>
+    <!-- consider using [Preserve] attribute in source-code instead of listing types here -->
+    <!-- learn more: https://docs.unity3d.com/Manual/ManagedCodeStripping.html -->
 </linker>
