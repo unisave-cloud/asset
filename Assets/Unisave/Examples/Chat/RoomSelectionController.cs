@@ -1,7 +1,7 @@
 ﻿using UnityEngine;
 using UnityEngine.UI;
 
-namespace Unisave.Examples.InBeta.Chat
+namespace Unisave.Examples.Chat
 {
     public class RoomSelectionController : MonoBehaviour
     {

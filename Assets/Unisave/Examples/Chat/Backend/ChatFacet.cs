@@ -3,7 +3,7 @@ using Unisave.Broadcasting;
 using Unisave.Facades;
 using Unisave.Facets;
 
-namespace Unisave.Examples.InBeta.Chat.Backend
+namespace Unisave.Examples.Chat.Backend
 {
     public class ChatFacet : Facet
     {

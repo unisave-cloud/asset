@@ -1,6 +1,6 @@
 using Unisave.Broadcasting;
 
-namespace Unisave.Examples.InBeta.Chat.Backend
+namespace Unisave.Examples.Chat.Backend
 {
     public class PlayerJoinedMessage : BroadcastingMessage
     {

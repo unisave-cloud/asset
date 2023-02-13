@@ -1,11 +1,9 @@
-using System.Collections;
 using Unisave.Broadcasting;
-using Unisave.Examples.InBeta.Chat.Backend;
+using Unisave.Examples.Chat.Backend;
 using Unisave.Facades;
-using UnityEngine;
 using UnityEngine.UI;
 
-namespace Unisave.Examples.InBeta.Chat
+namespace Unisave.Examples.Chat
 {
     public class ChatController : UnisaveBroadcastingClient
     {
