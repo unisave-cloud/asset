@@ -271,6 +271,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
             EditorUtility.SetDirty(def);
 			
             HighlightBackendFolderInInspector(def);
+            
+            BackendFolderDefinition.InvokeAnyChangeEvent();
         }
 		
         void DisableBackendFolder(BackendFolderDefinition def)
@@ -279,6 +281,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
             EditorUtility.SetDirty(def);
 			
             HighlightBackendFolderInInspector(def);
+            
+            BackendFolderDefinition.InvokeAnyChangeEvent();
         }
 
         void HighlightBackendFolderInInspector(BackendFolderDefinition def)

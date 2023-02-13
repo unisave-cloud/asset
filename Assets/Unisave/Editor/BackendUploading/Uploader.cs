@@ -35,6 +35,10 @@ namespace Unisave.Editor.BackendUploading
         public bool AutomaticUploadingEnabled =>
             preferences.AutomaticBackendUploading;
 
+        public bool IsCloudConnectionSetUp =>
+            !string.IsNullOrEmpty(preferences.GameToken)
+            && !string.IsNullOrEmpty(preferences.EditorKey);
+
         /// <summary>
         /// Backend uploader state
         /// </summary>

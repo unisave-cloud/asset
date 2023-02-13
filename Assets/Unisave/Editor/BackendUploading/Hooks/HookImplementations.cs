@@ -9,6 +9,16 @@ namespace Unisave.Editor.BackendUploading.Hooks
     public static class HookImplementations
     {
         /// <summary>
+        /// Called often, whenever the backend definition files structure
+        /// might have been a modified.
+        /// </summary>
+        public static void OnBackendFolderStructureChange()
+        {
+            // perform the same backend upload checks as in assembly compilation
+            OnAssemblyCompilationFinished();
+        }
+        
+        /// <summary>
         /// Called often, whenever code in the Unity project changes.
         /// It recalculates the backend hash and if it changes and automatic
         /// upload is enabled, it will perform the automatic upload.
@@ -18,8 +28,12 @@ namespace Unisave.Editor.BackendUploading.Hooks
             var uploader = Uploader.Instance;
             
             bool upload = uploader.RecalculateBackendHash();
-
-            if (upload && uploader.AutomaticUploadingEnabled)
+            
+            if (
+                upload
+                && uploader.AutomaticUploadingEnabled
+                && uploader.IsCloudConnectionSetUp
+            )
             {
                 uploader.UploadBackend(
                     verbose: false,
