@@ -8,6 +8,6 @@ namespace Unisave
         /// <summary>
         /// Version of the asset
         /// </summary>
-        public static readonly string Version = "0.11.0-dev";
+        public static readonly string Version = "0.11.0-rc.1";
     }
 }
