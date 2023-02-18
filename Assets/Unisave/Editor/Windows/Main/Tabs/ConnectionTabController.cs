@@ -21,6 +21,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
         private Button openDashboardButton;
 
         private VisualElement emptyWarningBox;
+        private Button saveButton;
 
         public ConnectionTabController(VisualElement root)
         {
@@ -36,27 +37,41 @@ namespace Unisave.Editor.Windows.Main.Tabs
             gameTokenField = root.Q<TextField>(name: "game-token-field");
             editorKeyField = root.Q<TextField>(name: "editor-key-field");
             emptyWarningBox = root.Q(name: "empty-warning");
+            saveButton = root.Q<Button>(name: "save-button");
 
             openDashboardButton.clicked += () => {
                 Application.OpenURL("https://unisave.cloud/app");
             };
 
+            saveButton.clicked += SaveButtonClicked;
+
             gameTokenField.RegisterValueChangedCallback(e => {
                 RenderNotConnectedWarning();
+                RenderSaveButton();
             });
             
             editorKeyField.RegisterValueChangedCallback(e => {
                 RenderNotConnectedWarning();
+                RenderSaveButton();
+            });
+
+            serverUrlField.RegisterValueChangedCallback(e => {
+                RenderSaveButton();
             });
         }
 
         public void OnObserveExternalState()
         {
+            // NOTE: Do not load preferences here, since this gets called during various
+            // re-imports during compilation and at these times, calling the
+            // LoadOrCreate method will re-create the file despite it already existing.
+            
             serverUrlField.value = preferences.ServerUrl;
             gameTokenField.value = preferences.GameToken;
             editorKeyField.value = preferences.EditorKey;
 
             RenderNotConnectedWarning();
+            RenderSaveButton();
         }
 
         private void RenderNotConnectedWarning()
@@ -71,6 +86,29 @@ namespace Unisave.Editor.Windows.Main.Tabs
             SetTaint?.Invoke(notConnected ? TabTaint.Warning : TabTaint.None);
         }
 
+        private void RenderSaveButton()
+        {
+            if (preferences.ServerUrl == serverUrlField.value
+                && preferences.GameToken == gameTokenField.value
+                && preferences.EditorKey == editorKeyField.value)
+            {
+                // no change
+                saveButton.SetEnabled(false);
+                saveButton.text = "Saved";
+            }
+            else
+            {
+                // there is a change
+                saveButton.SetEnabled(true);
+                saveButton.text = "Save";
+            }
+        }
+
+        private void SaveButtonClicked()
+        {
+            SaveUnisavePreferences();
+        }
+
         public void OnWriteExternalState()
         {
             if (preferences.ServerUrl == serverUrlField.value
@@ -78,11 +116,22 @@ namespace Unisave.Editor.Windows.Main.Tabs
                 && preferences.EditorKey == editorKeyField.value)
                 return; // no need to save anything (IMPORTANT!)
             
+            SaveUnisavePreferences();
+        }
+
+        void SaveUnisavePreferences()
+        {
+            // important, sometimes after re-import, the instance looses track
+            // of the asset state
+            preferences = UnisavePreferences.LoadOrCreate();
+            
             preferences.ServerUrl = serverUrlField.value;
             preferences.GameToken = gameTokenField.value;
             preferences.EditorKey = editorKeyField.value;
             
             preferences.Save();
+            
+            OnObserveExternalState();
         }
     }
 }

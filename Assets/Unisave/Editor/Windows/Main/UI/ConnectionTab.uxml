@@ -30,6 +30,8 @@
                     text="Connection credentials are missing. Copy them from the web dashboard."
                     message-type="Warning"
             />
+
+            <engine:Button name="save-button" text="Save"/>
             
         </engine:VisualElement>
     </engine:VisualElement>
