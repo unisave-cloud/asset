@@ -1,4 +1,5 @@
 using System;
+using Unisave.Facets;
 using Unisave.Foundation;
 using UnityEditor.SceneManagement;
 using UnityEngine.UIElements;
@@ -16,6 +17,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
         private VisualElement checklistItemConnect;
 
         private Label versionsLabel;
+
+        private DeviceIdRepository deviceIdRepository = new DeviceIdRepository();
 
         public HomeTabController(VisualElement root)
         {
@@ -99,7 +102,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
             );
 
             versionsLabel.text = $"Unisave Asset: {AssetMeta.Version}\n" +
-                                 $"Unisave Framework: {FrameworkMeta.Version}";
+                                 $"Unisave Framework: {FrameworkMeta.Version}\n" +
+                                 $"Device ID: {deviceIdRepository.GetDeviceId()}";
         }
 
         public void OnWriteExternalState()

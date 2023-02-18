@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using LightJson;
 using Unisave.Utils;
 using UnityEngine;
@@ -102,7 +103,15 @@ namespace Unisave.Facets
             if (unityGaveUs == SystemInfo.unsupportedIdentifier)
                 return null;
 
-            return unityGaveUs;
+            if (unityGaveUs == null)
+                return null;
+
+            // remove non-ascii non-text characters
+            // < 32 are control chars
+            // > 126 are non-ascii chars (extended latin, currencies, etc.)
+            return string.Concat(
+                unityGaveUs.Where(c => (c >= 32 && c <= 126))
+            );
         }
     }
 }
