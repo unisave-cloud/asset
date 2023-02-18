@@ -34,6 +34,31 @@ namespace Unisave.Facets
             JsonArray arguments
         )
 		{
+			// check that cloud connection is established
+			#if UNITY_EDITOR
+			if (string.IsNullOrEmpty(app.Preferences.GameToken)
+			    || string.IsNullOrEmpty(app.Preferences.EditorKey))
+			{
+				Debug.LogError(
+					"[Unisave] Connection to the cloud has not been established yet. " +
+				    "Fill out the game token and editor key in the Unisave window."
+				);
+				return new Promise<JsonValue>(); // the promise will never finish
+			}
+			#endif
+			
+			// check that some backend was uploaded
+			#if UNITY_EDITOR
+			if (string.IsNullOrEmpty(app.Preferences.BackendHash))
+			{
+				Debug.LogError(
+					"[Unisave] No corresponding backend was uploaded yet. " +
+					"Check the backend uploading status in the Unisave window."
+				);
+				return new Promise<JsonValue>(); // the promise will never finish
+			}
+			#endif
+			
 			var promise = new Promise<JsonValue>();
 			
 			http.Post(
