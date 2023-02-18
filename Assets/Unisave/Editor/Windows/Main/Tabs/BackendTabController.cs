@@ -203,7 +203,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
                 VisualElement item = backendDefinitionItem.Instantiate();
                 
                 var label = item.Q<Label>(className: "backend-def__label");
-                label.text = def.FolderPath;
+                label.text = def.FolderPath?.Replace('\\', '/');
                 
                 var button = item.Q<Button>(className: "backend-def__button");
                 button.text = isEnabled ? "Disable" : "Enable";
@@ -300,12 +300,18 @@ namespace Unisave.Editor.Windows.Main.Tabs
             // action cancelled
             if (string.IsNullOrEmpty(selectedPath))
                 return;
+
+            // get OS-specific directory separators
+            selectedPath = Path.GetFullPath(selectedPath);
 			
             // get path inside the assets folder
-            string assetsPath = Path.GetFullPath("Assets/");
+            // (the trailing separator is needed for the local-path conversion to work)
+            string assetsPath = Path.GetFullPath("Assets" + Path.DirectorySeparatorChar);
+            
             if (selectedPath.StartsWith(assetsPath))
             {
-                selectedPath = "Assets/" + selectedPath.Substring(assetsPath.Length);
+                // convert to project-relative path
+                selectedPath = Path.Combine("Assets", selectedPath.Substring(assetsPath.Length));
             }
             else
             {
