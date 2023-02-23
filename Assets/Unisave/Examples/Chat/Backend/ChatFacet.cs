@@ -22,7 +22,7 @@ namespace Unisave.Examples.Chat.Backend
             Broadcast.Channel<ChatRoomChannel>()
                 .WithParameters(roomName)
                 .Send(new PlayerJoinedMessage {
-                    userName = userName
+                    playerName = userName
                 });
 
             return subscription;
@@ -37,7 +37,7 @@ namespace Unisave.Examples.Chat.Backend
             Broadcast.Channel<ChatRoomChannel>()
                 .WithParameters(roomName)
                 .Send(new ChatMessage {
-                    userName = userName,
+                    playerName = userName,
                     message = message
                 });
         }
