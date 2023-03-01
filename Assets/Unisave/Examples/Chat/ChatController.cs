@@ -1,6 +1,6 @@
 using Unisave.Broadcasting;
 using Unisave.Examples.Chat.Backend;
-using Unisave.Facades;
+using Unisave.Facets;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -49,15 +49,12 @@ namespace Unisave.Examples.Chat
             
             // clear the chat log
             chatLogText.text = "";
-            
+
             // request the server to join the broadcasting channel
             // for the chat room
-            ChannelSubscription subscription = await OnFacet<ChatFacet>
-                .CallAsync<ChannelSubscription>(
-                    nameof(ChatFacet.JoinRoom), // what facet method to call
-                    roomId,
-                    playerName
-                );
+            ChannelSubscription subscription = await this.CallFacet(
+                (ChatFacet f) => f.JoinRoom(roomId, playerName)
+            );
             
             // forward messages from the subscription into corresponding methods
             FromSubscription(subscription)
@@ -86,7 +83,7 @@ namespace Unisave.Examples.Chat
                 OnSendClicked();
         }
 
-        private async void OnSendClicked()
+        private void OnSendClicked()
         {
             // do nothing if there's nothing to send
             if (string.IsNullOrWhiteSpace(messageField.text))
@@ -97,11 +94,8 @@ namespace Unisave.Examples.Chat
             messageField.text = "";
             
             // call the server that a message needs to be sent
-            await OnFacet<ChatFacet>.CallAsync(
-                nameof(ChatFacet.SendMessage),
-                roomId,
-                playerName,
-                message
+            this.CallFacet((ChatFacet f) =>
+                f.SendMessage(roomId, playerName, message)
             );
         }
 
