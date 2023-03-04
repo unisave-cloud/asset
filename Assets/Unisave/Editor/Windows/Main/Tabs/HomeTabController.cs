@@ -62,17 +62,23 @@ namespace Unisave.Editor.Windows.Main.Tabs
             };
             root.Q<Button>(name: "cb-ex-email-auth").clicked += () => {
                 EditorSceneManager.OpenScene(
-                    "Assets/Unisave/Examples/PlayerAuthentication/PlayerAuthentication.unity"
+                    "Assets/Unisave/Examples/PlayerAuthentication/" +
+                    "PlayerAuthentication.unity"
                 );
             };
             root.Q<Button>(name: "cb-storing-player-data").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/guides/how-to-store-player-data-online-with-unity");
+                Application.OpenURL(
+                    "https://unisave.cloud/guides/" +
+                    "how-to-store-player-data-online-with-unity"
+                );
             };
             root.Q<Button>(name: "cb-sending-emails").clicked += () => {
                 Application.OpenURL("https://unisave.cloud/docs/mail");
             };
             root.Q<Button>(name: "cb-steam-microtransactions").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/docs/steam-microtransactions");
+                Application.OpenURL(
+                    "https://unisave.cloud/docs/steam-microtransactions"
+                );
             };
             
             root.Q<Button>(name: "cb-discord").clicked += () => {
@@ -80,6 +86,12 @@ namespace Unisave.Editor.Windows.Main.Tabs
             };
             root.Q<Button>(name: "cb-email").clicked += () => {
                 Application.OpenURL("mailto:info@unisave.cloud");
+            };
+            root.Q<Button>(name: "cb-review").clicked += () => {
+                Application.OpenURL(
+                    "https://assetstore.unity.com/packages/tools/network/" +
+                    "unisave-backend-server-142705#reviews"
+                );
             };
             
             // === Other ===
