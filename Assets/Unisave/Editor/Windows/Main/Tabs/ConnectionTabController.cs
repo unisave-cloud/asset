@@ -1,4 +1,6 @@
 using System;
+using LightJson;
+using Unisave.Editor.Auditing;
 using Unisave.Foundation;
 using UnityEngine;
 using UnityEngine.UIElements;
@@ -107,6 +109,15 @@ namespace Unisave.Editor.Windows.Main.Tabs
         private void SaveButtonClicked()
         {
             SaveUnisavePreferences();
+            
+            UnisaveAuditing.EmitEvent(
+                eventType: "asset.saveConnection",
+                message: "Cloud connection details have been saved.",
+                data: new JsonObject {
+                    ["gameToken"] = gameTokenField.value,
+                    ["hasEditorKey"] = !string.IsNullOrEmpty(editorKeyField.value)
+                }
+            );
         }
 
         public void OnWriteExternalState()
