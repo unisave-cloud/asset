@@ -41,7 +41,7 @@ namespace Unisave.Examples.Chat
         /// (when the chat room screen is shown). It requests the server
         /// to join the broadcasting channel for the chat room,
         /// receives the channel subscription, and starts consuming messages
-        /// coming in via the channel.
+        /// coming in through the channel.
         /// </summary>
         private async void OnEnable()
         {

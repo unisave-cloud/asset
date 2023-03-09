@@ -18,6 +18,12 @@ namespace Unisave.Examples.Chat
             // register the button click
             joinButton.onClick.AddListener(JoinTheRoom);
         }
+        
+        private void Update()
+        {
+            if (Input.GetKeyDown(KeyCode.Return) && gameObject.activeInHierarchy)
+                JoinTheRoom();
+        }
 
         private void JoinTheRoom()
         {
