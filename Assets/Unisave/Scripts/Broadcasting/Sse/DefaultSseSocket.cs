@@ -210,6 +210,12 @@ namespace Unisave.Broadcasting.Sse
         /// <param name="event"></param>
         private void HandleEvent(SseEvent @event)
         {
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log(
+                $"[UnisaveBroadcasting] Emitting event: {@event.@event} {@event.jsonData}"
+            );
+#endif
+            
             state.ObserveReceivedEvent(@event);
             
             OnEventReceived?.Invoke(@event);

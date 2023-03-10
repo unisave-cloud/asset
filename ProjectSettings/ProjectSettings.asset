@@ -581,7 +581,7 @@ PlayerSettings:
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
     1: FOO
-    13: 
+    13: UNISAVE_BROADCASTING_DEBUG
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:

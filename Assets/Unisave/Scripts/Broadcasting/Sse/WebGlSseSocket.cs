@@ -64,9 +64,7 @@ namespace Unisave.Broadcasting.Sse
                 invokeConnectionRegained: () => OnConnectionRegained?.Invoke()
             );
 
-            slicer.OnEventReceived += e => {
-                OnEventReceived?.Invoke(e);
-            };
+            slicer.OnEventReceived += HandleEvent;
         }
         
         /// <summary>
@@ -89,6 +87,20 @@ namespace Unisave.Broadcasting.Sse
                 
                 // connect
                 StartCoroutine(StartPollCoroutine());
+            }
+        }
+        
+        /// <summary>
+        /// Disabling the component acts as a wanted disconnection
+        /// </summary>
+        private void OnDisable()
+        {
+            if (ConnectionState != BroadcastingConnection.Disconnected)
+            {
+                intendedDisconnection = true;
+                JS_WebGlSseSocket_AbortPoll();
+                slicer.ClearBuffer();
+                ConnectionState = BroadcastingConnection.Disconnected;
             }
         }
 
@@ -119,6 +131,13 @@ namespace Unisave.Broadcasting.Sse
             var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
             
             slicer.ClearBuffer();
+            
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log(
+                $"[UnisaveBroadcasting] Starting poll with last " +
+                $"received id = {state.LastReceivedEventId}"
+            );
+#endif
 
             JS_WebGlSseSocket_StartPoll(
                 gameObjectName: gameObject.name,
@@ -141,6 +160,10 @@ namespace Unisave.Broadcasting.Sse
         [Preserve]
         public void JsCallback_OnDone(string error)
         {
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log($"[UnisaveBroadcasting] Long poll finished.");
+#endif
+            
             if (intendedDisconnection)
             {
                 // update state
@@ -171,21 +194,28 @@ namespace Unisave.Broadcasting.Sse
         [Preserve]
         public void JsCallback_OnChunk(string chunk)
         {
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log($"[UnisaveBroadcasting] Received chunk:\n" + chunk);
+#endif
+            
             slicer.ReceiveChunk(chunk);
         }
-
+        
         /// <summary>
-        /// Disabling the component acts as a wanted disconnection
+        /// Called when an SSE event arrives over the connection
         /// </summary>
-        private void OnDisable()
+        /// <param name="event"></param>
+        private void HandleEvent(SseEvent @event)
         {
-            if (ConnectionState != BroadcastingConnection.Disconnected)
-            {
-                intendedDisconnection = true;
-                JS_WebGlSseSocket_AbortPoll();
-                slicer.ClearBuffer();
-                ConnectionState = BroadcastingConnection.Disconnected;
-            }
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log(
+                $"[UnisaveBroadcasting] Emitting event: {@event.@event} {@event.jsonData}"
+            );
+#endif
+            
+            state.ObserveReceivedEvent(@event);
+            
+            OnEventReceived?.Invoke(@event);
         }
     }
 }
