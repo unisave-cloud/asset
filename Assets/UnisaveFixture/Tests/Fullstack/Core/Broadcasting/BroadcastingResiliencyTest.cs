@@ -82,10 +82,10 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
             
             // drop connection
 
-            tunnel.Socket.retryMilliseconds = 500; // retry in 0.5s
-            tunnel.Socket.RunningRequest.Abort();
+            ((DefaultSseSocket)tunnel.Socket).state.RetryMilliseconds = 500; // retry in 0.5s
+            ((DefaultSseSocket)tunnel.Socket).RunningRequest.Abort();
 
-            while (tunnel.Socket.RunningRequest != null)
+            while (((DefaultSseSocket)tunnel.Socket).RunningRequest != null)
                 yield return null;
 
             Assert.True(client.onConnectionLostCalled);
@@ -132,7 +132,7 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
                 .Resolve<ClientBroadcastingManager>()
                 .Tunnel;
 
-            var idOfLastActuallyReceived = tunnel.Socket.lastReceivedEventId;
+            var idOfLastActuallyReceived = ((DefaultSseSocket)tunnel.Socket).state.LastReceivedEventId;
             
             Assert.AreEqual(1, client.receivedMessages.Count);
             Assert.IsInstanceOf<MyMessage>(client.receivedMessages[0]);
@@ -143,13 +143,13 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
             
             // simulate drop
             
-            tunnel.Socket.gameObject.SetActive(false);
+            tunnel.SocketGameObject.SetActive(false);
             
             yield return null;
 
             // repeat the last message only
-            tunnel.Socket.lastReceivedEventId = idOfLastActuallyReceived - 1;
-            tunnel.Socket.gameObject.SetActive(true);
+            ((DefaultSseSocket)tunnel.Socket).state.LastReceivedEventId = idOfLastActuallyReceived - 1;
+            tunnel.SocketGameObject.SetActive(true);
             
             // wait for the re-sending
             

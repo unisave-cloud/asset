@@ -16,18 +16,12 @@ namespace Unisave.Broadcasting.Sse
     /// <summary>
     /// Represents an SSE connection to the Unisave broadcasting server
     /// </summary>
-    public partial class SseSocket : MonoBehaviour
+    public class DefaultSseSocket : MonoBehaviour, ISseSocket
     {
-        /// <summary>
-        /// The event ID that's sent when we aren't reconnecting,
-        /// but connecting for the first time.
-        /// </summary>
-        private const int NullEventId = -1;
-        
-        /// <summary>
-        /// Called when a new event arrives
-        /// </summary>
+        // interface events
         public event Action<SseEvent> OnEventReceived;
+        public event Action OnConnectionLost;
+        public event Action OnConnectionRegained;
         
         /// <summary>
         /// Reference to the client app to resolve connection information
@@ -36,78 +30,44 @@ namespace Unisave.Broadcasting.Sse
         private ClientApplication app;
 
         /// <summary>
+        /// Internal state of the SSE socket
+        /// </summary>
+        public readonly SseStateManager state;
+
+        /// <summary>
         /// Instance of the request that is currently representing
         /// the connection, can be null if no connection exists
         /// </summary>
         public UnityWebRequest RunningRequest { get; private set; }
 
         /// <summary>
-        /// Id of the last received SSE event
-        /// (updated with each received event,
-        /// used during connection establishment)
-        /// </summary>
-        public int lastReceivedEventId = NullEventId;
-        
-        /// <summary>
-        /// How long to wait for in between during connection retrying
-        /// </summary>
-        public int retryMilliseconds = 5_000;
-
-        /// <summary>
-        /// Status of the connection to the Unisave broadcasting server
+        /// State of the connection to the Unisave broadcasting server
         /// </summary>
         public BroadcastingConnection ConnectionState
         {
-            get => connectionState;
-
-            private set
-            {
-                if (connectionState == value)
-                    return;
-                
-                var before = connectionState;
-                
-                connectionState = value;
-                
-                #if UNITY_EDITOR
-                AppendToDebugLog($"STATE: {connectionState}\n\n");
-                #endif
-                
-                if (connectionState == BroadcastingConnection.Reconnecting)
-                    OnConnectionLost?.Invoke();
-                
-                if (connectionState == BroadcastingConnection.Connected
-                    && before == BroadcastingConnection.Reconnecting)
-                    OnConnectionRegained?.Invoke();
-            }
+            get => state.GetConnectionState();
+            private set => state.SetConnectionState(value);
         }
-
-        // backing field
-        private BroadcastingConnection connectionState
-            = BroadcastingConnection.Disconnected;
-
+        
         /// <summary>
         /// Flag to distinguish intended disconnection from a network crash
         /// </summary>
         private bool intendedDisconnection = false;
 
-        /// <summary>
-        /// Event called when the connection unexpectedly breaks
-        /// </summary>
-        public event Action OnConnectionLost;
+        public DefaultSseSocket()
+        {
+            state = new SseStateManager(
+                invokeConnectionLost: () => OnConnectionLost?.Invoke(),
+                invokeConnectionRegained: () => OnConnectionRegained?.Invoke()
+            );
+        }
         
-        /// <summary>
-        /// Event called when the connection is established again
-        /// </summary>
-        public event Action OnConnectionRegained;
-
         /// <summary>
         /// Call this right after this component is created
         /// </summary>
         public void Initialize(ClientApplication app)
         {
             this.app = app;
-            lastReceivedEventId = NullEventId;
         }
 
         /// <summary>
@@ -158,13 +118,13 @@ namespace Unisave.Broadcasting.Sse
             // handle retrying
             if (ConnectionState == BroadcastingConnection.Reconnecting)
             {
-                #if UNITY_EDITOR
-                AppendToDebugLog(
-                    $"WAITING ON RETRY: {retryMilliseconds}ms\n\n"
+#if UNISAVE_BROADCASTING_DEBUG
+                UnityEngine.Debug.Log(
+                    $"[UnisaveBroadcasting] Waiting on retry {state.RetryMilliseconds}ms"
                 );
-                #endif
+#endif
 
-                yield return new WaitForSeconds(retryMilliseconds / 1000f);
+                yield return new WaitForSeconds(state.RetryMilliseconds / 1000f);
             }
             
             // reset flags
@@ -173,10 +133,6 @@ namespace Unisave.Broadcasting.Sse
             // === PREPARE THE REQUEST AND HANDLERS ===
 
             var downloadHandler = new SseDownloadHandler(HandleEvent);
-            
-            #if UNITY_EDITOR
-            downloadHandler.OnDataReceived += AppendToDebugLog;
-            #endif
             
             var url = app.Resolve<ApiUrl>();
             var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
@@ -193,7 +149,7 @@ namespace Unisave.Broadcasting.Sse
                             ["buildGuid"] = Application.buildGUID,
                             ["backendHash"] = app.Preferences.BackendHash,
                             ["sessionId"] = sessionIdRepo.GetSessionId(),
-                            ["lastReceivedEventId"] = lastReceivedEventId
+                            ["lastReceivedEventId"] = state.LastReceivedEventId
                         }.ToString()
                     )
                 )
@@ -204,18 +160,18 @@ namespace Unisave.Broadcasting.Sse
             
             // === LISTEN ===
             
-            #if UNITY_EDITOR
-            AppendToDebugLog(
-                $"SENDING REQUEST, {nameof(lastReceivedEventId)}: " +
-                $"{lastReceivedEventId}\n\n"
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log(
+                $"[UnisaveBroadcasting] Starting poll with last " +
+                $"received id = {state.LastReceivedEventId}"
             );
-            #endif
+#endif
             
             yield return RunningRequest.SendWebRequest();
 
-            #if UNITY_EDITOR
-            AppendToDebugLog("REQUEST ENDED\n\n");
-            #endif
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log($"[UnisaveBroadcasting] Long poll finished.");
+#endif
             
             // === HANDLE BREAKAGE ===
             
@@ -232,7 +188,7 @@ namespace Unisave.Broadcasting.Sse
             {
                 Debug.LogWarning(
                     $"[Unisave] Broadcasting client connection broke, " +
-                    $"retrying in {retryMilliseconds}ms\n" +
+                    $"retrying in {state.RetryMilliseconds}ms\n" +
                     $"The reason is: {RunningRequest.error}"
                 );
                 
@@ -254,39 +210,9 @@ namespace Unisave.Broadcasting.Sse
         /// <param name="event"></param>
         private void HandleEvent(SseEvent @event)
         {
-            if (@event.id != null)
-                lastReceivedEventId = (int) @event.id;
-
-            if (@event.retry != null)
-                retryMilliseconds = (int) @event.retry;
-            
-            if (@event.@event == "welcome")
-                WelcomeEventReceived();
-            
-            if (@event.@event == "end-connection")
-                EndConnectionReceived();
+            state.ObserveReceivedEvent(@event);
             
             OnEventReceived?.Invoke(@event);
-        }
-
-        /// <summary>
-        /// Called when the initial welcome event is received
-        /// (this event is sent by the server as the very first event to be
-        /// sent on every new SSE connection)
-        /// </summary>
-        private void WelcomeEventReceived()
-        {
-            ConnectionState = BroadcastingConnection.Connected;
-        }
-
-        /// <summary>
-        /// Called when the end-connection event is received
-        /// (this means the last received event id should be
-        /// reset since we didn't loose any events'
-        /// </summary>
-        private void EndConnectionReceived()
-        {
-            lastReceivedEventId = NullEventId;
         }
     }
 }

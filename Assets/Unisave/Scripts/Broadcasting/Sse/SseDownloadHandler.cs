@@ -27,6 +27,12 @@ namespace Unisave.Broadcasting.Sse
                 dataLength
             );
             
+#if UNISAVE_BROADCASTING_DEBUG
+            UnityEngine.Debug.Log(
+                "[UnisaveBroadcasting] Received data:\n" + stringData
+            );
+#endif
+            
             textStream.Append(stringData);
             
             ExtractEvents();
