@@ -12,7 +12,6 @@
 UIElementsSchema/
 
 # Most special folders in root are from other assets (e.g. Steamworks.NET)
-/[Aa]ssets/Plugins*
 /[Aa]ssets/Editor*
 /[Aa]ssets/Scripts*
 

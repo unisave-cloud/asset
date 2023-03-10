@@ -3,6 +3,7 @@ using LightJson;
 using Unisave.Broadcasting.Sse;
 using Unisave.Foundation;
 using UnityEngine;
+using Application = UnityEngine.Application;
 
 namespace Unisave.Broadcasting
 {
@@ -88,8 +89,11 @@ namespace Unisave.Broadcasting
             if (!app.InEditMode)
                 SocketGameObject.transform.parent = app.GameObject.transform;
             
-            Socket = SocketGameObject.AddComponent<DefaultSseSocket>();
-            
+            if (Application.platform == RuntimePlatform.WebGLPlayer)
+                Socket = SocketGameObject.AddComponent<WebGlSseSocket>();
+            else
+                Socket = SocketGameObject.AddComponent<DefaultSseSocket>();
+
             Socket.Initialize(app);
             
             Socket.OnEventReceived += OnEventReceived;

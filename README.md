@@ -25,3 +25,14 @@ bundled within this asset as a `.dll` library.
 
 For documentation of the asset structure, see
 [internal asset documentation](docs).
+
+
+### Starting Unity `SimpleWebServer` for WebGL testing
+
+To start the WebGL development server on windows, open GitBash in:
+
+    /c/Program Files/Unity/Hub/Editor/2020.3.42f1/Editor/Data/PlaybackEngines/WebGLSupport/BuildTools
+
+And start it:
+
+    SimpleWebServer.exe ~/Downloads/BuiltFolder 8080

@@ -3,7 +3,7 @@
 --- !u!129 &1
 PlayerSettings:
   m_ObjectHideFlags: 0
-  serializedVersion: 22
+  serializedVersion: 23
   productGUID: a9a9169eed03c4973b81f98dd9352133
   AndroidProfiler: 0
   AndroidFilterTouchesWhenObscured: 0
@@ -479,6 +479,7 @@ PlayerSettings:
   switchNetworkInterfaceManagerInitializeEnabled: 1
   switchPlayerConnectionEnabled: 1
   switchUseNewStyleFilepaths: 0
+  switchUseLegacyFmodPriorities: 1
   switchUseMicroSleepForYield: 1
   switchEnableRamDiskSupport: 0
   switchMicroSleepForYieldTime: 25
@@ -580,6 +581,7 @@ PlayerSettings:
   webGLDecompressionFallback: 0
   scriptingDefineSymbols:
     1: FOO
+    13: 
   additionalCompilerArguments: {}
   platformArchitecture: {}
   scriptingBackend:
@@ -672,6 +674,7 @@ PlayerSettings:
     m_VersionName: 
   apiCompatibilityLevel: 6
   activeInputHandler: 0
+  windowsGamepadBackendHint: 0
   cloudProjectId: b621e766-a4cb-4501-8b15-44828503c8e0
   framebufferDepthMemorylessMode: 0
   qualitySettingsNames: []
