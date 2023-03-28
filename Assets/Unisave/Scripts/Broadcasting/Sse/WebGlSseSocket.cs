@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if UNITY_WEBGL
+using System;
 using System.Collections;
 using System.Runtime.InteropServices;
 using LightJson;
@@ -219,3 +220,4 @@ namespace Unisave.Broadcasting.Sse
         }
     }
 }
+#endif

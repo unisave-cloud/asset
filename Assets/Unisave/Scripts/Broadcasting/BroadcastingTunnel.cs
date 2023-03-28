@@ -89,10 +89,11 @@ namespace Unisave.Broadcasting
             if (!app.InEditMode)
                 SocketGameObject.transform.parent = app.GameObject.transform;
             
-            if (Application.platform == RuntimePlatform.WebGLPlayer)
-                Socket = SocketGameObject.AddComponent<WebGlSseSocket>();
-            else
-                Socket = SocketGameObject.AddComponent<DefaultSseSocket>();
+#if UNITY_WEBGL && !UNITY_EDITOR
+            Socket = SocketGameObject.AddComponent<WebGlSseSocket>();
+#else
+            Socket = SocketGameObject.AddComponent<DefaultSseSocket>();
+#endif
 
             Socket.Initialize(app);
             
