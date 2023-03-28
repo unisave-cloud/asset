@@ -28,9 +28,11 @@ namespace Unisave.Editor.Windows.Main
         /// <summary>
         /// Where can the window be opened in the Unity menus
         /// </summary>
-        public const string UnityMenuPath = "Window/Unisave/Unisave Window";
+        public const string UnityMenuPath = "Tools/Unisave/Unisave Window";
+        private const string UnityLegacyMenuPath = "Window/Unisave/Unisave Window";
         
         [MenuItem(UnityMenuPath, false, 1)]
+        [MenuItem(UnityLegacyMenuPath, false, 1)]
         public static void ShowWindow()
         {
             ShowTab(MainWindowTab.Home);
