@@ -60,7 +60,7 @@ def remove_marked_lines(lines: List[str]):
 ########
 
 fixture_path = "../Assets/UnisaveFixture/"
-templates_path = "../Assets/Unisave/Templates/"
+templates_path = "../Assets/Plugins/Unisave/Templates/"
 
 # Email authentication
 print("\nEMAIL AUTHENTICATION")

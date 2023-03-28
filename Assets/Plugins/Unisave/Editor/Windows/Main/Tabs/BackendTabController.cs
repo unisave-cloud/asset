@@ -77,7 +77,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
             // === Backend folder definition files ===
             
             backendDefinitionItem = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Assets/Unisave/Editor/Windows/Main/UI/BackendDefinitionItem.uxml"
+                "Assets/Plugins/Unisave/Editor/Windows/Main/UI/BackendDefinitionItem.uxml"
             );
             enabledBackendDefinitions = root.Q(name: "enabled-backend-definitions");
             disabledBackendDefinitions = root.Q(name: "disabled-backend-definitions");

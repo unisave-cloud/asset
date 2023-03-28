@@ -28,7 +28,7 @@ namespace Unisave.Foundation
 			if (preferences == null)
 			{
 				#if UNITY_EDITOR
-					var path = "Assets/Unisave/Resources/" + PreferencesFileName + ".asset";
+					var path = "Assets/Plugins/Unisave/Resources/" + PreferencesFileName + ".asset";
 
 					preferences = ScriptableObject.CreateInstance<UnisavePreferences>();
 					UnityEditor.AssetDatabase.CreateAsset(preferences, path);

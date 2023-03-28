@@ -6,6 +6,6 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/Unisave/Examples/Chat/Chat.unity
+    path: Assets/Plugins/Unisave/Examples/Chat/Chat.unity
     guid: a081c9d5118f77a6787e1021987c8479
   m_configObjects: {}

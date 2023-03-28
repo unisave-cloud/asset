@@ -34,7 +34,7 @@ namespace Unisave.Editor.DataWindow
             OnRefresh += PerformRefresh;
 
             titleContent.image = AssetDatabase.LoadAssetAtPath<Texture>(
-                "Assets/Unisave/Images/WindowIcon.png"
+                "Assets/Plugins/Unisave/Images/WindowIcon.png"
             );
             
             if (treeViewState == null)

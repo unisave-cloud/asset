@@ -11,7 +11,7 @@ cp -r ./asset ./asset-for-export
 cd ./asset-for-export
 
 # remove unnecessary unisave files
-rm ./Assets/Unisave/Resources/UnisavePreferencesFile.asset*
+rm ./Assets/Plugins/Unisave/Resources/UnisavePreferencesFile.asset*
 
 # remove unisave fixture
 rm -r ./Assets/UnisaveFixture*

@@ -72,13 +72,13 @@ namespace Unisave.Editor.Windows.Main
         {
             titleContent.image = AssetDatabase.LoadAssetAtPath<Texture>(
                 EditorGUIUtility.isProSkin ?
-                    "Assets/Unisave/Images/WindowIconWhite.png" :
-                    "Assets/Unisave/Images/WindowIcon.png"
+                    "Assets/Plugins/Unisave/Images/WindowIconWhite.png" :
+                    "Assets/Plugins/Unisave/Images/WindowIcon.png"
             );
             
             // set up UI tree
             var visualTree = AssetDatabase.LoadAssetAtPath<VisualTreeAsset>(
-                "Assets/Unisave/Editor/Windows/Main/UI/UnisaveMainWindow.uxml"
+                "Assets/Plugins/Unisave/Editor/Windows/Main/UI/UnisaveMainWindow.uxml"
             );
             rootVisualElement.Add(visualTree.Instantiate());
             

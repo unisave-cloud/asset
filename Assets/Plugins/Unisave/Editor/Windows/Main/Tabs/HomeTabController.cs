@@ -57,12 +57,12 @@ namespace Unisave.Editor.Windows.Main.Tabs
             };
             root.Q<Button>(name: "cb-ex-chat").clicked += () => {
                 EditorSceneManager.OpenScene(
-                    "Assets/Unisave/Examples/Chat/Chat.unity"
+                    "Assets/Plugins/Unisave/Examples/Chat/Chat.unity"
                 );
             };
             root.Q<Button>(name: "cb-ex-email-auth").clicked += () => {
                 EditorSceneManager.OpenScene(
-                    "Assets/Unisave/Examples/PlayerAuthentication/" +
+                    "Assets/Plugins/Unisave/Examples/PlayerAuthentication/" +
                     "PlayerAuthentication.unity"
                 );
             };
