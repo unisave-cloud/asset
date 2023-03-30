@@ -12,8 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11ecc04d0d1da41b1bae51c06a4f3bd2, type: 3}
   m_Name: UnisavePreferencesFile
   m_EditorClassIdentifier: 
-  serverUrl: https://unisave.cloud/
-  gameToken: X6Mn9QTp51GYYfbCACelq9mL
+  serverUrl: https://unisave.cloud/test
+  gameToken: 
   backendFolder: 
   automaticBackendUploading: 0
   backendHash: 4d789dcff5104f026e7727652d9399c0

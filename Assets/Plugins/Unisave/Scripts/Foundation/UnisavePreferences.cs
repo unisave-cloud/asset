@@ -17,21 +17,35 @@ namespace Unisave.Foundation
 		public const string PreferencesFileName = "UnisavePreferencesFile";
 
 		/// <summary>
+		/// Caches the singular instance used by the entire application.
+		/// 
+		/// Resources.Load should return a single instance, but I encountered
+		/// some bugs when I obtained two instances. This is to make sure
+		/// there is only ever one instance, since the whole application
+		/// assumes that.
+		/// </summary>
+		private static UnisavePreferences singleton;
+		
+		/// <summary>
 		/// Loads preferences from the file
 		/// </summary>
 		public static UnisavePreferences LoadOrCreate()
 		{
+			// return from cache
+			if (singleton != null)
+				return singleton;
+			
 			// try to load
-			var preferences = Resources.Load<UnisavePreferences>(PreferencesFileName);
+			singleton = Resources.Load<UnisavePreferences>(PreferencesFileName);
 
 			// load failed, create them instead (if inside editor)
-			if (preferences == null)
+			if (singleton == null)
 			{
 				#if UNITY_EDITOR
 					var path = "Assets/Plugins/Unisave/Resources/" + PreferencesFileName + ".asset";
 
-					preferences = ScriptableObject.CreateInstance<UnisavePreferences>();
-					UnityEditor.AssetDatabase.CreateAsset(preferences, path);
+					singleton = ScriptableObject.CreateInstance<UnisavePreferences>();
+					UnityEditor.AssetDatabase.CreateAsset(singleton, path);
 					UnityEditor.AssetDatabase.SaveAssets();
 					UnityEditor.AssetDatabase.Refresh();
 					
@@ -44,7 +58,7 @@ namespace Unisave.Foundation
 				#endif
 			}
 
-			return preferences;
+			return singleton;
 		}
 
 		/// <summary>
