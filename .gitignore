@@ -3,7 +3,7 @@
 #############################
 
 # Unisave preferences needn't be stored
-[Aa]ssets/Unisave/Resources/UnisavePreferencesFile*
+[Aa]ssets/Plugins/Unisave/Resources/UnisavePreferencesFile*
 
 # Packages are not needed, not even the manifest
 /[Pp]ackages/
