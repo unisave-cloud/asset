@@ -49,7 +49,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnCreateGUI()
         {
-            preferences = UnisavePreferences.LoadOrCreate();
+            preferences = UnisavePreferences.Resolve();
             
             // === Backend upload and compilation ===
             

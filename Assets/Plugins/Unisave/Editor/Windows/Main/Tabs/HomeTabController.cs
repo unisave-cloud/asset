@@ -101,7 +101,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnObserveExternalState()
         {
-            var preferences = UnisavePreferences.LoadOrCreate();
+            var preferences = UnisavePreferences.Resolve();
             
             bool notConnected = string.IsNullOrWhiteSpace(preferences.GameToken) ||
                 string.IsNullOrWhiteSpace(preferences.EditorKey);

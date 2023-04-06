@@ -77,7 +77,7 @@ namespace Unisave.Editor.Auditing
 
         private static string BuildUrl()
         {
-            var preferences = UnisavePreferences.LoadOrCreate();
+            var preferences = UnisavePreferences.Resolve();
 
             var builder = new UriBuilder(preferences.ServerUrl);
             builder.Host = "api." + builder.Host;

@@ -23,14 +23,16 @@ namespace Unisave.Editor.BackendUploading
             get
             {
                 if (instance == null)
-                    instance = new Uploader(UnisavePreferences.LoadOrCreate());
+                    instance = new Uploader();
+                else
+                    instance.RefreshPreferences();
 
                 return instance;
             }
         }
 
-        private readonly UnisavePreferences preferences;
-        private readonly ApiUrl apiUrl;
+        private UnisavePreferences preferences;
+        private ApiUrl apiUrl;
 
         public bool AutomaticUploadingEnabled =>
             preferences.AutomaticBackendUploading;
@@ -54,13 +56,22 @@ namespace Unisave.Editor.BackendUploading
         /// </summary>
         private Task uploadingTask;
 
-        private Uploader(UnisavePreferences preferences)
+        private Uploader()
         {
-            this.preferences = preferences;
-
-            apiUrl = new ApiUrl(preferences.ServerUrl);
+            RefreshPreferences();
 
             State = BaseState.RestoreFromEditorPrefs(preferences.GameToken);
+        }
+
+        /// <summary>
+        /// UnisavePreferences should not be kept for long, therefore we need
+        /// to re-resolve them often enough to prevent their spoiling.
+        /// (see the UnisavePreferences.Resolve method summary)
+        /// </summary>
+        private void RefreshPreferences()
+        {
+            preferences = UnisavePreferences.Resolve();
+            apiUrl = new ApiUrl(preferences.ServerUrl);
         }
 
         /// <summary>
@@ -75,6 +86,8 @@ namespace Unisave.Editor.BackendUploading
         /// </param>
         public void UploadBackend(bool verbose, bool blockThread)
         {
+            RefreshPreferences();
+            
             // check that there isn't another upload running
             if (uploadingTask != null && !uploadingTask.IsCompleted)
             {

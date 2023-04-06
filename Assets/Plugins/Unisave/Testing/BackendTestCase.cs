@@ -33,7 +33,7 @@ namespace Unisave.Testing
         {
             // create testing client application
             ClientApp = new ClientApplication(
-                UnisavePreferences.LoadOrCreate()
+                UnisavePreferences.Resolve()
             );
             
             // prepare environment

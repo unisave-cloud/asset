@@ -17,35 +17,42 @@ namespace Unisave.Foundation
 		public const string PreferencesFileName = "UnisavePreferencesFile";
 
 		/// <summary>
-		/// Caches the singular instance used by the entire application.
-		/// 
-		/// Resources.Load should return a single instance, but I encountered
-		/// some bugs when I obtained two instances. This is to make sure
-		/// there is only ever one instance, since the whole application
-		/// assumes that.
+		/// Caches the preferences instance returned by the Resolve method.
+		///
+		/// WARNING: THIS IS NOT A SINGLETON!
+		/// (because Unity, see the summary for the Resolve method)
 		/// </summary>
-		private static UnisavePreferences singleton;
+		private static UnisavePreferences cache;
 		
 		/// <summary>
-		/// Loads preferences from the file
+		/// Loads preferences from the file or creates them if missing.
+		/// Preferences are cached so this method can be called fairly often.
+		///
+		/// WARNING: Do not keep the preferences instance for long when in
+		/// editor. The underlying C++ instance of the object may get killed
+		/// (say when the asset file is deleted) and that causes the instance
+		/// to become UnityEngine.Object.Null. Therefore we cannot really have
+		/// a singleton pattern implemented as this situation causes another
+		/// C# instance to be created. For this reason, prefer to call this
+		/// method more often than less.
 		/// </summary>
-		public static UnisavePreferences LoadOrCreate()
+		public static UnisavePreferences Resolve()
 		{
 			// return from cache
-			if (singleton != null)
-				return singleton;
-			
+			if (cache != null)
+				return cache;
+
 			// try to load
-			singleton = Resources.Load<UnisavePreferences>(PreferencesFileName);
+			cache = Resources.Load<UnisavePreferences>(PreferencesFileName);
 
 			// load failed, create them instead (if inside editor)
-			if (singleton == null)
+			if (cache == null)
 			{
 				#if UNITY_EDITOR
 					var path = "Assets/Plugins/Unisave/Resources/" + PreferencesFileName + ".asset";
 
-					singleton = ScriptableObject.CreateInstance<UnisavePreferences>();
-					UnityEditor.AssetDatabase.CreateAsset(singleton, path);
+					cache = ScriptableObject.CreateInstance<UnisavePreferences>();
+					UnityEditor.AssetDatabase.CreateAsset(cache, path);
 					UnityEditor.AssetDatabase.SaveAssets();
 					UnityEditor.AssetDatabase.Refresh();
 					
@@ -58,7 +65,7 @@ namespace Unisave.Foundation
 				#endif
 			}
 
-			return singleton;
+			return cache;
 		}
 
 		/// <summary>
