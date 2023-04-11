@@ -1,4 +1,4 @@
-![Unisave Logo](Assets/Unisave/Images/PropertiesLogo.png)
+![Unisave Logo](Assets/Plugins/Unisave/Images/PropertiesLogo.png)
 
 Unisave Asset
 =============
