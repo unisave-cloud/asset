@@ -21,9 +21,7 @@ namespace Unisave.Facets
         /// <returns>The expression value</returns>
         public static object Interpret(Expression expression)
         {
-            var x = Visit(expression);
-            UnityEngine.Debug.Log(x); // TODO: DEBUG
-            return x;
+            return Visit(expression);
         }
         
         /// <summary>
