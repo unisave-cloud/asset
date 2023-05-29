@@ -101,9 +101,19 @@ namespace Unisave.Facets
 
             for (int i = 0; i < arguments.Length; i++)
             {
-                var argumentLambda = Expression.Lambda(callExpression.Arguments[i]);
-                var argumentDelegate = argumentLambda.Compile();
-                arguments[i] = argumentDelegate.DynamicInvoke();
+                // NOTE: Does not work on 2021.3.24 on WebGL.
+                // Because it does not AOT compile all necessary generic methods.
+                // (even though the link.xml is set up right, this is not because of pruning)
+                // Supposedly it should work on 2022.2 and up, but that's too recent.
+                //
+                //   var argumentLambda = Expression.Lambda(callExpression.Arguments[i]);
+                //   var argumentDelegate = argumentLambda.Compile();
+                //   arguments[i] = argumentDelegate.DynamicInvoke();
+                
+                // Instead, let's interpret the expression tree manually
+                arguments[i] = LinqExpressionInterpreter.Interpret(
+                    callExpression.Arguments[i]
+                );
             }
             
             return null;
