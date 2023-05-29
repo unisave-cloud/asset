@@ -5,15 +5,15 @@ namespace Unisave.Editor.BackendUploading.Hooks
 {
     /// <summary>
     /// Hooks into game building.
-    /// Triggers the hook before a build starts.
+    /// Triggers the hook after a build finishes.
     /// </summary>
-    public class BuildPreprocessingHook : IPreprocessBuildWithReport
+    public class BuildPostprocessingHook : IPostprocessBuildWithReport
     {
         public int callbackOrder => 0;
-        
-        public void OnPreprocessBuild(BuildReport report)
+
+        public void OnPostprocessBuild(BuildReport report)
         {
-            HookImplementations.OnPreprocessBuild(report);
+            HookImplementations.OnPostprocessBuild(report);
         }
     }
 }
