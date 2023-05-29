@@ -12,7 +12,7 @@ namespace Unisave.Facets
     /// is too complicated and breaks under IL2CPP for older Unity versions.
     /// So this exists instead.
     /// </summary>
-    public class LinqExpressionInterpreter
+    public static class LinqExpressionInterpreter
     {
         /// <summary>
         /// Call this to evaluate a LINQ expression in the facet call API
