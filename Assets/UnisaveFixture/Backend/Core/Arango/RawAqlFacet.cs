@@ -20,6 +20,16 @@ namespace UnisaveFixture.Backend.Core.Arango
 
             return query.Get();
         }
+        
+        public void Run(string aql)
+        {
+            DB.Query(aql).Run();
+        }
+        
+        public string FirstAsString(string aql)
+        {
+            return DB.Query(aql).FirstAs<string>();
+        }
 
         public Vector3 FirstAsVector(string aql)
         {
