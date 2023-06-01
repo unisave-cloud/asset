@@ -146,7 +146,7 @@ namespace Unisave.Broadcasting.Sse
                         new JsonObject {
                             ["gameToken"] = app.Preferences.GameToken,
                             ["editorKey"] = app.Preferences.EditorKey,
-                            ["buildGuid"] = Application.buildGUID,
+                            ["buildGuid"] = ClientIdentity.BuildGuid,
                             ["backendHash"] = app.Preferences.BackendHash,
                             ["sessionId"] = sessionIdRepo.GetSessionId(),
                             ["lastReceivedEventId"] = state.LastReceivedEventId

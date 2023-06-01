@@ -218,7 +218,7 @@ namespace Unisave.Broadcasting
                     new JsonObject {
                         ["gameToken"] = app.Preferences.GameToken,
                         ["editorKey"] = app.Preferences.EditorKey,
-                        ["buildGuid"] = Application.buildGUID,
+                        ["buildGuid"] = ClientIdentity.BuildGuid,
                         ["backendHash"] = app.Preferences.BackendHash,
                         ["sessionId"] = sessionIdRepository.GetSessionId(),
                         ["channels"] = channelsToUnsubscribe
