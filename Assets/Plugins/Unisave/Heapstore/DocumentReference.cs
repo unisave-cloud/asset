@@ -1,7 +1,9 @@
+using System.Threading.Tasks;
 using LightJson;
 using Unisave.Facets;
 using Unisave.Heapstore.Backend;
 using Unisave.Serialization;
+using Unisave.Serialization.Context;
 using UnityEngine;
 
 namespace Unisave.Heapstore
@@ -47,22 +49,43 @@ namespace Unisave.Heapstore
         }
         
         
-        /////////////
-        // Actions //
-        /////////////
-        
-        public FacetCall Set<T>(T value)
-        {
-            string id = DocumentId;
-            JsonObject json = Serializer.ToJson<T>(value);
-            // TODO: specify the serialization context
-
-            return Caller.CallFacet((HeapstoreFacet f) => f.SetDocument(id, json));
-        }
+        /////////////////////////
+        // Document operations //
+        /////////////////////////
 
         public FacetCall<Document> Get()
         {
-            return null;
+            return new FacetCall<Document>(Caller, GetAsync());
+        }
+
+        private async Task<object> GetAsync()
+        {
+            var id = Arango.DocumentId.Parse(DocumentId);
+            JsonObject fetchedJson = await Caller.CallFacet(
+                (HeapstoreFacet f) => f.GetDocument(id)
+            );
+            
+            return fetchedJson == null ? null : new Document(fetchedJson);
+        }
+        
+        public FacetCall<Document> Set<T>(T value)
+        {
+            return new FacetCall<Document>(Caller, SetAsync(value));
+        }
+        
+        private async Task<object> SetAsync<T>(T value)
+        {
+            JsonObject jsonToWrite = Serializer.ToJson<T>(
+                value,
+                SerializationContext.ClientToClient
+            );
+
+            var id = Arango.DocumentId.Parse(DocumentId);
+            JsonObject writtenJson = await Caller.CallFacet(
+                (HeapstoreFacet f) => f.SetDocument(id, jsonToWrite)
+            );
+
+            return new Document(writtenJson);
         }
     }
 }

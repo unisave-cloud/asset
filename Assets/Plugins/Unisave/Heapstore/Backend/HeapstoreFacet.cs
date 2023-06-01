@@ -1,49 +1,80 @@
+using System;
 using LightJson;
 using Unisave.Arango;
 using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Facets;
-using UnityEngine;
 
 namespace Unisave.Heapstore.Backend
 {
     public class HeapstoreFacet : Facet
     {
-        public void SetDocument(string id, JsonObject document)
+        #region "Document API"
+        
+        
+        ///////////////////
+        // Get operation //
+        ///////////////////
+        
+        public JsonObject GetDocument(DocumentId id)
         {
             try
             {
-                TrySetDocument(id, document);
+                return DB.Query(@"
+                    RETURN DOCUMENT(@id)
+                ")
+                    .Bind("id", id.Id)
+                    .FirstAs<JsonObject>();
             }
             catch (ArangoException e) when (e.ErrorNumber == 1203)
             {
-                var i = DocumentId.Parse(id);
-                CreateCollection(i.Collection);
-                TrySetDocument(id, document);
+                return null;
             }
         }
+        
+        
+        ///////////////////
+        // Set operation //
+        ///////////////////
+        
+        public JsonObject SetDocument(DocumentId id, JsonObject document)
+        {
+            try
+            {
+                return TrySetDocument(id, document);
+            }
+            catch (ArangoException e) when (e.ErrorNumber == 1203)
+            {
+                CreateCollection(id.Collection);
+                return TrySetDocument(id, document);
+            }
+        }
+
+        private JsonObject TrySetDocument(DocumentId id, JsonObject document)
+        {
+            document["_key"] = id.Key;
+            document.Remove("_id");
+            
+            return DB.Query(@"
+                INSERT @document INTO @@collection OPTIONS { overwrite: true }
+                RETURN NEW
+            ")
+                .Bind("document", document)
+                .Bind("@collection", id.Collection)
+                .FirstAs<JsonObject>();
+        }
+        
+        
+        ///////////////
+        // Utilities //
+        ///////////////
 
         private void CreateCollection(string name)
         {
             var arango = (ArangoConnection) Facade.App.Resolve<IArango>();
             arango.CreateCollection(name, CollectionType.Document);
         }
-
-        private void TrySetDocument(string id, JsonObject document)
-        {
-            Debug.Log("Setting document: " + document.ToString());
-
-            var i = DocumentId.Parse(id);
-
-            document["_key"] = i.Key;
-            document.Remove("_id");
-            
-            DB.Query(@"
-                INSERT @document INTO @@collection OPTIONS { overwrite: true }
-            ")
-                .Bind("document", document)
-                .Bind("@collection", i.Collection)
-                .Run();
-        }
+        
+        #endregion
     }
 }

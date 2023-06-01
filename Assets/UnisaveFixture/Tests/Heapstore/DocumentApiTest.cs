@@ -25,6 +25,11 @@ namespace UnisaveFixture.Tests.Heapstore
             );
         });
         
+        
+        ///////////////////
+        // Get operation //
+        ///////////////////
+        
         [UnityTest]
         public IEnumerator GetFetchesDocumentOrNull()
             => Asyncize.UnityTest(async () =>
@@ -44,14 +49,16 @@ namespace UnisaveFixture.Tests.Heapstore
             
             // create document
             await caller.CallFacet((RawAqlFacet f) =>
-                f.Run("INSERT { _key: 'peter' name: 'Peter' } INTO players")
+                f.Run("INSERT { _key: 'peter', name: 'Peter' } INTO players")
             );
             
             // document present, return that document
             document = await caller.Document("players/peter").Get();
             Assert.IsNotNull(document);
             Assert.AreEqual("Peter", document.Data["name"].AsString);
-            Assert.AreEqual("players/peter", document.Data["_id"].AsString);
+            Assert.IsFalse(document.Data.Contains("_id"));
+            Assert.IsFalse(document.Data.Contains("_key"));
+            Assert.IsFalse(document.Data.Contains("_rev"));
             
             // document has metadata
             Assert.AreEqual("players/peter", document.Id);
@@ -60,6 +67,11 @@ namespace UnisaveFixture.Tests.Heapstore
         });
         
         // TODO: document can be converted to custom type
+        
+        
+        ///////////////////
+        // Set operation //
+        ///////////////////
 
         [UnityTest]
         public IEnumerator SetCreatesDocument()
