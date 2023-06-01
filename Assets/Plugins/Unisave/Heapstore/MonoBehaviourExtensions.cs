@@ -1,3 +1,4 @@
+using Unisave.Arango;
 using UnityEngine;
 
 namespace Unisave.Heapstore
@@ -17,5 +18,14 @@ namespace Unisave.Heapstore
             this MonoBehaviour caller,
             string name
         ) => new CollectionReference(name, caller);
+
+        public static DocumentReference Document(
+            this MonoBehaviour caller,
+            string id
+        )
+        {
+            DocumentId docId = DocumentId.Parse(id);
+            return new DocumentReference(docId.Collection, docId.Key, caller);
+        }
     }
 }

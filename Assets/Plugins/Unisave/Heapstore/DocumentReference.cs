@@ -59,5 +59,10 @@ namespace Unisave.Heapstore
 
             return Caller.CallFacet((HeapstoreFacet f) => f.SetDocument(id, json));
         }
+
+        public FacetCall<Document> Get()
+        {
+            return null;
+        }
     }
 }
