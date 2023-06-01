@@ -76,7 +76,7 @@ namespace Unisave.Facets
 						.Add("backendHash", app.Preferences.BackendHash)
 						.Add("frameworkVersion", FrameworkMeta.Version)
 						.Add("assetVersion", AssetMeta.Version)
-						.Add("buildGuid", Application.buildGUID)
+						.Add("buildGuid", ClientIdentity.BuildGuid)
 						.Add("versionString", Application.version)
 					),
 				response => {
