@@ -5,28 +5,15 @@ namespace Unisave.Heapstore
     /// <summary>
     /// Reference to a database collection
     /// </summary>
-    public class CollectionReference
+    public class CollectionReference : Query
     {
-        /// <summary>
-        /// Name of the referenced collection
-        /// </summary>
-        public string Name { get; }
+        protected string CollectionName => request.collection;
         
-        /// <summary>
-        /// To whom facet calls will be attached
-        /// </summary>
-        public MonoBehaviour Caller { get; }
-
-        public CollectionReference(string name)
-        {
-            Name = name;
-        }
+        public CollectionReference(string collectionName)
+            : base(collectionName) { }
         
-        public CollectionReference(string name, MonoBehaviour caller)
-        {
-            Name = name;
-            Caller = caller;
-        }
+        public CollectionReference(string collectionName, MonoBehaviour caller)
+            : base(collectionName, caller) { }
         
         
         //////////////////////////
@@ -34,11 +21,6 @@ namespace Unisave.Heapstore
         //////////////////////////
         
         public DocumentReference Document(string key)
-            => new DocumentReference(Name, key, Caller);
-        
-        
-        //////////////
-        // Querying //
-        //////////////
+            => new DocumentReference(CollectionName, key, caller);
     }
 }

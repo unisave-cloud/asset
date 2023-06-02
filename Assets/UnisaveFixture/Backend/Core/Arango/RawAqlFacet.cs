@@ -34,14 +34,9 @@ namespace UnisaveFixture.Backend.Core.Arango
             DB.Query(aql).Run();
         }
         
-        public JsonObject First(string aql)
+        public JsonValue First(string aql)
         {
-            return DB.Query(aql).FirstAs<JsonObject>();
-        }
-        
-        public string FirstAsString(string aql)
-        {
-            return DB.Query(aql).FirstAs<string>();
+            return DB.Query(aql).First();
         }
 
         public Vector3 FirstAsVector(string aql)

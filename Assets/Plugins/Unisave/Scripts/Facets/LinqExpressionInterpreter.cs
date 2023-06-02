@@ -84,6 +84,12 @@ namespace Unisave.Facets
             
             if (node.Method != null)
                 return node.Method.Invoke(null, new[] {operand});
+            
+            
+            // === Interpret up-casting (e.g. string to object) ===
+
+            if (node.Type.IsAssignableFrom(node.Operand.Type))
+                return operand;
 
             
             // === Interpret primitive value operators ===

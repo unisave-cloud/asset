@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using LightJson;
 using Unisave.Arango;
 using Unisave.Contracts;
@@ -9,6 +10,30 @@ namespace Unisave.Heapstore.Backend
 {
     public class HeapstoreFacet : Facet
     {
+        #region "Query API"
+        
+        
+        /////////////////////
+        // Query execution //
+        /////////////////////
+
+        public List<JsonObject> ExecuteQuery(QueryRequest request)
+        {
+            if (request == null)
+                throw new ArgumentNullException(nameof(request));
+            
+            try
+            {
+                return request.BuildAqlQuery().GetAs<JsonObject>();
+            }
+            catch (ArangoException e) when (e.ErrorNumber == 1203)
+            {
+                return new List<JsonObject>();
+            }
+        }
+        
+        #endregion
+        
         #region "Document API"
         
         
