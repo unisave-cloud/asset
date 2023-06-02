@@ -9,42 +9,40 @@ using UnityEngine;
 namespace Unisave.Heapstore
 {
     /// <summary>
-    /// Reference to a specific database document
-    /// (which may or may not exist)
+    /// References a specific database document (existing or not)
+    /// and allows you to perform actions with it (Get, Set, Update, Delete)
     /// </summary>
     public class DocumentReference
     {
         /// <summary>
         /// Name of the referenced collection
         /// </summary>
-        public string Collection { get; }
+        private string CollectionName { get; }
         
         /// <summary>
         /// Key of the referenced document
         /// </summary>
-        public string DocumentKey { get; }
+        private string DocumentKey { get; }
 
         /// <summary>
         /// Id of the referenced document
         /// </summary>
-        public string DocumentId => DocumentKey == null
-            ? null : Collection + "/" + DocumentKey;
+        private string DocumentId => DocumentKey == null
+            ? null : CollectionName + "/" + DocumentKey;
         
         /// <summary>
         /// To whom facet calls will be attached
         /// </summary>
-        public MonoBehaviour Caller { get; }
+        private MonoBehaviour Caller { get; }
 
-        public DocumentReference(string collection, string key)
+        public DocumentReference(
+            string collectionName,
+            string documentKey,
+            MonoBehaviour caller = null
+        )
         {
-            Collection = collection;
-            DocumentKey = key;
-        }
-        
-        public DocumentReference(string collection, string key, MonoBehaviour caller)
-        {
-            Collection = collection;
-            DocumentKey = key;
+            CollectionName = collectionName;
+            DocumentKey = documentKey;
             Caller = caller;
         }
         
@@ -53,39 +51,78 @@ namespace Unisave.Heapstore
         // Document operations //
         /////////////////////////
 
-        public UnisaveOperation<Document> Get()
+        /// <summary>
+        /// Fetches the document from the database
+        /// </summary>
+        /// <param name="throwIfMissing">Throw if the document does not exist</param>
+        /// <returns>The document or null if missing</returns>
+        public UnisaveOperation<Document> Get(bool throwIfMissing = false)
         {
-            return new UnisaveOperation<Document>(Caller, GetAsync());
+            return new UnisaveOperation<Document>(Caller, GetAsync(throwIfMissing));
         }
 
-        private async Task<Document> GetAsync()
+        /// <summary>
+        /// Fetches the document from the database and converts
+        /// it to the requested type
+        /// </summary>
+        /// <param name="throwIfMissing">Throw if the document does not exist</param>
+        /// <typeparam name="T">Type to which to convert the document</typeparam>
+        /// <returns>The document or null if missing</returns>
+        public UnisaveOperation<T> GetAs<T>(bool throwIfMissing = false)
+        {
+            return new UnisaveOperation<T>(Caller, async () => {
+                Document document = await GetAsync(throwIfMissing);
+                return document.As<T>();
+            });
+        }
+
+        private async Task<Document> GetAsync(bool throwIfMissing)
         {
             var id = Arango.DocumentId.Parse(DocumentId);
-            JsonObject fetchedJson = await Caller.CallFacet(
-                (HeapstoreFacet f) => f.GetDocument(id)
-            );
+            var transport = new TransportLayer(Caller);
             
-            return fetchedJson == null ? null : new Document(fetchedJson);
-        }
-        
-        public UnisaveOperation<Document> Set<T>(T value)
-        {
-            return new UnisaveOperation<Document>(Caller, SetAsync(value));
-        }
-        
-        private async Task<Document> SetAsync<T>(T value)
-        {
-            JsonObject jsonToWrite = Serializer.ToJson<T>(
-                value,
-                SerializationContext.ClientToClient
+            JsonObject fetchedJson = await transport.Call(f =>
+                f.GetDocument(id)
             );
 
-            var id = Arango.DocumentId.Parse(DocumentId);
-            JsonObject writtenJson = await Caller.CallFacet(
-                (HeapstoreFacet f) => f.SetDocument(id, jsonToWrite)
-            );
+            if (throwIfMissing && fetchedJson == null)
+            {
+                throw new HeapstoreException(
+                    1000,
+                    "Getting a document that does not exist."
+                );
+            }
 
-            return new Document(writtenJson);
+            if (fetchedJson == null)
+                return null;
+
+            return new Document(fetchedJson);
+        }
+        
+        /// <summary>
+        /// Overwrites or creates the document
+        /// </summary>
+        /// <param name="value">New value of the document</param>
+        /// <param name="throwIfMissing">Throw if the document does not exist</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public UnisaveOperation<Document> Set<T>(T value, bool throwIfMissing = false)
+        {
+            return new UnisaveOperation<Document>(Caller, async () => {
+                JsonObject jsonToWrite = Serializer.ToJson<T>(
+                    value,
+                    SerializationContext.ClientToClient
+                );
+
+                var id = Arango.DocumentId.Parse(DocumentId);
+                var transport = new TransportLayer(Caller);
+
+                JsonObject writtenJson = await transport.Call(f =>
+                    f.SetDocument(id, jsonToWrite, throwIfMissing)
+                );
+
+                return new Document(writtenJson);
+            });
         }
     }
 }

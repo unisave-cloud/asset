@@ -3,11 +3,15 @@ using UnityEngine;
 namespace Unisave.Heapstore
 {
     /// <summary>
-    /// Reference to a database collection
+    /// References a database collection and allows you
+    /// to reference documents or build document queries
     /// </summary>
     public class CollectionReference : Query
     {
-        protected string CollectionName => request.collection;
+        /// <summary>
+        /// Name of the referenced collection
+        /// </summary>
+        private string CollectionName => request.collection;
         
         public CollectionReference(string collectionName)
             : base(collectionName) { }
@@ -15,12 +19,15 @@ namespace Unisave.Heapstore
         public CollectionReference(string collectionName, MonoBehaviour caller)
             : base(collectionName, caller) { }
         
-        
-        //////////////////////////
-        // Document referencing //
-        //////////////////////////
-        
+        /// <summary>
+        /// Creates a reference to a specific document so that you can
+        /// then perform operations with it
+        /// </summary>
+        /// <param name="key"></param>
+        /// <returns></returns>
         public DocumentReference Document(string key)
-            => new DocumentReference(CollectionName, key, caller);
+        {
+            return new DocumentReference(CollectionName, key, caller);
+        }
     }
 }

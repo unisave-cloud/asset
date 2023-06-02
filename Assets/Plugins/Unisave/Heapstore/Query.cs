@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using LightJson;
-using Unisave.Facets;
 using Unisave.Heapstore.Backend;
 using UnityEngine;
 
@@ -46,8 +45,10 @@ namespace Unisave.Heapstore
 
         private async Task<List<Document>> GetAsync()
         {
-            List<JsonObject> fetchedJson = await caller.CallFacet(
-                (HeapstoreFacet f) => f.ExecuteQuery(request)
+            var transport = new TransportLayer(caller);
+            
+            List<JsonObject> fetchedJson = await transport.Call(f =>
+                f.ExecuteQuery(request)
             );
 
             return fetchedJson.Select(o => new Document(o)).ToList();
