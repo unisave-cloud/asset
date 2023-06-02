@@ -17,21 +17,21 @@ namespace Unisave.Facets
                 ClientFacade.ClientApp.Resolve<FacetCaller>()
             );
 
-        public static FacetCall CallFacet<TFacet>(
+        public static UnisaveOperation CallFacet<TFacet>(
             Expression<Action<TFacet>> lambda
         ) where TFacet : Facet
         {
             return CallFacet(null, lambda);
         }
         
-        public static FacetCall<TReturn> CallFacet<TFacet, TReturn>(
+        public static UnisaveOperation<TReturn> CallFacet<TFacet, TReturn>(
             Expression<Func<TFacet, TReturn>> lambda
         ) where TFacet : Facet
         {
             return CallFacet(null, lambda);
         }
         
-        public static FacetCall CallFacet<TFacet>(
+        public static UnisaveOperation CallFacet<TFacet>(
             this MonoBehaviour caller,
             Expression<Action<TFacet>> lambda
         ) where TFacet : Facet
@@ -45,12 +45,12 @@ namespace Unisave.Facets
             if (lambdaException != null)
                 throw lambdaException;
 
-            Task<object> task = Caller.CallFacetMethodAsync(method, arguments);
+            Task task = Caller.CallFacetMethodAsync(method, arguments);
 
-            return new FacetCall(caller, task);
+            return new UnisaveOperation(caller, task);
         }
         
-        public static FacetCall<TReturn> CallFacet<TFacet, TReturn>(
+        public static UnisaveOperation<TReturn> CallFacet<TFacet, TReturn>(
             this MonoBehaviour caller,
             Expression<Func<TFacet, TReturn>> lambda
         ) where TFacet : Facet
@@ -64,9 +64,11 @@ namespace Unisave.Facets
             if (lambdaException != null)
                 throw lambdaException;
 
-            Task<object> task = Caller.CallFacetMethodAsync(method, arguments);
+            Task<TReturn> task = Caller.CallFacetMethodAsync<TReturn>(
+                method, arguments
+            );
 
-            return new FacetCall<TReturn>(caller, task);
+            return new UnisaveOperation<TReturn>(caller, task);
         }
 
         private static ArgumentException ParseLambda(
@@ -132,10 +134,10 @@ namespace Unisave.Facets
         }
         
         /// <summary>
-        /// Connects the new application-level facet calling API
+        /// Connects the new application-layer facet calling API
         /// with the legacy FacetCaller API
         ///
-        /// This is a temporary solution as a proper transport-level API
+        /// This is a temporary solution as a proper transport-layer API
         /// should be implemented instead.
         /// </summary>
         private class LegacyAdapter : IApplicationLayerFacetCaller
@@ -147,42 +149,50 @@ namespace Unisave.Facets
                 this.facetCaller = facetCaller;
             }
 
-            public Task<object> CallFacetMethodAsync(
+            public Task<TReturn> CallFacetMethodAsync<TReturn>(
+                MethodInfo method,
+                object[] arguments
+            )
+            {
+                var source = new TaskCompletionSource<TReturn>();
+
+                facetCaller.CallFacetMethod(
+                    method.DeclaringType,
+                    method.ReturnType,
+                    method.Name,
+                    arguments
+                )
+                    .Then((object r) => {
+                        source.SetResult(
+                            // handles null unboxing for value types
+                            (TReturn)(r ?? default(TReturn))
+                        );
+                    })
+                    .Catch(e => {
+                        source.SetException(e);
+                    });
+
+                return source.Task;
+            }
+            
+            public Task CallFacetMethodAsync(
                 MethodInfo method,
                 object[] arguments
             )
             {
                 var source = new TaskCompletionSource<object>();
-
-                if (method.ReturnType == typeof(void))
-                {
-                    facetCaller.CallFacetMethod(
+                
+                facetCaller.CallFacetMethod(
                         method.DeclaringType,
                         method.Name,
                         arguments
                     )
-                        .Then(() => {
-                            source.SetResult(null);
-                        })
-                        .Catch(e => {
-                            source.SetException(e);
-                        });
-                }
-                else
-                {
-                    facetCaller.CallFacetMethod(
-                        method.DeclaringType,
-                        method.ReturnType,
-                        method.Name,
-                        arguments
-                    )
-                        .Then(r => {
-                            source.SetResult(r);
-                        })
-                        .Catch(e => {
-                            source.SetException(e);
-                        });
-                }
+                    .Then(() => {
+                        source.SetResult(null);
+                    })
+                    .Catch(e => {
+                        source.SetException(e);
+                    });
 
                 return source.Task;
             }
