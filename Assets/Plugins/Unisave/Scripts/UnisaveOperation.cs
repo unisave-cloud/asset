@@ -4,52 +4,63 @@ using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace Unisave.Facets
+namespace Unisave
 {
     /// <summary>
-    /// Represents a facet call that returns some value. It can either
-    /// return a value or throw an exception.
+    /// Represents an asynchronous Unisave operation.
+    /// It can either return a value or throw an exception.
+    /// It is a wrapper around C# Task, that lets you specify callbacks,
+    /// interface with coroutines, and await. Also, when a caller is specified,
+    /// the operation checks that the caller is alive and if not, it won't
+    /// invoke any callbacks (similar to how coroutines get cancelled).
+    /// It also logs any uncaught exceptions and other problems that might arise.
+    /// All of these features are the reason for this wrapper existing.
     /// </summary>
-    public class FacetCall<TReturn> : IEnumerator
+    /// <typeparam name="TReturn">Type of the returned value</typeparam>
+    public class UnisaveOperation<TReturn> : IEnumerator
     {
         /// <summary>
-        /// The MonoBehaviour script that invoked the request,
-        /// may be null for requests invoked outside Unity code
+        /// The MonoBehaviour script that invoked the operation,
+        /// may be null for operations invoked outside Unity code
         /// </summary>
         private readonly MonoBehaviour caller;
         
         /// <summary>
-        /// The facet call request in the application-level API
+        /// The task that performs the asynchronous operation
         /// </summary>
-        private readonly Task<object> applicationLevelTask;
+        private readonly Task<TReturn> operationTask;
 
         /// <summary>
-        /// True when the request finishes (returns or throws an exception)
+        /// True when the operation finishes (returns or throws an exception)
         /// </summary>
         public bool IsDone { get; private set; }
 
         /// <summary>
-        /// If the request finished successfully, the result will be here
+        /// Returned value from the operation when it finishes successfully.
+        /// To determine a successful completion, check that the
+        /// the <see cref="Exception"/> property is null.
         /// </summary>
         public TReturn Result { get; private set; }
         
         /// <summary>
-        /// If the request resulted in an exception, it will be here
+        /// The thrown exception if the operation finishes with an exception,
+        /// null otherwise. Compare this against null to test
+        /// for successful completion.
         /// </summary>
         public Exception Exception { get; private set; }
-
-        public FacetCall(
+        
+        public UnisaveOperation(
             MonoBehaviour caller,
-            Task<object> applicationLevelTask
+            Task<TReturn> operationTask
         )
         {
             this.caller = caller;
-            this.applicationLevelTask = applicationLevelTask;
+            this.operationTask = operationTask;
             
-            applicationLevelTask.ContinueWith(task => {
+            operationTask.ContinueWith((Task<TReturn> _) => {
                 try
                 {
-                    OnApplicationLevelTaskCompleted();
+                    OnOperationTaskCompleted();
                 }
                 catch (Exception e)
                 {
@@ -57,18 +68,18 @@ namespace Unisave.Facets
                 }
             }, TaskContinuationOptions.ExecuteSynchronously);
         }
-
+        
         /// <summary>
-        /// Called when the given application-level task completes,
-        /// run immediately if the task is already completed
+        /// Called when the given operation task completes,
+        /// runs immediately if the task is already completed
         /// </summary>
-        private void OnApplicationLevelTaskCompleted()
+        private void OnOperationTaskCompleted()
         {
-            TaskStatus status = applicationLevelTask.Status;
+            TaskStatus status = operationTask.Status;
 
             if (status == TaskStatus.RanToCompletion)
             {
-                Result = (TReturn) applicationLevelTask.Result;
+                Result = operationTask.Result;
                 IsDone = true;
                 
                 InvokeThenCallback();
@@ -80,7 +91,7 @@ namespace Unisave.Facets
             if (status == TaskStatus.Faulted)
             {
                 // unwraps AggregateException if there is just one
-                Exception = applicationLevelTask.Exception?.GetBaseException();
+                Exception = operationTask.Exception?.GetBaseException();
                 IsDone = true;
                 
                 InvokeCatchCallback();
@@ -94,13 +105,13 @@ namespace Unisave.Facets
             }
             
             Debug.LogError(
-                $"[Unisave] A facet call finished, but the task " +
-                $"status was unexpected: {status}"
+                $"[Unisave] {nameof(UnisaveOperation<TReturn>)} finished, " +
+                $"but the task status was unexpected: {status}"
             );
         }
-
+        
         /// <summary>
-        /// If true, the request finalization should be ignored.
+        /// If true, the operation finalization should be ignored.
         /// </summary>
         private bool IsCallerDisabled()
         {
@@ -155,7 +166,7 @@ namespace Unisave.Facets
                 Debug.LogException(callbackException);
             }
         }
-
+        
         private void InvokeCatchCallback()
         {
             // do nothing if the caller is disabled
@@ -174,11 +185,11 @@ namespace Unisave.Facets
                 Debug.LogException(callbackException);
             }
         }
-
+        
         /// <summary>
-        /// Register a function that will be called when the request succeeds
+        /// Register a function that will be called when the operation succeeds
         /// </summary>
-        public FacetCall<TReturn> Then(Action<TReturn> callback)
+        public UnisaveOperation<TReturn> Then(Action<TReturn> callback)
         {
             if (callback == null)
                 return this;
@@ -202,11 +213,11 @@ namespace Unisave.Facets
             // chainable API
             return this;
         }
-
+        
         /// <summary>
-        /// Register a function that will be called when the request fails
+        /// Register a function that will be called when the operation fails
         /// </summary>
-        public FacetCall<TReturn> Catch(
+        public UnisaveOperation<TReturn> Catch(
             Action<Exception> callback
         )
         {
@@ -277,7 +288,7 @@ namespace Unisave.Facets
         {
             return Async().GetAwaiter();
         }
-
+        
         private void CompleteExternalTask()
         {
             // do nothing if the caller is disabled
@@ -307,35 +318,55 @@ namespace Unisave.Facets
         }
     }
     
-    
     ///////////////////////////////////////////
     // Void return type, non-generic variant //
     ///////////////////////////////////////////
     
     /// <summary>
-    /// Represents a void-type facet call. It can either succeed or
-    /// throw an exception.
+    /// Represents a non-returning asynchronous Unisave operation.
+    /// It can either succeed or throw an exception.
+    /// It is a wrapper around C# Task, that lets you specify callbacks,
+    /// interface with coroutines, and await. Also, when a caller is specified,
+    /// the operation checks that the caller is alive and if not, it won't
+    /// invoke any callbacks (similar to how coroutines get cancelled).
+    /// It also logs any uncaught exceptions and other problems that might arise.
+    /// All of these features are the reason for this wrapper existing.
     /// </summary>
-    public class FacetCall : IEnumerator
+    public class UnisaveOperation : IEnumerator
     {
-        private readonly FacetCall<object> innerRequest;
+        /*
+         * The void UnisaveOperation is implemented by wrapping an
+         * object-returning operation, which will always return null.
+         */
+        private readonly UnisaveOperation<object> innerOperation;
 
         /// <summary>
-        /// True when the request finishes (returns or throws an exception)
+        /// True when the operation finishes (returns or throws an exception)
         /// </summary>
-        public bool IsDone => innerRequest.IsDone;
+        public bool IsDone => innerOperation.IsDone;
 
         /// <summary>
-        /// If the request resulted in an exception, it will be here
+        /// The thrown exception if the operation finishes with an exception,
+        /// null otherwise. Compare this against null to test
+        /// for successful completion.
         /// </summary>
-        public Exception Exception => innerRequest.Exception;
+        public Exception Exception => innerOperation.Exception;
 
-        public FacetCall(
+        public UnisaveOperation(
             MonoBehaviour caller,
-            Task<object> applicationLevelTask
+            Task operationTask
         )
         {
-            innerRequest = new FacetCall<object>(caller, applicationLevelTask);
+            Task<object> wrappedTask = WrapOperationTask(operationTask);
+            
+            innerOperation = new UnisaveOperation<object>(caller, wrappedTask);
+        }
+
+        private async Task<object> WrapOperationTask(Task operationTask)
+        {
+            await operationTask;
+            
+            return null;
         }
         
         
@@ -344,20 +375,20 @@ namespace Unisave.Facets
         //////////////////
 
         /// <summary>
-        /// Register a function that will be called when the request succeeds
+        /// Register a function that will be called when the operation succeeds
         /// </summary>
-        public FacetCall Then(Action callback)
+        public UnisaveOperation Then(Action callback)
         {
-            innerRequest.Then(_ => callback?.Invoke());
+            innerOperation.Then(_ => callback?.Invoke());
             return this;
         }
 
         /// <summary>
-        /// Register a function that will be called when the request fails
+        /// Register a function that will be called when the operation fails
         /// </summary>
-        public FacetCall Catch(Action<Exception> callback)
+        public UnisaveOperation Catch(Action<Exception> callback)
         {
-            innerRequest.Catch(callback);
+            innerOperation.Catch(callback);
             return this;
         }
         
@@ -382,7 +413,7 @@ namespace Unisave.Facets
 
         public Task Async()
         {
-            return innerRequest.Async();
+            return innerOperation.Async();
         }
 
         public TaskAwaiter GetAwaiter()

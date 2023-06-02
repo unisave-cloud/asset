@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Text;
+using Unisave;
 using Unisave.Facets;
 using UnisaveFixture.Backend.Core.FacetCalling;
 using UnityEngine.Assertions;
@@ -12,7 +13,7 @@ namespace UnisaveFixture.Tests.Fullstack.Core.Facets
         [UnityTest]
         public IEnumerator ItCanPingFacet()
         {
-            FacetCall<string> request;
+            UnisaveOperation<string> request;
 
             yield return request = FacetClient.CallFacet(
                 (SwissKnifeFacet f) => f.Ping("hello")
@@ -25,7 +26,7 @@ namespace UnisaveFixture.Tests.Fullstack.Core.Facets
         [UnityTest]
         public IEnumerator ItCanCallVoidMethod()
         {
-            FacetCall request;
+            UnisaveOperation request;
 
             yield return request = FacetClient.CallFacet(
                 (SwissKnifeFacet f) => f.EmptyMethod()

@@ -8,7 +8,12 @@ namespace Unisave.Facets
     /// </summary>
     public interface IApplicationLayerFacetCaller
     {
-        Task<object> CallFacetMethodAsync(
+        Task<TReturn> CallFacetMethodAsync<TReturn>(
+            MethodInfo method,
+            object[] arguments
+        );
+        
+        Task CallFacetMethodAsync(
             MethodInfo method,
             object[] arguments
         );
