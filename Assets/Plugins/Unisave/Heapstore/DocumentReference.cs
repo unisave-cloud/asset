@@ -124,5 +124,35 @@ namespace Unisave.Heapstore
                 return new Document(writtenJson);
             });
         }
+
+        /// <summary>
+        /// Updates only specified fields in the document.
+        /// If that document is missing, it creates it.
+        /// </summary>
+        /// <param name="value">How to set the fields</param>
+        /// <param name="throwIfMissing">Throw if the document does not exist</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns></returns>
+        public UnisaveOperation<Document> Update<T>(
+            T value,
+            bool throwIfMissing = false
+        )
+        {
+            return new UnisaveOperation<Document>(Caller, async () => {
+                JsonObject jsonToWrite = Serializer.ToJson<T>(
+                    value,
+                    SerializationContext.ClientToClient
+                );
+
+                var id = Arango.DocumentId.Parse(DocumentId);
+                var transport = new TransportLayer(Caller);
+
+                JsonObject writtenJson = await transport.Call(f =>
+                    f.UpdateDocument(id, jsonToWrite, throwIfMissing)
+                );
+
+                return new Document(writtenJson);
+            });
+        }
     }
 }

@@ -164,12 +164,14 @@ namespace UnisaveFixture.Tests.Heapstore
             );
             Assert.IsNull(dbDocument);
             
-            await caller
+            Document document = await caller
                 .Collection("players")
                 .Document("peter")
                 .Set(new JsonObject {
                     ["name"] = "Peter"
                 });
+            Assert.AreEqual("Peter", document.Data["name"].AsString);
+            Assert.AreEqual("players/peter", document.Id);
             
             dbDocument = await caller.CallFacet((RawAqlFacet f) =>
                 f.First("RETURN DOCUMENT('players/peter')")
@@ -189,12 +191,16 @@ namespace UnisaveFixture.Tests.Heapstore
                 INSERT { _key: 'peter', name: 'Peter', otherStuff: true } INTO players
             "));
 
-            await caller
+            Document document = await caller
                 .Document("players/peter")
                 .Set(new JsonObject {
                     ["name"] = "Peter Second",
                     ["score"] = 42
                 });
+            Assert.AreEqual("Peter Second", document.Data["name"].AsString);
+            Assert.AreEqual(42, document.Data["score"].AsInteger);
+            Assert.AreEqual("players/peter", document.Id);
+            Assert.IsFalse(document.Data.Contains("otherStuff"));
         
             JsonObject dbDocument = await caller.CallFacet((RawAqlFacet f) =>
                 f.First("RETURN DOCUMENT('players/peter')")
@@ -251,6 +257,12 @@ namespace UnisaveFixture.Tests.Heapstore
                 // ERROR_DOCUMENT_MISSING
                 Assert.AreEqual(1000, e.ErrorNumber);
             }
+            
+            // do not throw when exists
+            await caller.Document("players/peter").Set(new JsonObject());
+            await caller
+                .Document("players/peter")
+                .Set(new JsonObject(), throwIfMissing: true);
         });
         
         [UnityTest]
@@ -276,14 +288,111 @@ namespace UnisaveFixture.Tests.Heapstore
         //////////////////////
         // Update operation //
         //////////////////////
+
+        [UnityTest]
+        public IEnumerator UpdateCreatesDocument()
+            => Asyncize.UnityTest(async () =>
+        {
+            JsonObject dbDocument = await caller.CallFacet((RawAqlFacet f) =>
+                f.First("RETURN DOCUMENT('players/peter')")
+            );
+            Assert.IsNull(dbDocument);
         
-        // TODO: UpdateModifiesDocument
+            Document document = await caller
+                .Collection("players")
+                .Document("peter")
+                .Update(new JsonObject {
+                    ["name"] = "Peter"
+                });
+            Assert.IsNotNull(document);
+            Assert.AreEqual("Peter", document.Data["name"].AsString);
+            Assert.AreEqual("players/peter", document.Id);
         
-        // TODO: UpdateCreatesDocument
+            dbDocument = await caller.CallFacet((RawAqlFacet f) =>
+                f.First("RETURN DOCUMENT('players/peter')")
+            );
+            Assert.AreEqual("Peter", dbDocument["name"].AsString);
+            Assert.AreEqual("players/peter", dbDocument["_id"].AsString);
+        });
         
-        // TODO: UpdateFailsOnMissingCollection
+        [UnityTest]
+        public IEnumerator UpdateModifiesDocument()
+            => Asyncize.UnityTest(async () =>
+        {
+            await caller.CallFacet((RawAqlFacet f) =>
+                f.CreateCollection("players")
+            );
+            await caller.CallFacet((RawAqlFacet f) => f.Run(@"
+                INSERT { _key: 'peter', name: 'Peter', foo: 'bar' } INTO players
+            "));
+
+            Document document = await caller
+                .Document("players/peter")
+                .Update(new JsonObject {
+                    ["name"] = "Peter Second",
+                    ["score"] = 42
+                });
+            Assert.AreEqual("Peter Second", document.Data["name"].AsString);
+            Assert.AreEqual(42, document.Data["score"].AsInteger);
+            Assert.AreEqual("players/peter", document.Id);
+            Assert.AreEqual("bar", document.Data["foo"].AsString);
+    
+            JsonObject dbDocument = await caller.CallFacet((RawAqlFacet f) =>
+                f.First("RETURN DOCUMENT('players/peter')")
+            );
+            Assert.AreEqual("Peter Second", dbDocument["name"].AsString);
+            Assert.AreEqual(42, dbDocument["score"].AsInteger);
+            Assert.AreEqual("players/peter", dbDocument["_id"].AsString);
+            Assert.AreEqual("bar", dbDocument["foo"].AsString);
+        });
         
-        // TODO: UpdateFailsOnMissingDocument
+        [UnityTest]
+        public IEnumerator UpdateFailsOnMissingDocument()
+            => Asyncize.UnityTest(async () =>
+        {
+            await caller.CallFacet((RawAqlFacet f) =>
+                f.CreateCollection("players")
+            );
+
+            try
+            {
+                await caller
+                    .Document("players/peter")
+                    .Update(new JsonObject(), throwIfMissing: true);
+
+                Assert.Fail("Did not throw!");
+            }
+            catch (HeapstoreException e)
+            {
+                // ERROR_DOCUMENT_MISSING
+                Assert.AreEqual(1000, e.ErrorNumber);
+            }
+            
+            // do not throw when exists
+            await caller.Document("players/peter").Update(new JsonObject());
+            await caller
+                .Document("players/peter")
+                .Update(new JsonObject(), throwIfMissing: true);
+        });
+        
+        [UnityTest]
+        public IEnumerator UpdateFailsOnMissingCollection()
+            => Asyncize.UnityTest(async () =>
+        {
+            try
+            {
+                await caller
+                    .Document("players/peter")
+                    .Update(new JsonObject(), throwIfMissing: true);
+
+                Assert.Fail("Did not throw!");
+            }
+            catch (HeapstoreException e)
+            {
+                // ERROR_DOCUMENT_MISSING
+                Assert.AreEqual(1000, e.ErrorNumber);
+            }
+        });
         
         
         ///////////////////

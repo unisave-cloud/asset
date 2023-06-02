@@ -138,9 +138,78 @@ namespace Unisave.Heapstore.Backend
         // Update operation //
         //////////////////////
         
-        // ...
-        
-        
+        public JsonObject UpdateDocument(
+            DocumentId id,
+            JsonObject document,
+            bool throwIfMissing
+        )
+        {
+            try
+            {
+                return TryUpdateDocument(id, document, throwIfMissing);
+            }
+            catch (ArangoException e) when (e.ErrorNumber == 1203)
+            {
+                if (throwIfMissing)
+                {
+                    // ERROR_DOCUMENT_MISSING
+                    throw new HeapstoreException(
+                        1000, "Setting a document that does not exist."
+                    );
+                }
+                
+                CreateCollection(id.Collection);
+                return TryUpdateDocument(id, document, false);
+            }
+        }
+
+        private JsonObject TryUpdateDocument(
+            DocumentId id,
+            JsonObject document,
+            bool throwIfMissing
+        )
+        {
+            document.Remove("_id");
+            document.Remove("_key");
+
+            if (throwIfMissing)
+            {
+                try
+                {
+                    return DB.Query(@"
+                        UPDATE @key WITH @document IN @@collection
+                        RETURN NEW
+                    ")
+                        .Bind("document", document)
+                        .Bind("key", id.Key)
+                        .Bind("@collection", id.Collection)
+                        .FirstAs<JsonObject>();
+                }
+                catch (ArangoException e) when (e.ErrorNumber == 1202)
+                {
+                    // ERROR_DOCUMENT_MISSING
+                    throw new HeapstoreException(
+                        1000, "Setting a document that does not exist."
+                    );
+                }
+            }
+            else
+            {
+                return DB.Query(@"
+                        UPSERT { _key: @key }
+                            INSERT MERGE(@document, { _key: @key })
+                            UPDATE @document
+                        IN @@collection
+                        RETURN NEW
+                ")
+                    .Bind("document", document)
+                    .Bind("key", id.Key)
+                    .Bind("@collection", id.Collection)
+                    .FirstAs<JsonObject>();
+            }
+        }
+
+
         ///////////////////
         // Add operation //
         ///////////////////
