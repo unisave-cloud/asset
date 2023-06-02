@@ -53,12 +53,12 @@ namespace Unisave.Heapstore
         // Document operations //
         /////////////////////////
 
-        public FacetCall<Document> Get()
+        public UnisaveOperation<Document> Get()
         {
-            return new FacetCall<Document>(Caller, GetAsync());
+            return new UnisaveOperation<Document>(Caller, GetAsync());
         }
 
-        private async Task<object> GetAsync()
+        private async Task<Document> GetAsync()
         {
             var id = Arango.DocumentId.Parse(DocumentId);
             JsonObject fetchedJson = await Caller.CallFacet(
@@ -68,12 +68,12 @@ namespace Unisave.Heapstore
             return fetchedJson == null ? null : new Document(fetchedJson);
         }
         
-        public FacetCall<Document> Set<T>(T value)
+        public UnisaveOperation<Document> Set<T>(T value)
         {
-            return new FacetCall<Document>(Caller, SetAsync(value));
+            return new UnisaveOperation<Document>(Caller, SetAsync(value));
         }
         
-        private async Task<object> SetAsync<T>(T value)
+        private async Task<Document> SetAsync<T>(T value)
         {
             JsonObject jsonToWrite = Serializer.ToJson<T>(
                 value,

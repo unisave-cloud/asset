@@ -1,7 +1,7 @@
 using System;
 using System.Collections;
 using System.Threading.Tasks;
-using Unisave.Facets;
+using Unisave;
 
 namespace UnisaveFixture
 {
@@ -18,7 +18,7 @@ namespace UnisaveFixture
                 return null;
             }
             
-            yield return new FacetCall(null, Wrapper());
+            yield return new UnisaveOperation(null, Wrapper());
         }
     }
 }
