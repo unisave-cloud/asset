@@ -205,7 +205,30 @@ namespace UnisaveFixture.Tests.Heapstore
             Assert.IsFalse(dbDocument.Contains("otherStuff"));
         });
         
-        // TODO: Set accepts Document instances
+        [UnityTest]
+        public IEnumerator SetAcceptsDocumentInstances()
+            => Asyncize.UnityTest(async () =>
+        {
+            Document sourceDoc = new Document(new JsonObject {
+                ["_key"] = "foobar", // should be ignored
+                ["_id"] = "players/foobar", // should be ignored
+                ["_rev"] = "123456789", // should be ignored
+                ["name"] = "Peter",
+                ["score"] = 42
+            });
+            
+            Document document = await caller
+                .Document("players/peter")
+                .Set(sourceDoc);
+    
+            JsonObject dbDocument = await caller.CallFacet((RawAqlFacet f) =>
+                f.First("RETURN DOCUMENT('players/peter')")
+            );
+            Assert.AreEqual("Peter", dbDocument["name"].AsString);
+            Assert.AreEqual(42, dbDocument["score"].AsInteger);
+            Assert.AreEqual("players/peter", dbDocument["_id"].AsString);
+            Assert.AreEqual(2 + 3, dbDocument.Count);
+        });
         
         [UnityTest]
         public IEnumerator SetFailsOnMissingDocument()
