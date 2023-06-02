@@ -22,6 +22,8 @@ namespace Unisave.Heapstore.Backend
             if (request == null)
                 throw new ArgumentNullException(nameof(request));
             
+            request.Validate();
+            
             try
             {
                 return request.BuildAqlQuery().GetAs<JsonObject>();

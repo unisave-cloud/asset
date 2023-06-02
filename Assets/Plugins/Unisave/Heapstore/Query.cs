@@ -4,6 +4,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using LightJson;
 using Unisave.Heapstore.Backend;
+using Unisave.Serialization;
+using Unisave.Serialization.Context;
 using UnityEngine;
 
 namespace Unisave.Heapstore
@@ -31,6 +33,17 @@ namespace Unisave.Heapstore
 
         public Query Filter(string field, string op, object value)
         {
+            JsonValue immediateValue = Serializer.ToJson(
+                value, SerializationContext.ClientToClient
+            );
+            
+            request.filterClauses.Add(new QueryRequest.FilterClause {
+                field = field,
+                op = op,
+                immediateValue = immediateValue
+            });
+            request.ValidateFilterClauses();
+            
             return this;
         }
 
@@ -43,6 +56,11 @@ namespace Unisave.Heapstore
         
         public Query Sort(params ValueTuple<string, string>[] fieldsAndDirections)
         {
+            request.sortClause = new QueryRequest.SortClause {
+                fieldsAndDirections = fieldsAndDirections.ToList()
+            };
+            request.ValidateSortClause();
+            
             return this;
         }
 
@@ -53,6 +71,12 @@ namespace Unisave.Heapstore
 
         public Query Limit(int skip, int take)
         {
+            request.limitClause = new QueryRequest.LimitClause {
+                skip = skip,
+                take = take
+            };
+            request.ValidateLimitClause();
+            
             return this;
         }
         
@@ -88,7 +112,11 @@ namespace Unisave.Heapstore
         /// </summary>
         public UnisaveOperation<Document> First()
         {
-            // TODO: add a Limit(1) clause (or rather, set the "take", keep "skip")
+            // limit the request itself as well
+            // (but keep the offset (skip) if there already is a limit present)
+            if (request.limitClause == null)
+                request.limitClause = new QueryRequest.LimitClause();
+            request.limitClause.take = 1;
             
             return new UnisaveOperation<Document>(caller, async () => {
                 List<Document> documents = await GetAsync();
