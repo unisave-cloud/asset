@@ -1,5 +1,6 @@
 using System;
 using System.Linq.Expressions;
+using System.Net.Http;
 using System.Threading.Tasks;
 using Unisave.Facets;
 using Unisave.Heapstore.Backend;
@@ -34,8 +35,16 @@ namespace Unisave.Heapstore
             {
                 // ERROR_DISABLED
                 throw new HeapstoreException(
-                    4, "Heapstore is disabled. Open the Unisave window, go to " +
-                       "'Backend Code' tab, and enable the Heapstore backend."
+                    4,
+                    "Heapstore is disabled. Open the Unisave window, go to " +
+                    "'Backend Code' tab, and enable the Heapstore backend."
+                );
+            }
+            catch (HttpRequestException e)
+            {
+                // ERROR_CANNOT_CONNECT
+                throw new HeapstoreException(
+                    5, "Cannot connect to the server.\nReason: " + e
                 );
             }
         }

@@ -132,6 +132,62 @@ namespace Unisave.Heapstore.Backend
         }
         
         
+        //////////////////////
+        // Update operation //
+        //////////////////////
+        
+        // ...
+        
+        
+        ///////////////////
+        // Add operation //
+        ///////////////////
+        
+        public JsonObject AddDocument(
+            string collection,
+            JsonObject document,
+            bool throwIfMissing
+        )
+        {
+            try
+            {
+                return TryAddDocument(collection, document);
+            }
+            catch (ArangoException e) when (e.ErrorNumber == 1203)
+            {
+                if (throwIfMissing)
+                {
+                    // ERROR_COLLECTION_MISSING
+                    throw new HeapstoreException(
+                        1001,
+                        "Adding a document to a collection that does not exist."
+                    );
+                }
+                
+                CreateCollection(collection);
+                return TryAddDocument(collection, document);
+            }
+        }
+
+        private JsonObject TryAddDocument(
+            string collection,
+            JsonObject document
+        )
+        {
+            document.Remove("_id");
+            document.Remove("_key");
+            document.Remove("_rev");
+            
+            return DB.Query(@"
+                INSERT @document INTO @@collection
+                RETURN NEW
+            ")
+                .Bind("document", document)
+                .Bind("@collection", collection)
+                .FirstAs<JsonObject>();
+        }
+        
+        
         ///////////////
         // Utilities //
         ///////////////

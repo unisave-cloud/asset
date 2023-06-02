@@ -205,6 +205,8 @@ namespace UnisaveFixture.Tests.Heapstore
             Assert.IsFalse(dbDocument.Contains("otherStuff"));
         });
         
+        // TODO: Set accepts Document instances
+        
         [UnityTest]
         public IEnumerator SetFailsOnMissingDocument()
             => Asyncize.UnityTest(async () =>
@@ -265,7 +267,47 @@ namespace UnisaveFixture.Tests.Heapstore
         // Add operation //
         ///////////////////
         
-        // TODO: AddCreatesDocument
+        [UnityTest]
+        public IEnumerator AddCreatesDocument()
+            => Asyncize.UnityTest(async () =>
+        {
+            Document document = await caller
+                .Collection("players")
+                .Add(new JsonObject {
+                    ["name"] = "Peter"
+                });
+            Assert.IsNotNull(document);
+            Assert.AreEqual("Peter", document.Data["name"].AsString);
+        
+            JsonObject dbDocument = await caller.CallFacet((RawAqlFacet f) =>
+                f.First("FOR p IN players RETURN p")
+            );
+            
+            Assert.IsNotNull(dbDocument);
+            Assert.AreEqual("Peter", dbDocument["name"].AsString);
+            Assert.AreEqual(dbDocument["_id"].AsString, document.Id);
+        });
+        
+        [UnityTest]
+        public IEnumerator AddFailsOnMissingCollection()
+            => Asyncize.UnityTest(async () =>
+        {
+            try
+            {
+                await caller
+                    .Collection("players")
+                    .Add(new JsonObject {
+                        ["name"] = "Peter"
+                    }, throwIfMissing: true);
+
+                Assert.Fail("Did not throw!");
+            }
+            catch (HeapstoreException e)
+            {
+                // ERROR_COLLECTION_MISSING
+                Assert.AreEqual(1001, e.ErrorNumber);
+            }
+        });
         
         
         //////////////////////

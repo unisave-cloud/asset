@@ -1,3 +1,6 @@
+using LightJson;
+using Unisave.Serialization;
+using Unisave.Serialization.Context;
 using UnityEngine;
 
 namespace Unisave.Heapstore
@@ -28,6 +31,31 @@ namespace Unisave.Heapstore
         public DocumentReference Document(string key)
         {
             return new DocumentReference(CollectionName, key, caller);
+        }
+        
+        /// <summary>
+        /// Inserts a new document into the collection
+        /// </summary>
+        /// <param name="value">The inserted document</param>
+        /// <param name="throwIfMissing">Throw if the collection does not exist</param>
+        /// <typeparam name="T"></typeparam>
+        /// <returns>The inserted document with its ID set</returns>
+        public UnisaveOperation<Document> Add<T>(T value, bool throwIfMissing = false)
+        {
+            return new UnisaveOperation<Document>(caller, async () => {
+                JsonObject jsonToWrite = Serializer.ToJson<T>(
+                    value,
+                    SerializationContext.ClientToClient
+                );
+
+                var transport = new TransportLayer(caller);
+
+                JsonObject writtenJson = await transport.Call(f =>
+                    f.AddDocument(CollectionName, jsonToWrite, throwIfMissing)
+                );
+
+                return new Document(writtenJson);
+            });
         }
     }
 }
