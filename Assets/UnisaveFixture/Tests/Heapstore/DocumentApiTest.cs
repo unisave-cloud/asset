@@ -446,8 +446,54 @@ namespace UnisaveFixture.Tests.Heapstore
         // Delete operation //
         //////////////////////
         
-        // TODO: DeleteRemovesDocument
+        [UnityTest]
+        public IEnumerator DeleteRemovesDocument()
+            => Asyncize.UnityTest(async () =>
+        {
+            await caller.CallFacet((RawAqlFacet f) =>
+                f.CreateCollection("players")
+            );
+            await caller.CallFacet((RawAqlFacet f) => f.Run(@"
+                INSERT { _key: 'peter', name: 'Peter' } INTO players
+            "));
+            
+            bool deleted = await caller
+                .Document("players/peter")
+                .Delete();
+            
+            Assert.IsTrue(deleted);
+            
+            JsonObject dbDocument = await caller.CallFacet((RawAqlFacet f) =>
+                f.First("RETURN DOCUMENT('players/peter')")
+            );
+            
+            Assert.IsNull(dbDocument);
+        });
         
-        // TODO: DeleteIgnoresMissingDocument
+        [UnityTest]
+        public IEnumerator DeleteIgnoresMissingDocument()
+            => Asyncize.UnityTest(async () =>
+        {
+            await caller.CallFacet((RawAqlFacet f) =>
+                f.CreateCollection("players")
+            );
+        
+            bool deleted = await caller
+                .Document("players/peter")
+                .Delete();
+        
+            Assert.IsFalse(deleted);
+        });
+        
+        [UnityTest]
+        public IEnumerator DeleteIgnoresMissingCollection()
+            => Asyncize.UnityTest(async () =>
+        {
+            bool deleted = await caller
+                .Document("players/peter")
+                .Delete();
+    
+            Assert.IsFalse(deleted);
+        });
     }
 }

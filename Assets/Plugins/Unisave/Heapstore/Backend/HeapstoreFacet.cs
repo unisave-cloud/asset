@@ -258,6 +258,30 @@ namespace Unisave.Heapstore.Backend
                 .FirstAs<JsonObject>();
         }
         
+        //////////////////////
+        // Delete operation //
+        //////////////////////
+
+        public bool DeleteDocument(DocumentId id)
+        {
+            try
+            {
+                DB.Query(@"
+                    REMOVE @key IN @@collection
+                ")
+                    .Bind("key", id.Key)
+                    .Bind("@collection", id.Collection)
+                    .Run();
+                
+                return true;
+            }
+            catch (ArangoException e)
+                when (e.ErrorNumber == 1203 || e.ErrorNumber == 1202)
+            {
+                return false;
+            }
+        }
+        
         
         ///////////////
         // Utilities //

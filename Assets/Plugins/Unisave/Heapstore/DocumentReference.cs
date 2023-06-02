@@ -154,5 +154,19 @@ namespace Unisave.Heapstore
                 return new Document(writtenJson);
             });
         }
+
+        public UnisaveOperation<bool> Delete()
+        {
+            return new UnisaveOperation<bool>(Caller, async () => {
+                var id = Arango.DocumentId.Parse(DocumentId);
+                var transport = new TransportLayer(Caller);
+
+                bool wasDeleted = await transport.Call(f =>
+                    f.DeleteDocument(id)
+                );
+
+                return wasDeleted;
+            });
+        }
     }
 }
