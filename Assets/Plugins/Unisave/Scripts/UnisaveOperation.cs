@@ -48,6 +48,11 @@ namespace Unisave
         /// for successful completion.
         /// </summary>
         public Exception Exception { get; private set; }
+
+        public UnisaveOperation(
+            MonoBehaviour caller,
+            Func<Task<TReturn>> callable
+        ) : this(caller, callable.Invoke()) { }
         
         public UnisaveOperation(
             MonoBehaviour caller,
@@ -352,6 +357,11 @@ namespace Unisave
         /// </summary>
         public Exception Exception => innerOperation.Exception;
 
+        public UnisaveOperation(
+            MonoBehaviour caller,
+            Func<Task> callable
+        ) : this(caller, callable.Invoke()) { }
+        
         public UnisaveOperation(
             MonoBehaviour caller,
             Task operationTask

@@ -84,7 +84,31 @@ namespace Unisave.Facets
             
             if (node.Method != null)
                 return node.Method.Invoke(null, new[] {operand});
+            
+            
+            // === Interpret upcasting and (un)boxing conversions ===
 
+            if (node.NodeType == ExpressionType.Convert)
+            {
+                // up-casting (e.g. string to object)
+                if (node.Type.IsAssignableFrom(node.Operand.Type))
+                    return operand;
+                
+                // boxing value types to object (e.g. int to object)
+                if (node.Type == typeof(object))
+                    return operand;
+                
+                // down-casting from object
+                // (do nothing and it will happen later, since I return object)
+                if (node.Operand.Type.IsAssignableFrom(node.Type))
+                    return operand;
+                
+                // unboxing from object
+                // (do nothing and it will happen later, since I return object)
+                if (node.Operand.Type == typeof(object))
+                    return operand;
+            }
+            
             
             // === Interpret primitive value operators ===
             

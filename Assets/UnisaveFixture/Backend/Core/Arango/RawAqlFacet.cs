@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using LightJson;
+using Unisave.Arango;
+using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Facets;
 using UnityEngine;
@@ -19,6 +21,22 @@ namespace UnisaveFixture.Backend.Core.Arango
                 query.Bind(pair.Key, pair.Value);
 
             return query.Get();
+        }
+        
+        public void CreateCollection(string name)
+        {
+            var arango = (ArangoConnection) Facade.App.Resolve<IArango>();
+            arango.CreateCollection(name, CollectionType.Document);
+        }
+        
+        public void Run(string aql)
+        {
+            DB.Query(aql).Run();
+        }
+        
+        public JsonValue First(string aql)
+        {
+            return DB.Query(aql).First();
         }
 
         public Vector3 FirstAsVector(string aql)
