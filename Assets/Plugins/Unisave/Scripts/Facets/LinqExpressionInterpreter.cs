@@ -318,21 +318,24 @@ namespace Unisave.Facets
         private static object VisitMemberAccess(MemberExpression node)
         {
             object instance = Visit(node.Expression);
-            
-            if (instance == null)
-                throw new NullReferenceException(
-                    $"Member access evaluated to null: {node}."
-                );
-
+    
             switch (node.Member)
             {
                 case FieldInfo fi:
+                    if (instance == null && !fi.IsStatic)
+                        throw new NullReferenceException(
+                            $"Member access evaluated to null: {node}."
+                        );
                     return fi.GetValue(instance);
-                
+        
                 case PropertyInfo pi:
+                    if (instance == null && !pi.GetMethod.IsStatic)
+                        throw new NullReferenceException(
+                            $"Member access evaluated to null: {node}."
+                        );
                     return pi.GetValue(instance);
             }
-            
+    
             throw new InterpretingException(
                 $"Unsupported member access node {node} [{node.Member.GetType()}]."
             );
