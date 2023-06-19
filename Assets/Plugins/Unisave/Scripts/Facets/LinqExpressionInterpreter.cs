@@ -68,6 +68,12 @@ namespace Unisave.Facets
                 
                 case MethodCallExpression e:
                     return VisitCall(e);
+                
+                case NewExpression e:
+                    return VisitNewExpression(e);
+                
+                case NewArrayExpression e:
+                    return VisitNewArrayExpression(e);
             }
 
             throw new InterpretingException(
@@ -167,8 +173,9 @@ namespace Unisave.Facets
             // === Interpret primitive value operators ===
             
             // the primitive operation value type
+            // the output node.Type might be different (say bool for comparisons)
             Type valueType = node.Left.Type;
-            if (valueType != node.Right.Type || valueType != node.Type)
+            if (valueType != node.Right.Type)
                 goto fail;
             
             switch (node.NodeType)
@@ -349,6 +356,30 @@ namespace Unisave.Facets
                 .ToArray();
 
             return node.Method.Invoke(instance, args);
+        }
+
+        private static object VisitNewExpression(NewExpression node)
+        {
+            object[] args = node.Arguments.Select(Visit).ToArray();
+            return node.Constructor.Invoke(args);
+        }
+
+        private static object VisitNewArrayExpression(NewArrayExpression node)
+        {
+            Array array = Array.CreateInstance(
+                node.Type.GetElementType() ?? throw new InterpretingException(
+                    "Element type of new array expression is null."
+                ),
+                node.Expressions.Count
+            );
+            
+            for (int i = 0; i < node.Expressions.Count; i++)
+            {
+                object item = Visit(node.Expressions[i]);
+                array.SetValue(item, i);
+            }
+
+            return array;
         }
     }
 }
