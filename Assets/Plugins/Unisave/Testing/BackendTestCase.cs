@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Text;
 using LightJson;
 using NUnit.Framework;
 using Unisave.Arango;
@@ -83,13 +84,27 @@ namespace Unisave.Testing
             // (download only once per the test suite execution
             // - use SetUpFixture, or OneTimeSetup)
             // cache only the downloaded string, but reset env for each test
+
+            // just some muffling to prevent github scraping,
+            // but really, it's just a public database for testing
+            // (I really should set up something better,
+            // but it's just for testing...)
+            string url = Encoding.UTF8.GetString(
+                Convert.FromBase64String("aHR0cHM6Ly9hcmFuZ28udW5pc2F2ZS5jbG91ZC8=")
+            );
+            string name = Encoding.UTF8.GetString(
+                Convert.FromBase64String("YXNzZXRfdGVzdGluZw==")
+            );
+            string p = Encoding.UTF8.GetString(
+                Convert.FromBase64String("cGFzc3dvcmQ=")
+            );
             
             env["SESSION_DRIVER"] = "arango";
             env["ARANGO_DRIVER"] = "http";
-            env["ARANGO_BASE_URL"] = "http://arango.unisave.local/";
-            env["ARANGO_DATABASE"] = "db_YZtrs0Lc";
-            env["ARANGO_USERNAME"] = "db_user_YZtrs0Lc";
-            env["ARANGO_PASSWORD"] = "73uCMhHY7WG5stQ+gC3L24kD";
+            env["ARANGO_BASE_URL"] = url;
+            env["ARANGO_DATABASE"] = name;
+            env["ARANGO_USERNAME"] = name;
+            env["ARANGO_PASSWORD"] = p;
         }
         
         private Type[] GetGameAssemblyTypes()
