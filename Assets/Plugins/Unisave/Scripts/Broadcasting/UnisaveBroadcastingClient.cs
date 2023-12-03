@@ -59,7 +59,7 @@ namespace Unisave.Broadcasting
         /// </summary>
         private ClientBroadcastingManager GetOrCreateManager()
         {
-            return ClientFacade.ClientApp.Resolve<ClientBroadcastingManager>();
+            return ClientFacade.ClientApp.Services.Resolve<ClientBroadcastingManager>();
         }
         
         /// <summary>

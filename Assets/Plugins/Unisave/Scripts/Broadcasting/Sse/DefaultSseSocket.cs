@@ -134,8 +134,8 @@ namespace Unisave.Broadcasting.Sse
 
             var downloadHandler = new SseDownloadHandler(HandleEvent);
             
-            var url = app.Resolve<ApiUrl>();
-            var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
+            var url = app.Services.Resolve<ApiUrl>();
+            var sessionIdRepo = app.Services.Resolve<ClientSessionIdRepository>();
             
             RunningRequest = new UnityWebRequest(
                 url.BroadcastingListen(),

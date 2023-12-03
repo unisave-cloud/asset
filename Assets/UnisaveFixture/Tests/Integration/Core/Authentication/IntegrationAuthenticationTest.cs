@@ -7,10 +7,10 @@ using Unisave.Facades;
 using Unisave.Sessions;
 using Unisave.Testing;
 using UnisaveFixture.Backend.Core.Authentication;
-using UnityEngine.TestTools;
 
 namespace UnisaveFixture.Tests.Core.Authentication
 {
+    [Ignore("Test end-to-end, like heapstore")]
     public class IntegrationAuthenticationTest : BackendTestCase
     {
         [Test]
@@ -35,8 +35,8 @@ namespace UnisaveFixture.Tests.Core.Authentication
             // HACK TO STORE THE UPDATED SESSION:
             // I need to figure out how to properly merge test facade access
             // with middleware logic so that it does not interfere.
-            App.Resolve<ISession>().StoreSession(
-                ClientApp.Resolve<ClientSessionIdRepository>().GetSessionId()
+            App.Services.Resolve<ISession>().StoreSession(
+                ClientApp.Services.Resolve<ClientSessionIdRepository>().GetSessionId()
             );
             
             var returned = OnFacet<AuthenticationFacet>.CallSync<PlayerEntity>(

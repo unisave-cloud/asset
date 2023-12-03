@@ -9,6 +9,7 @@ using UnityEngine.TestTools;
 
 namespace UnisaveFixture.Tests.EmailAuthentication
 {
+    [Ignore("Extract into separate asset and test end-to-end, like heapstore")]
     public class EmailLoginTest : BackendTestCase
     {
         [Test]

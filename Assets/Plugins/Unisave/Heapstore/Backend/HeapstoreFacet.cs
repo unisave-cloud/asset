@@ -5,6 +5,7 @@ using Unisave.Arango;
 using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Facets;
+using Unisave.Foundation;
 
 namespace Unisave.Heapstore.Backend
 {
@@ -289,7 +290,9 @@ namespace Unisave.Heapstore.Backend
 
         private void CreateCollection(string name)
         {
-            var arango = (ArangoConnection) Facade.App.Resolve<IArango>();
+            var arango = (ArangoConnection) RequestContext.Current.Services
+                .Resolve<IArango>();
+            
             arango.CreateCollection(name, CollectionType.Document);
         }
         

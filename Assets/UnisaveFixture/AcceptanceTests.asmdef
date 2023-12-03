@@ -15,7 +15,10 @@
         "nunit.framework.dll",
         "UnisaveFramework.dll",
         "LightJson.dll",
-        "RSG.Promise.dll"
+        "RSG.Promise.dll",
+        "Owin.dll",
+        "Microsoft.Owin.dll",
+        "UnisaveJWT.dll"
     ],
     "autoReferenced": false,
     "defineConstraints": [

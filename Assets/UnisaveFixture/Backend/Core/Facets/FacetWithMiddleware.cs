@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Unisave;
 using Unisave.Facets;
 using Unisave.Foundation;
@@ -29,17 +30,15 @@ namespace UnisaveFixture.Backend.Core.Facets
     
     public class MyMiddleware : FacetMiddleware
     {
-        public MyMiddleware(Application app) : base(app) { }
-        
-        public override FacetResponse Handle(
+        public override async Task<FacetResponse> Handle(
             FacetRequest request,
-            Func<FacetRequest, FacetResponse> next,
+            Func<FacetRequest, Task<FacetResponse>> next,
             string[] parameters
         )
         {
             AppendToLog(parameters[0]);
             
-            var response = next.Invoke(request);
+            var response = await next.Invoke(request);
 
             AppendToLog(parameters[0] + "'");
 

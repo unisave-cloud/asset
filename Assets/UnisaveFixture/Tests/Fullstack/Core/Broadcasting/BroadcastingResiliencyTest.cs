@@ -76,7 +76,7 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
             ).AsCoroutine();
             yield return WaitForMessages(1);
             
-            var tunnel = ClientFacade.ClientApp
+            var tunnel = ClientFacade.ClientApp.Services
                 .Resolve<ClientBroadcastingManager>()
                 .Tunnel;
             
@@ -128,7 +128,7 @@ namespace UnisaveFixture.Tests.Core.Broadcasting
 
             yield return WaitForMessages(1);
             
-            var tunnel = ClientFacade.ClientApp
+            var tunnel = ClientFacade.ClientApp.Services
                 .Resolve<ClientBroadcastingManager>()
                 .Tunnel;
 

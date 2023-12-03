@@ -25,7 +25,7 @@ namespace Unisave.Facets
         {
 	        this.app = app;
 	        
-	        http = app.Resolve<AssetHttpClient>();
+	        http = app.Services.Resolve<AssetHttpClient>();
         }
 
 		protected override IPromise<JsonValue> PerformFacetCall(
@@ -62,7 +62,7 @@ namespace Unisave.Facets
 			var promise = new Promise<JsonValue>();
 			
 			http.Post(
-				app.Resolve<ApiUrl>().CallFacet(),
+				app.Services.Resolve<ApiUrl>().CallFacet(),
 				new JsonObject()
 					.Add("facetName", facetName)
 					.Add("methodName", methodName)
@@ -157,7 +157,7 @@ namespace Unisave.Facets
 		
 		// magic
 		// https://stackoverflow.com/a/2085377
-		private static void PreserveStackTrace(Exception e)
+		public static void PreserveStackTrace(Exception e)
 		{
 			var ctx = new StreamingContext(StreamingContextStates.CrossAppDomain);
 			var mgr = new ObjectManager(null, ctx);

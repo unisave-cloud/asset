@@ -4,6 +4,7 @@ using Unisave.Arango;
 using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Facets;
+using Unisave.Foundation;
 using UnityEngine;
 
 namespace UnisaveFixture.Backend.Core.Arango
@@ -25,7 +26,7 @@ namespace UnisaveFixture.Backend.Core.Arango
         
         public void CreateCollection(string name)
         {
-            var arango = (ArangoConnection) Facade.App.Resolve<IArango>();
+            var arango = (ArangoConnection) RequestContext.Current.Services.Resolve<IArango>();
             arango.CreateCollection(name, CollectionType.Document);
         }
         

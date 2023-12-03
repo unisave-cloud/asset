@@ -14,7 +14,7 @@ namespace Unisave.Facets
     {
         private static IApplicationLayerFacetCaller Caller
             => new LegacyAdapter(
-                ClientFacade.ClientApp.Resolve<FacetCaller>()
+                ClientFacade.ClientApp.Services.Resolve<FacetCaller>()
             );
 
         public static UnisaveOperation CallFacet<TFacet>(

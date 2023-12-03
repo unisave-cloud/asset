@@ -11,6 +11,7 @@ using Unisave.Foundation;
 using Unisave.Logging;
 using Unisave.Runtime;
 using Unisave.Sessions;
+using Microsoft.Owin;
 
 namespace Unisave.Testing
 {
@@ -27,7 +28,9 @@ namespace Unisave.Testing
         /// <summary>
         /// The server application behind server facades
         /// </summary>
-        protected Application App { get; private set; }
+        protected BackendApplication App { get; private set; }
+
+        private RequestContext fakeGlobalRequestContext;
         
         [SetUp]
         public virtual void SetUp()
@@ -42,35 +45,41 @@ namespace Unisave.Testing
             DownloadEnvFile(env);
             
             // create testing backend application
-            App = Bootstrap.Boot(
+            App = BackendApplication.Start(
                 GetGameAssemblyTypes(),
-                env,
-                new SpecialValues()
+                env
             );
             
             // execute backend code locally
-            ClientApp.Singleton<FacetCaller>(
+            ClientApp.Services.RegisterSingleton<FacetCaller>(
                 _ => new TestingFacetCaller(App, ClientApp)
             );
             
             // logging should go direct, we don't want to wait for app disposal
             // for writing logs to special values
             // HACK: this is a hack, see the ClientSideLog class for more
-            App.Singleton<ILog>(_ => new ClientSideLog());
+            App.Services.RegisterSingleton<ILog>(_ => new ClientSideLog());
             
             // bind facades
-            Facade.SetApplication(App);
             ClientFacade.SetApplication(ClientApp);
             
             // start with a blank slate
-            ClientApp.Resolve<ClientSessionIdRepository>().StoreSessionId(null);
+            ClientApp.Services.Resolve<ClientSessionIdRepository>().StoreSessionId(null);
             ClearDatabase();
+            
+            // create a fake request context for the test itself,
+            // so that we can access the database and other facades
+            fakeGlobalRequestContext = new RequestContext(
+                App.Services,
+                new OwinContext()
+            );
         }
 
         [TearDown]
         public virtual void TearDown()
         {
-            Facade.SetApplication(null);
+            fakeGlobalRequestContext.Dispose();
+            
             ClientFacade.SetApplication(null);
             
             App.Dispose();
@@ -124,7 +133,7 @@ namespace Unisave.Testing
 
         private void ClearDatabase()
         {
-            var arango = (ArangoConnection)App.Resolve<IArango>();
+            var arango = (ArangoConnection)App.Services.Resolve<IArango>();
             
             JsonArray collections = arango.Get("/_api/collection")["result"];
 

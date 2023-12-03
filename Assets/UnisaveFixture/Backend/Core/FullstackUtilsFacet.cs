@@ -3,18 +3,27 @@ using Unisave.Arango;
 using Unisave.Contracts;
 using Unisave.Facades;
 using Unisave.Facets;
+using Unisave.Foundation;
 using Unisave.Sessions;
+using Unisave.Sessions.Storage;
 
 namespace UnisaveFixture.Backend.Core
 {
     public class FullstackUtilsFacet : Facet
     {
+        private IContainer services;
+
+        public FullstackUtilsFacet(IContainer services)
+        {
+            this.services = services;
+        }
+
         /// <summary>
         /// Deletes all the non-system collections
         /// </summary>
         public void ClearDatabase()
         {
-            var arango = (ArangoConnection) Facade.App.Resolve<IArango>();
+            var arango = (ArangoConnection) services.Resolve<IArango>();
 
             var collections = arango.Get("/_api/collection")["result"].AsJsonArray;
 
@@ -31,10 +40,15 @@ namespace UnisaveFixture.Backend.Core
 
         private void PreventSessionFromCreatingCollection()
         {
-            Facade.App.Instance<ISession>(
-                new SessionOverStorage(
-                    storage: null,
-                    sessionLifetime: 0
+            // automatically a per-request singleton,
+            // since this is the request-scoped container
+            
+            services.RegisterSingleton<ISessionStorage, InMemorySessionStorage>();
+
+            services.RegisterSingleton<ISession>(
+                container => new SessionFrontend(
+                    container.Resolve<ISessionStorage>(),
+                    0
                 )
             );
         }
