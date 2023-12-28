@@ -128,8 +128,8 @@ namespace Unisave.Broadcasting.Sse
             
             // === PREPARE THE REQUEST AND HANDLERS ===
             
-            var url = app.Resolve<ApiUrl>();
-            var sessionIdRepo = app.Resolve<ClientSessionIdRepository>();
+            var url = app.Services.Resolve<ApiUrl>();
+            var sessionIdRepo = app.Services.Resolve<ClientSessionIdRepository>();
             
             slicer.ClearBuffer();
             
