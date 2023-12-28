@@ -1,7 +1,9 @@
 ﻿// #define DEBUG_UNISAVE_PREFERENCES
 
 using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using LightJson;
 using Unisave.Serialization;
@@ -34,8 +36,7 @@ namespace Unisave.Foundation
 		/// instead to prevent accidental leakage by releasing your game.
 		/// </summary>
 		public string EditorKey { get; set; } = null;
-
-
+		
 		/// <summary>
 		/// Upload backend automatically after compilation finishes
 		/// </summary>
@@ -56,6 +57,18 @@ namespace Unisave.Foundation
 		/// Last backend hash that has been uploaded
 		/// </summary>
 		public string LastUploadedBackendHash { get; set; }
+
+		/// <summary>
+		/// Set of backend folder names (definition files),
+		/// that are enabled. (but only those that state they let
+		/// themselves be controlled by Unisave preferences)
+		/// These are typically built-in modules that are disabled
+		/// by default, can be enabled, and this setting should survive
+		/// Unisave core asset upgrade. So for example,
+		/// Heapstore is one such module.
+		/// </summary>
+		public ISet<string> PreferencesEnabledBackendFolders { get; set; }
+			= new SortedSet<string>();
 		
 		#endregion
 		
@@ -74,6 +87,13 @@ namespace Unisave.Foundation
 			
 			// BackendHash
 			output["BackendHash"] = BackendHash;
+			
+			// PreferencesEnabledBackendFolders
+			output["PreferencesEnabledBackendFolders"] = new JsonArray(
+				PreferencesEnabledBackendFolders
+					.Select(x => (JsonValue) x)
+					.ToArray()
+			);
 		}
 
 		private void DeserializeFileFields(JsonObject input)
@@ -93,6 +113,17 @@ namespace Unisave.Foundation
 			// BackendHash
 			if (input.ContainsKey("BackendHash"))
 				BackendHash = input["BackendHash"].AsString;
+			
+			// PreferencesEnabledBackendFolders
+			if (input.ContainsKey("PreferencesEnabledBackendFolders")
+			    && input["PreferencesEnabledBackendFolders"].IsJsonArray)
+			{
+				PreferencesEnabledBackendFolders = new SortedSet<string>(
+					input["PreferencesEnabledBackendFolders"]
+						.AsJsonArray
+						.Select(x => x.AsString)
+				);
+			}
 		}
 
 		private void SerializeEditorPrefsFields()

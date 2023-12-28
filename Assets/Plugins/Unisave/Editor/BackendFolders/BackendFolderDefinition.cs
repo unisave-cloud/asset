@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Unisave.Foundation;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -82,6 +83,14 @@ namespace Unisave.Editor.BackendFolders
                 
                 return false;
             }
+
+            if (UploadBehaviour == UploadBehaviour.CheckPreferences)
+            {
+                var preferences = UnisavePreferences.Resolve();
+                return preferences.PreferencesEnabledBackendFolders.Contains(
+                    unisavePreferencesKey
+                );
+            }
             
             return true;
         }
@@ -111,6 +120,51 @@ namespace Unisave.Editor.BackendFolders
         }
         
         
+        ///////////////////////////////
+        // Enabled/disabled toggling //
+        ///////////////////////////////
+
+        /// <summary>
+        /// Returns true if the backend can be toggled
+        /// in the list of backend folders in the Unisave window
+        /// </summary>
+        public bool CanToggleBackend()
+        {
+            if (UploadBehaviour == UploadBehaviour.Never)
+                return true;
+            
+            if (UploadBehaviour == UploadBehaviour.Always)
+                return true;
+            
+            if (UploadBehaviour == UploadBehaviour.CheckPreferences)
+                return true;
+
+            return false;
+        }
+
+        /// <summary>
+        /// Toggles the backend state between enabled and disabled
+        /// </summary>
+        public void ToggleBackendState()
+        {
+            if (UploadBehaviour == UploadBehaviour.Never)
+            {
+                UploadBehaviour = UploadBehaviour.Always;
+            }
+            else if (UploadBehaviour == UploadBehaviour.Always)
+            {
+                UploadBehaviour = UploadBehaviour.Never;
+            }
+            else if (UploadBehaviour == UploadBehaviour.CheckPreferences)
+            {
+                var preferences = UnisavePreferences.Resolve();
+                var set = preferences.PreferencesEnabledBackendFolders;
+
+                if (!set.Add(unisavePreferencesKey))
+                    set.Remove(unisavePreferencesKey);
+            }
+        }
+        
         /////////////////////////
         // Properties & fields //
         /////////////////////////
@@ -132,6 +186,11 @@ namespace Unisave.Editor.BackendFolders
         /// is, then upload this backend folder.
         /// </summary>
         public List<SceneAsset> scenesToCheck = new List<SceneAsset>();
+
+        /// <summary>
+        /// Key used for enabled/disabled tracking via Unisave preferences
+        /// </summary>
+        public string unisavePreferencesKey = "MyCompany.MyUnisaveModule";
 
 
         // === Asset-related metadata, set by the LoadAll method ===

@@ -220,15 +220,9 @@ namespace Unisave.Editor.Windows.Main.Tabs
                 
                 var button = item.Q<Button>(className: "backend-def__button");
                 button.text = isEnabled ? "Disable" : "Enable";
-                button.SetEnabled(
-                    def.UploadBehaviour == UploadBehaviour.Always
-                    || def.UploadBehaviour == UploadBehaviour.Never
-                );
+                button.SetEnabled(def.CanToggleBackend());
                 button.clicked += () => {
-                    if (def.UploadBehaviour == UploadBehaviour.Always)
-                        DisableBackendFolder(def);
-                    else if (def.UploadBehaviour == UploadBehaviour.Never)
-                        EnableBackendFolder(def);
+                    ToggleBackendFolder(def);
                     OnObserveExternalState(); // refresh window
                 };
                 
@@ -277,26 +271,22 @@ namespace Unisave.Editor.Windows.Main.Tabs
                     break;
             }
         }
-
-        void EnableBackendFolder(BackendFolderDefinition def)
-        {
-            def.UploadBehaviour = UploadBehaviour.Always;
-            EditorUtility.SetDirty(def);
-            AssetDatabase.SaveAssetIfDirty(def);
-			
-            HighlightBackendFolderInInspector(def);
-            
-            BackendFolderDefinition.InvokeAnyChangeEvent();
-        }
 		
-        void DisableBackendFolder(BackendFolderDefinition def)
+        void ToggleBackendFolder(BackendFolderDefinition def)
         {
-            def.UploadBehaviour = UploadBehaviour.Never;
+            def.ToggleBackendState();
+            
+            // save the backend definition file
             EditorUtility.SetDirty(def);
             AssetDatabase.SaveAssetIfDirty(def);
-			
-            HighlightBackendFolderInInspector(def);
             
+            // save preferences (may have been edited)
+            var preferences = UnisavePreferences.Resolve();
+            preferences.Save();
+            
+            HighlightBackendFolderInInspector(def);
+
+            // trigger backend upload
             BackendFolderDefinition.InvokeAnyChangeEvent();
         }
 

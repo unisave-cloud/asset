@@ -12,5 +12,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ef2675ea11414f439b3a17054ad49dc5, type: 3}
   m_Name: HeapstoreBackend
   m_EditorClassIdentifier: 
-  uploadBehaviour: always
+  uploadBehaviour: check-preferences
   scenesToCheck: []
+  unisavePreferencesKey: Unisave.Heapstore
