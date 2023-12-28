@@ -17,8 +17,6 @@ namespace Unisave.Editor.Windows.Main.Tabs
         
         private readonly VisualElement root;
 
-        private UnisavePreferences preferences;
-        
         private readonly Uploader uploader = Uploader.Instance;
 
         private Toggle automaticUploadToggle;
@@ -49,8 +47,6 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnCreateGUI()
         {
-            preferences = UnisavePreferences.Resolve();
-            
             // === Backend upload and compilation ===
             
             automaticUploadToggle = root.Q<Toggle>(name: "automatic-upload-toggle");
@@ -104,6 +100,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
         // ReSharper disable Unity.PerformanceAnalysis
         public void OnObserveExternalState()
         {
+            var preferences = UnisavePreferences.Resolve();
+            
             RenderTabTaint();
             
             RenderUploaderState();
@@ -125,8 +123,23 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnWriteExternalState()
         {
-            // is in editor prefs, need not be save
+            var preferences = UnisavePreferences.Resolve();
+            
+            if (preferences.AutomaticBackendUploading == automaticUploadToggle.value)
+                return; // no need to save anything (IMPORTANT!)
+            
+            SaveUnisavePreferences();
+        }
+        
+        void SaveUnisavePreferences()
+        {
+            var preferences = UnisavePreferences.Resolve();
+            
             preferences.AutomaticBackendUploading = automaticUploadToggle.value;
+            
+            preferences.Save();
+            
+            OnObserveExternalState();
         }
 
         private void RenderTabTaint()
@@ -269,6 +282,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
         {
             def.UploadBehaviour = UploadBehaviour.Always;
             EditorUtility.SetDirty(def);
+            AssetDatabase.SaveAssetIfDirty(def);
 			
             HighlightBackendFolderInInspector(def);
             
@@ -279,6 +293,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
         {
             def.UploadBehaviour = UploadBehaviour.Never;
             EditorUtility.SetDirty(def);
+            AssetDatabase.SaveAssetIfDirty(def);
 			
             HighlightBackendFolderInInspector(def);
             

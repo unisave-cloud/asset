@@ -14,8 +14,6 @@ namespace Unisave.Editor.Windows.Main.Tabs
         
         private readonly VisualElement root;
 
-        private UnisavePreferences preferences;
-
         private TextField serverUrlField;
         private TextField gameTokenField;
         private TextField editorKeyField;
@@ -32,8 +30,6 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnCreateGUI()
         {
-            preferences = UnisavePreferences.Resolve();
-            
             openDashboardButton = root.Q<Button>(name: "open-dashboard-button");
             serverUrlField = root.Q<TextField>(name: "server-url-field");
             gameTokenField = root.Q<TextField>(name: "game-token-field");
@@ -64,9 +60,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnObserveExternalState()
         {
-            // NOTE: Do not load preferences here, since this gets called during various
-            // re-imports during compilation and at these times, calling the
-            // Resolve method will re-create the file despite it already existing.
+            var preferences = UnisavePreferences.Resolve();
             
             serverUrlField.value = preferences.ServerUrl;
             gameTokenField.value = preferences.GameToken;
@@ -90,6 +84,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         private void RenderSaveButton()
         {
+            var preferences = UnisavePreferences.Resolve();
+            
             if (preferences.ServerUrl == serverUrlField.value
                 && preferences.GameToken == gameTokenField.value
                 && preferences.EditorKey == editorKeyField.value)
@@ -122,6 +118,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         public void OnWriteExternalState()
         {
+            var preferences = UnisavePreferences.Resolve();
+            
             if (preferences.ServerUrl == serverUrlField.value
                 && preferences.GameToken == gameTokenField.value
                 && preferences.EditorKey == editorKeyField.value)
@@ -132,9 +130,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
 
         void SaveUnisavePreferences()
         {
-            // important, sometimes after re-import, the instance looses track
-            // of the asset state
-            preferences = UnisavePreferences.Resolve();
+            var preferences = UnisavePreferences.Resolve();
             
             preferences.ServerUrl = serverUrlField.value;
             preferences.GameToken = gameTokenField.value;

@@ -66,7 +66,6 @@ namespace Unisave.Editor.BackendUploading
         /// <summary>
         /// UnisavePreferences should not be kept for long, therefore we need
         /// to re-resolve them often enough to prevent their spoiling.
-        /// (see the UnisavePreferences.Resolve method summary)
         /// </summary>
         private void RefreshPreferences()
         {
@@ -106,10 +105,9 @@ namespace Unisave.Editor.BackendUploading
             var snapshot = BackendSnapshot.Take();
             StoreBackendHash(snapshot);
             
-            // NOTE: preferences.Save() not needed since both values are
-            // stored inside EditorPrefs
             preferences.LastBackendUploadAt = DateTime.Now;
             preferences.LastUploadedBackendHash = snapshot.BackendHash;
+            preferences.Save();
 
             // forget whatever state is persisted
             BaseState.ClearEditorPrefs(preferences.GameToken);

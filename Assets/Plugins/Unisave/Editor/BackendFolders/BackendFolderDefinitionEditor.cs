@@ -90,17 +90,18 @@ namespace Unisave.Editor.BackendFolders
                 );
             }
             
-            // === Apply changes and set dirty ===
-            bool hadModifiedProperties = serializedObject.hasModifiedProperties;
-            serializedObject.ApplyModifiedProperties();
-
-            // we use serializedObject, and it does this automatically
-            // EditorUtility.SetDirty(definition);
-            
-            // === Emit event that a backend definition file was changed ===
-            
-            if (hadModifiedProperties)
+            // if there were changes made, apply and save them immediately
+            if (serializedObject.hasModifiedProperties)
+            {
+                // === Apply changes and set dirty ===
+                serializedObject.ApplyModifiedProperties();
+                
+                // === Save the asset to filesystem ===
+                AssetDatabase.SaveAssetIfDirty(serializedObject.targetObject);
+                
+                // === Emit event that a backend definition file was changed ===
                 BackendFolderDefinition.InvokeAnyChangeEvent();
+            }
         }
     }
 }
