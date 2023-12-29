@@ -1,9 +1,4 @@
-/*
- * EmailAuthentication template - v0.9.1
- * -------------------------------------
- */
-
-namespace Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication
+namespace Unisave.EmailAuthentication
 {
     /// <summary>
     /// Possible results of player registration via email and password
@@ -16,4 +11,3 @@ namespace Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication
         EmailTaken = 3
     }
 }
-

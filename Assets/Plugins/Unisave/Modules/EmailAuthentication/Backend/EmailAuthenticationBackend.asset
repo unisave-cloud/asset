@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef2675ea11414f439b3a17054ad49dc5, type: 3}
-  m_Name: UnisaveFixture
+  m_Name: EmailAuthenticationBackend
   m_EditorClassIdentifier: 
-  uploadBehaviour: always
+  uploadBehaviour: check-preferences
   scenesToCheck: []
-  unisavePreferencesKey: MyCompany.MyUnisaveModule
+  unisavePreferencesKey: Unisave.EmailAuthentication

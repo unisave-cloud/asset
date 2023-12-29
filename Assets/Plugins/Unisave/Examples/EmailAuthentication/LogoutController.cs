@@ -1,6 +1,5 @@
 using System;
-using Unisave.Examples.PlayerAuthentication.Backend;
-using Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication;
+using Unisave.EmailAuthentication;
 using Unisave.Facades;
 using UnityEngine;
 using UnityEngine.UI;
@@ -24,8 +23,8 @@ namespace Unisave.Examples.PlayerAuthentication
 
         private async void LogoutButtonClicked()
         {
-            var wasLoggedIn = await OnFacet<EmailLoginFacet>.CallAsync<bool>(
-                nameof(EmailLoginFacet.Logout)
+            var wasLoggedIn = await OnFacet<EmailAuthFacet>.CallAsync<bool>(
+                nameof(EmailAuthFacet.Logout)
             );
             
             LogoutSucceeded(wasLoggedIn);

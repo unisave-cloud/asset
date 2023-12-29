@@ -1,4 +1,4 @@
-namespace Unisave.Editor.BackendFolders
+namespace Unisave.BackendFolders
 {
     /// <summary>
     /// Upload behaviours of a backend folder

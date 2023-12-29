@@ -1,5 +1,5 @@
 using System;
-using Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication;
+using Unisave.EmailAuthentication;
 using Unisave.Facades;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -15,7 +15,7 @@ using UnityEngine.UI;
  * after registration.
  */
 
-namespace Unisave.Examples.PlayerAuthentication
+namespace Unisave.Examples.EmailAuthentication
 {
     public class EmailRegisterForm : MonoBehaviour
     {
@@ -68,9 +68,9 @@ namespace Unisave.Examples.PlayerAuthentication
                 return;
             }
         
-            var response = await OnFacet<EmailRegisterFacet>
+            var response = await OnFacet<EmailAuthFacet>
                 .CallAsync<EmailRegisterResponse>(
-                    nameof(EmailRegisterFacet.Register),
+                    nameof(EmailAuthFacet.Register),
                     emailField.text,
                     passwordField.text
                 );

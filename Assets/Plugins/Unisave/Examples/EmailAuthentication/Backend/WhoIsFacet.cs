@@ -2,7 +2,7 @@ using Unisave.Authentication.Middleware;
 using Unisave.Facades;
 using Unisave.Facets;
 
-namespace Unisave.Examples.PlayerAuthentication.Backend
+namespace Unisave.Examples.EmailAuthentication.Backend
 {
     public class WhoIsFacet : Facet
     {

@@ -1,5 +1,5 @@
 using System;
-using Unisave.Examples.PlayerAuthentication.Backend.EmailAuthentication;
+using Unisave.EmailAuthentication;
 using Unisave.Facades;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,7 +13,7 @@ using UnityEngine.UI;
  * Reference required UI elements and specify what scene to load after login.
  */
 
-namespace Unisave.Examples.PlayerAuthentication
+namespace Unisave.Examples.EmailAuthentication
 {
     public class EmailLoginForm : MonoBehaviour
     {
@@ -54,8 +54,8 @@ namespace Unisave.Examples.PlayerAuthentication
             statusText.enabled = true;
             statusText.text = "Logging in...";
         
-            var response = await OnFacet<EmailLoginFacet>.CallAsync<bool>(
-                nameof(EmailLoginFacet.Login),
+            var response = await OnFacet<EmailAuthFacet>.CallAsync<bool>(
+                nameof(EmailAuthFacet.Login),
                 emailField.text,
                 passwordField.text
             );

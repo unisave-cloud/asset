@@ -1,8 +1,9 @@
 using System;
 using Unisave.Entities;
 
-namespace Unisave.Examples.PlayerAuthentication.Backend
+namespace Unisave.Examples.EmailAuthentication.Backend
 {
+    [EntityCollectionName("players")]
     public class PlayerEntity : Entity
     {
         /// <summary>

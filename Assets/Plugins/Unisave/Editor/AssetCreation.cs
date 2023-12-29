@@ -1,15 +1,9 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEditor;
 using System.IO;
 using Unisave.Editor.BackendFolders;
-using Unisave.Editor.BackendUploading;
-using Unisave.Foundation;
-using Unisave.Utils;
-using UnityEditor.SceneManagement;
-using UnityEngine.SceneManagement;
+using Unisave.BackendFolders;
 
 namespace Unisave.Editor
 {

@@ -1,10 +1,10 @@
 using System;
-using Unisave.Examples.PlayerAuthentication.Backend;
+using Unisave.Examples.EmailAuthentication.Backend;
 using Unisave.Facades;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace Unisave.Examples.PlayerAuthentication
+namespace Unisave.Examples.EmailAuthentication
 {
     public class WhoIsController : MonoBehaviour
     {
