@@ -216,8 +216,12 @@ namespace Unisave.Foundation
 		/// Loads preferences from the file or creates them if missing.
 		/// Preferences are cached so this method can be called fairly often.
 		/// </summary>
-		public static UnisavePreferences Resolve()
+		public static UnisavePreferences Resolve(bool bustCache = false)
 		{
+			// bust cache if requested by the user
+			if (bustCache)
+				cache = null;
+			
 			// bust cache if incorrect runtime state
 			if (cache != null && Application.isPlaying != cachedAreRuntime)
 				cache = null;
@@ -322,8 +326,12 @@ namespace Unisave.Foundation
 		}
 
 		/// <summary>
-		/// Saves preferences. Callable only from inside the editor.
+		/// Saves preferences. Should only be called from inside the editor.
 		/// </summary>
+		/// <param name="ensureInEditor">
+		/// When true, the method checks that it's only being executed
+		/// from the Unity editor and not the built game.
+		/// </param>
 		public void Save()
 		{
 			#if DEBUG_UNISAVE_PREFERENCES
@@ -332,10 +340,15 @@ namespace Unisave.Foundation
 			
 			#if UNITY_EDITOR
 			
-			if (Application.isPlaying)
-				throw new InvalidOperationException(
-					$"{nameof(Save)} can only be called from editor."
-				);
+			// NOTE: do not perform this check, since for example, fullstack
+			// tests pretend to run in play mode, yet they need to upload
+			// custom backends and tinker with unisave preferences.
+			// So really, it's up to the caller to not call this from a build.
+			//
+			// if (Application.isPlaying)
+			// 	throw new InvalidOperationException(
+			// 		$"{nameof(Save)} can only be called from editor."
+			// 	);
 			
 			// first, save editor preferences
 			SerializeEditorPrefsFields();

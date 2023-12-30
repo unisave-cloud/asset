@@ -6,6 +6,7 @@ using Unisave;
 using Unisave.Facets;
 using Unisave.Heapstore;
 using Unisave.Heapstore.Backend;
+using Unisave.Testing;
 using UnisaveFixture.Backend.Core;
 using UnisaveFixture.Backend.Core.Arango;
 using UnityEngine;

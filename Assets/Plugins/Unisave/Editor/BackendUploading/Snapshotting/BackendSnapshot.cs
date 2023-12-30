@@ -20,10 +20,18 @@ namespace Unisave.Editor.BackendUploading.Snapshotting
             BackendHash = hash;
         }
         
-        public static BackendSnapshot Take()
+        /// <summary>
+        /// Takes a snapshot of given backend folders. If null is provided,
+        /// then all backend definition files are loaded and processed
+        /// to locate the backend folders.
+        /// </summary>
+        /// <param name="backendFolders"></param>
+        /// <returns></returns>
+        public static BackendSnapshot Take(string[] backendFolders = null)
         {
             // list all backend folders
-            string[] backendFolders = ListBackendFolders();
+            if (backendFolders == null)
+                backendFolders = ListBackendFolders();
 
             // get list of files to be uploaded
             var files = new List<BackendFile>();

@@ -83,7 +83,15 @@ namespace Unisave.Editor.BackendUploading
         /// runtime refreshes the new assembly code and the upload gets killed
         /// half-way through.
         /// </param>
-        public void UploadBackend(bool verbose, bool blockThread)
+        /// <param name="snapshot">
+        /// An optional backend snapshot to be provided. If left at null,
+        /// a snapshot according to all backend definition files is taken.
+        /// </param>
+        public void UploadBackend(
+            bool verbose,
+            bool blockThread,
+            BackendSnapshot snapshot = null
+        )
         {
             RefreshPreferences();
             
@@ -102,7 +110,8 @@ namespace Unisave.Editor.BackendUploading
                 Debug.Log("[Unisave] Starting backend upload...");
             
             // recalculate backend hash and store it in preferences
-            var snapshot = BackendSnapshot.Take();
+            if (snapshot == null)
+                snapshot = BackendSnapshot.Take();
             StoreBackendHash(snapshot);
             
             preferences.LastBackendUploadAt = DateTime.Now;

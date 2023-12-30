@@ -62,33 +62,6 @@ def remove_marked_lines(lines: List[str]):
 fixture_path = "../Assets/UnisaveFixture/"
 templates_path = "../Assets/Plugins/Unisave/Templates/"
 
-# Email authentication
-print("\nEMAIL AUTHENTICATION")
-create_template(
-    fixture_path + "Backend/EmailAuthentication/EmailAuthUtils.cs",
-    templates_path + "EmailAuthentication/EmailAuthUtils.txt"
-)
-create_template(
-    fixture_path + "Backend/EmailAuthentication/EmailLoginFacet.cs",
-    templates_path + "EmailAuthentication/EmailLoginFacet.txt"
-)
-create_template(
-    fixture_path + "Backend/EmailAuthentication/EmailRegisterFacet.cs",
-    templates_path + "EmailAuthentication/EmailRegisterFacet.txt"
-)
-create_template(
-    fixture_path + "Backend/EmailAuthentication/EmailRegisterResponse.cs",
-    templates_path + "EmailAuthentication/EmailRegisterResponse.txt"
-)
-create_template(
-    fixture_path + "Scripts/EmailAuthentication/EmailLoginForm.cs",
-    templates_path + "EmailAuthentication/EmailLoginForm.txt"
-)
-create_template(
-    fixture_path + "Scripts/EmailAuthentication/EmailRegisterForm.cs",
-    templates_path + "EmailAuthentication/EmailRegisterForm.txt"
-)
-
 # Steam authentication
 print("\nSTEAM AUTHENTICATION")
 create_template(

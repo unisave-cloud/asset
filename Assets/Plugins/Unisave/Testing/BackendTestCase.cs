@@ -18,6 +18,7 @@ namespace Unisave.Testing
     /// <summary>
     /// Base class for Unisave backend tests
     /// </summary>
+    [Obsolete("Use fullstack fixtures instead. This hacking fails for broadcasting etc...")]
     public abstract partial class BackendTestCase
     {
         /// <summary>

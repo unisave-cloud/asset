@@ -109,12 +109,12 @@ namespace Unisave.EmailAuthentication
         /// <summary>
         /// Makes sure database collection assertions are run only once
         /// </summary>
-        private bool collectionsAlreadyAsserted = false;
+        protected bool collectionsAlreadyAsserted = false;
         
         /// <summary>
         /// Makes sure that necessary database collections are present.
         /// </summary>
-        public void AssertDatabaseCollections()
+        public virtual void AssertDatabaseCollections()
         {
             // run only once
             if (collectionsAlreadyAsserted) return;

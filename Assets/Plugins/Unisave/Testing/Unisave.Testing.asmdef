@@ -3,6 +3,7 @@
     "rootNamespace": "",
     "references": [
         "Unisave",
+        "Unisave.Editor",
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner"
     ],
