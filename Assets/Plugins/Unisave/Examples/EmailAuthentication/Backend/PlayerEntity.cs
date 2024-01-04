@@ -9,7 +9,9 @@ namespace Unisave.Examples.EmailAuthentication.Backend
         /// <summary>
         /// Email of the player
         /// </summary>
-        [DontLeaveServer]
+        // [DontLeaveServer]
+        //  \_ Should ideally also be hidden so that you don't leak the email
+        //     to other players. But it's left visible for this demo project.
         public string email;
         
         /// <summary>

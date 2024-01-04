@@ -206,7 +206,7 @@ namespace Unisave.EmailAuthentication
 
             // reset
             loginEmailField.text = "";
-            registerEmailField.text = "";
+            loginPasswordField.text = "";
             loginSpinner.SetActive(false);
             loginErrorText.gameObject.SetActive(false);
             loginErrorText.text = msgLoginFailedGeneric;
@@ -250,6 +250,10 @@ namespace Unisave.EmailAuthentication
             if (response.Success)
             {
                 onLoginSuccess?.Invoke(response);
+                
+                // reset to default looks
+                ShowLoginForm();
+                ForceRefreshElementSizes(loginForm);
             }
             else
             {
@@ -284,11 +288,15 @@ namespace Unisave.EmailAuthentication
                 playerAcceptsLegalTerms: registerLegalTermsToggle.isOn
             );
             
-            loginSpinner.SetActive(false);
+            registerSpinner.SetActive(false);
 
             if (response.Success)
             {
                 onRegistrationSuccess?.Invoke(response);
+                
+                // reset to default looks
+                ShowLoginForm();
+                ForceRefreshElementSizes(loginForm);
             }
             else
             {
