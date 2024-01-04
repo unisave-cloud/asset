@@ -1,13 +1,24 @@
 namespace Unisave.EmailAuthentication
 {
     /// <summary>
-    /// Possible results of player registration via email and password
+    /// Outcome of an email registration attempt
     /// </summary>
-    public enum EmailRegisterResponse
+    public class EmailRegisterResponse
     {
-        Ok = 0,
-        InvalidEmail = 1,
-        WeakPassword = 2,
-        EmailTaken = 3
+        /// <summary>
+        /// Specific status code for the result of the registration
+        /// </summary>
+        public EmailRegisterStatusCode StatusCode { get; set; }
+
+        /// <summary>
+        /// True if the registration was successful
+        /// </summary>
+        public bool Success => StatusCode == EmailRegisterStatusCode.Success;
+        
+        /// <summary>
+        /// ID of the registered (and now logged-in) unisave player
+        /// (null if registration fails)
+        /// </summary>
+        public string PlayerId { get; set; }
     }
 }

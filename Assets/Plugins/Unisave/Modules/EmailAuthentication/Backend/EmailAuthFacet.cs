@@ -23,14 +23,13 @@ namespace Unisave.EmailAuthentication
         /// </summary>
         /// <param name="email">Player's email</param>
         /// <param name="password">Player's password</param>
-        /// <returns>True when the login succeeds</returns>
-        public bool Login(string email, string password)
+        public EmailLoginResponse Login(string email, string password)
         {
             JsonObject player = FindPlayer(email);
 
             // player with this email does not exist, fail login
             if (player == null)
-                return false;
+                return EmailLoginResponse.Failure;
 
             // player does exist, but lacks the password field,
             // fail the login and log warning
@@ -43,13 +42,13 @@ namespace Unisave.EmailAuthentication
                         ["playerId"] = player["_id"].AsString
                     }
                 );
-                return false;
+                return EmailLoginResponse.Failure;
             }
 
             // if the password does not match, fail login
             string passwordHash = player[bootstrapper.PasswordField].AsString;
             if (!Hash.Check(password, passwordHash))
-                return false;
+                return EmailLoginResponse.Failure;
 
             // === login is successful ===
             
@@ -60,15 +59,25 @@ namespace Unisave.EmailAuthentication
             bootstrapper.PlayerHasLoggedIn(player["_id"].AsString);
 
             // signal success to the client
-            return true;
+            return new EmailLoginResponse {
+                Success = true,
+                PlayerId = player["_id"].AsString
+            };
         }
-        
+
         /// <summary>
         /// Call this from your registration form
         /// </summary>
         /// <param name="email">Player's email</param>
         /// <param name="password">Player's password</param>
-        public EmailRegisterResponse Register(string email, string password)
+        /// <param name="playerAcceptsLegalTerms">
+        /// Whether or not the player accepted legal terms of the registration
+        /// </param>
+        public EmailRegisterResponse Register(
+            string email,
+            string password,
+            bool playerAcceptsLegalTerms
+        )
         {
             if (email == null)
                 throw new ArgumentNullException(nameof(email));
@@ -79,15 +88,27 @@ namespace Unisave.EmailAuthentication
             // check email format validity
             string normalizedEmail = bootstrapper.NormalizeEmail(email);
             if (!bootstrapper.IsEmailValid(normalizedEmail))
-                return EmailRegisterResponse.InvalidEmail;
+                return new EmailRegisterResponse {
+                    StatusCode = EmailRegisterStatusCode.InvalidEmail
+                };
         
             // check password strength
             if (!bootstrapper.IsPasswordStrong(password))
-                return EmailRegisterResponse.WeakPassword;
+                return new EmailRegisterResponse {
+                    StatusCode = EmailRegisterStatusCode.WeakPassword
+                };
         
             // check if email still available
             if (FindPlayer(email) != null)
-                return EmailRegisterResponse.EmailTaken;
+                return new EmailRegisterResponse {
+                    StatusCode = EmailRegisterStatusCode.EmailTaken
+                };
+            
+            // check legal consent
+            if (!playerAcceptsLegalTerms)
+                return new EmailRegisterResponse {
+                    StatusCode = EmailRegisterStatusCode.LegalConsentRequired
+                };
         
             // register the player
             string hashedPassword = Hash.Make(password);
@@ -136,7 +157,10 @@ namespace Unisave.EmailAuthentication
             
             bootstrapper.PlayerHasRegistered(playerId);
         
-            return EmailRegisterResponse.Ok;
+            return new EmailRegisterResponse {
+                StatusCode = EmailRegisterStatusCode.Success,
+                PlayerId = playerId
+            };
         }
 
         /// <summary>

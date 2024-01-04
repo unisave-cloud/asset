@@ -21,10 +21,11 @@ namespace UnisaveFixture.EmailAuthentication
             => Asyncize.UnityTest(async () =>
         {
             EmailRegisterResponse response = await caller.CallFacet(
-                (EmailAuthFacet f) => f.Register("JOHN@doe.com", "password")
+                (EmailAuthFacet f) => f.Register("JOHN@doe.com", "password", true)
             );
             
-            Assert.AreEqual(EmailRegisterResponse.Ok, response);
+            Assert.AreEqual(EmailRegisterStatusCode.Success, response.StatusCode);
+            Assert.IsNotNull(response.PlayerId);
 
             PlayerEntity player = await caller.DB_QueryFirst<PlayerEntity>(
                 @"FOR player IN players LIMIT 1 RETURN player"
@@ -32,6 +33,7 @@ namespace UnisaveFixture.EmailAuthentication
             Assert.IsNotNull(player);
             Assert.AreEqual("john@doe.com", player.email);
             Assert.IsTrue(Hash.Check("password", player.password));
+            Assert.AreEqual(player.EntityId, response.PlayerId);
         });
         
         [UnityTest]
@@ -45,10 +47,12 @@ namespace UnisaveFixture.EmailAuthentication
             await caller.Entity_Save(player);
             
             EmailRegisterResponse response = await caller.CallFacet(
-                (EmailAuthFacet f) => f.Register("JOHN@doe.com", "password")
+                (EmailAuthFacet f) => f.Register("JOHN@doe.com", "password", true)
             );
         
-            Assert.AreEqual(EmailRegisterResponse.EmailTaken, response);
+            Assert.AreEqual(EmailRegisterStatusCode.EmailTaken, response.StatusCode);
+            Assert.IsFalse(response.Success);
+            Assert.IsNull(response.PlayerId);
 
             var players = await caller.DB_QueryGet<PlayerEntity>(
                 @"FOR player IN players RETURN player"
@@ -65,10 +69,12 @@ namespace UnisaveFixture.EmailAuthentication
             => Asyncize.UnityTest(async () =>
         {
             EmailRegisterResponse response = await caller.CallFacet(
-                (EmailAuthFacet f) => f.Register("john_doe.com", "password")
+                (EmailAuthFacet f) => f.Register("john_doe.com", "password", true)
             );
     
-            Assert.AreEqual(EmailRegisterResponse.InvalidEmail, response);
+            Assert.AreEqual(EmailRegisterStatusCode.InvalidEmail, response.StatusCode);
+            Assert.IsFalse(response.Success);
+            Assert.IsNull(response.PlayerId);
             
             PlayerEntity player = await caller.DB_QueryFirst<PlayerEntity>(
                 @"FOR player IN players LIMIT 1 RETURN player"
@@ -81,11 +87,31 @@ namespace UnisaveFixture.EmailAuthentication
             => Asyncize.UnityTest(async () =>
         {
             EmailRegisterResponse response = await caller.CallFacet(
-                (EmailAuthFacet f) => f.Register("john@doe.com", "")
+                (EmailAuthFacet f) => f.Register("john@doe.com", "", true)
             );
 
-            Assert.AreEqual(EmailRegisterResponse.WeakPassword, response);
+            Assert.AreEqual(EmailRegisterStatusCode.WeakPassword, response.StatusCode);
+            Assert.IsFalse(response.Success);
+            Assert.IsNull(response.PlayerId);
         
+            PlayerEntity player = await caller.DB_QueryFirst<PlayerEntity>(
+                @"FOR player IN players LIMIT 1 RETURN player"
+            );
+            Assert.IsNull(player);
+        });
+        
+        [UnityTest]
+        public IEnumerator LegalTermsHaveToBeAccepted()
+            => Asyncize.UnityTest(async () =>
+        {
+            EmailRegisterResponse response = await caller.CallFacet(
+                (EmailAuthFacet f) => f.Register("john@doe.com", "password", false)
+            );
+
+            Assert.AreEqual(EmailRegisterStatusCode.LegalConsentRequired, response.StatusCode);
+            Assert.IsFalse(response.Success);
+            Assert.IsNull(response.PlayerId);
+    
             PlayerEntity player = await caller.DB_QueryFirst<PlayerEntity>(
                 @"FOR player IN players LIMIT 1 RETURN player"
             );

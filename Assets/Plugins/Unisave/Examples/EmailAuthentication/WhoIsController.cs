@@ -31,26 +31,26 @@ namespace Unisave.Examples.EmailAuthentication
 
         private async void WhoIsButtonClicked()
         {
-            var player = await OnFacet<WhoIsFacet>.CallAsync<PlayerEntity>(
-                nameof(WhoIsFacet.WhoIsLoggedIn)
-            );
-
-            if (player == null)
-                Debug.Log("There is no logged in player.");
-            else
-                Debug.Log("The logged in player is: " + player.email);
+            // var player = await OnFacet<PlayerDataFacet>.CallAsync<PlayerEntity>(
+            //     nameof(PlayerDataFacet.WhoIsLoggedIn)
+            // );
+            //
+            // if (player == null)
+            //     Debug.Log("There is no logged in player.");
+            // else
+            //     Debug.Log("The logged in player is: " + player.email);
         }
         
         private async void CallGuardedButtonClicked()
         {
-            Debug.Log(
-                "Calling the guarded method...\n" +
-                "This will fail if no player is authenticated."
-            );
-            
-            await OnFacet<WhoIsFacet>.CallAsync(
-                nameof(WhoIsFacet.GuardedMethod)
-            );
+            // Debug.Log(
+            //     "Calling the guarded method...\n" +
+            //     "This will fail if no player is authenticated."
+            // );
+            //
+            // await OnFacet<PlayerDataFacet>.CallAsync(
+            //     nameof(PlayerDataFacet.GuardedMethod)
+            // );
         }
     }
 }

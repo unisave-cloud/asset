@@ -21,11 +21,12 @@ namespace UnisaveFixture.EmailAuthentication
         public IEnumerator UnknownCredentialsGetRejected()
             => Asyncize.UnityTest(async () =>
         {
-            bool response = await caller.CallFacet(
+            var response = await caller.CallFacet(
                 (EmailAuthFacet f) => f.Login("john@doe.com", "secret")
             );
             
-            Assert.IsFalse(response);
+            Assert.IsFalse(response.Success);
+            Assert.IsNull(response.PlayerId);
             Assert.IsFalse(await caller.Auth_Check());
         });
         
@@ -40,11 +41,12 @@ namespace UnisaveFixture.EmailAuthentication
                 }
             );
             
-            bool response = await caller.CallFacet(
+            var response = await caller.CallFacet(
                 (EmailAuthFacet f) => f.Login("john@doe.com", "secret")
             );
             
-            Assert.IsFalse(response);
+            Assert.IsFalse(response.Success);
+            Assert.IsNull(response.PlayerId);
             Assert.IsFalse(await caller.Auth_Check());
         });
 
@@ -59,11 +61,12 @@ namespace UnisaveFixture.EmailAuthentication
                 }
             );
 
-            bool response = await caller.CallFacet(
+            var response = await caller.CallFacet(
                 (EmailAuthFacet f) => f.Login("john@doe.com", "secret")
             );
 
-            Assert.IsTrue(response);
+            Assert.IsTrue(response.Success);
+            Assert.IsNotNull(response.PlayerId);
             Assert.IsTrue(await caller.Auth_Check());
             Assert.AreEqual(
                 "john@doe.com",
@@ -82,11 +85,12 @@ namespace UnisaveFixture.EmailAuthentication
                 }
             );
 
-            bool response = await caller.CallFacet(
+            var response = await caller.CallFacet(
                 (EmailAuthFacet f) => f.Login("  JoHn@DoE.CoM   ", "secret")
             );
 
-            Assert.IsTrue(response);
+            Assert.IsTrue(response.Success);
+            Assert.IsNotNull(response.PlayerId);
             Assert.IsTrue(await caller.Auth_Check());
             Assert.AreEqual(
                 "john@doe.com",
@@ -105,11 +109,12 @@ namespace UnisaveFixture.EmailAuthentication
                 }
             );
 
-            bool response = await caller.CallFacet(
+            var response = await caller.CallFacet(
                 (EmailAuthFacet f) => f.Login("JoHn@DoE.CoM", "secret")
             );
 
-            Assert.IsTrue(response);
+            Assert.IsTrue(response.Success);
+            Assert.IsNotNull(response.PlayerId);
             Assert.IsTrue(await caller.Auth_Check());
             Assert.AreEqual(
                 "JoHn@DoE.CoM",
@@ -128,10 +133,11 @@ namespace UnisaveFixture.EmailAuthentication
             };
             await caller.Entity_Save(player);
 
-            bool response = await caller.CallFacet(
+            var response = await caller.CallFacet(
                 (EmailAuthFacet f) => f.Login("john@doe.com", "secret")
             );
-            Assert.IsTrue(response);
+            Assert.IsTrue(response.Success);
+            Assert.AreEqual(player.EntityId, response.PlayerId);
             
             var timeBefore = player.lastLoginAt;
             await caller.Entity_Refresh(player);
