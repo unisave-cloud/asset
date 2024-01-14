@@ -39,7 +39,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
                 Application.OpenURL("https://discord.gg/XV696Tp");
             };
             root.Q<Button>(name: "link-pricing").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/#pricing");
+                Application.OpenURL("https://unisave.cloud/pricing");
             };
             
             // === Checklist items ===
