@@ -24,8 +24,22 @@ namespace Unisave.Facets
             return CallFacet(null, lambda);
         }
         
+        public static UnisaveOperation CallFacet<TFacet>(
+            Expression<Func<TFacet, Task>> lambda
+        ) where TFacet : Facet
+        {
+            return CallFacet(null, lambda);
+        }
+        
         public static UnisaveOperation<TReturn> CallFacet<TFacet, TReturn>(
             Expression<Func<TFacet, TReturn>> lambda
+        ) where TFacet : Facet
+        {
+            return CallFacet(null, lambda);
+        }
+        
+        public static UnisaveOperation<TReturn> CallFacet<TFacet, TReturn>(
+            Expression<Func<TFacet, Task<TReturn>>> lambda
         ) where TFacet : Facet
         {
             return CallFacet(null, lambda);
@@ -50,9 +64,49 @@ namespace Unisave.Facets
             return new UnisaveOperation(caller, task);
         }
         
+        public static UnisaveOperation CallFacet<TFacet>(
+            this MonoBehaviour caller,
+            Expression<Func<TFacet, Task>> lambda
+        ) where TFacet : Facet
+        {
+            ArgumentException lambdaException = ParseLambda(
+                lambda,
+                out MethodInfo method,
+                out object[] arguments
+            );
+
+            if (lambdaException != null)
+                throw lambdaException;
+
+            Task task = Caller.CallFacetMethodAsync(method, arguments);
+
+            return new UnisaveOperation(caller, task);
+        }
+        
         public static UnisaveOperation<TReturn> CallFacet<TFacet, TReturn>(
             this MonoBehaviour caller,
             Expression<Func<TFacet, TReturn>> lambda
+        ) where TFacet : Facet
+        {
+            ArgumentException lambdaException = ParseLambda(
+                lambda,
+                out MethodInfo method,
+                out object[] arguments
+            );
+
+            if (lambdaException != null)
+                throw lambdaException;
+
+            Task<TReturn> task = Caller.CallFacetMethodAsync<TReturn>(
+                method, arguments
+            );
+
+            return new UnisaveOperation<TReturn>(caller, task);
+        }
+        
+        public static UnisaveOperation<TReturn> CallFacet<TFacet, TReturn>(
+            this MonoBehaviour caller,
+            Expression<Func<TFacet, Task<TReturn>>> lambda
         ) where TFacet : Facet
         {
             ArgumentException lambdaException = ParseLambda(
@@ -158,7 +212,7 @@ namespace Unisave.Facets
 
                 facetCaller.CallFacetMethod(
                     method.DeclaringType,
-                    method.ReturnType,
+                    typeof(TReturn), // ignore MethodInfo because of Task<T>
                     method.Name,
                     arguments
                 )

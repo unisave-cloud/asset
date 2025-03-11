@@ -51,26 +51,6 @@ namespace UnisaveFixture.Core.Facets
         });
         
         [UnityTest]
-        public IEnumerator ItTransportsExceptions()
-            => Asyncize.UnityTest(async () =>
-        {
-            string message = "Lorem ipsum dolor sit...";
-
-            try
-            {
-                await caller.CallFacet(
-                    (MyFacet f) => f.ThrowsExceptionWithMessage(message)
-                );
-                
-                Assert.Fail("Method has not thrown an exception.");
-            }
-            catch (Exception e)
-            {
-                Assert.AreEqual(message, e.Message);
-            }
-        });
-        
-        [UnityTest]
         public IEnumerator ItSendsJsonToAndFromMethod()
             => Asyncize.UnityTest(async () =>
         {
@@ -83,6 +63,26 @@ namespace UnisaveFixture.Core.Facets
             );
             
             Assert.AreEqual(sent.ToString(), received.ToString());
+        });
+        
+        [UnityTest]
+        public IEnumerator ItTransportsExceptions()
+            => Asyncize.UnityTest(async () =>
+        {
+            string message = "Lorem ipsum dolor sit...";
+
+            try
+            {
+                await caller.CallFacet(
+                    (MyFacet f) => f.ThrowsExceptionWithMessage(message)
+                );
+            
+                Assert.Fail("Method has not thrown an exception.");
+            }
+            catch (Exception e)
+            {
+                Assert.AreEqual(message, e.Message);
+            }
         });
         
         // NOTE: there used to be PHP in the proxy-stack in the early days,
