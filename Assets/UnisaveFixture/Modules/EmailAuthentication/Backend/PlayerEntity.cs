@@ -1,7 +1,7 @@
 using System;
 using Unisave.Entities;
 
-namespace UnisaveFixture.EmailAuthentication.Backend
+namespace UnisaveFixture.Modules.EmailAuthentication.Backend
 {
     [EntityCollectionName("players")]
     public class PlayerEntity : Entity

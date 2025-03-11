@@ -30,7 +30,7 @@ This is the folder structure of the Unity asset:
         - UnisavePreferencesFile.json
             > Contains configuration data
     - UnisaveFixture
-        > Contains automated tests. See the README.md inside.
+        > Contains automated tests. See the `Unisave fixture test suite` docs.
 ```
 
 The important folder is `Assets/Unisave/Scripts` which contains the code

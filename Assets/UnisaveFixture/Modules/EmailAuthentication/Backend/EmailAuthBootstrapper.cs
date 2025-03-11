@@ -2,7 +2,7 @@ using System;
 using Unisave.EmailAuthentication;
 using Unisave.Facades;
 
-namespace UnisaveFixture.EmailAuthentication.Backend
+namespace UnisaveFixture.Modules.EmailAuthentication.Backend
 {
     public class EmailAuthBootstrapper : EmailAuthBootstrapperBase
     {

@@ -4,17 +4,17 @@ using Unisave.EmailAuthentication;
 using Unisave.Facets;
 using Unisave.Testing;
 using Unisave.Utils;
-using UnisaveFixture.EmailAuthentication.Backend;
+using UnisaveFixture.Modules.EmailAuthentication.Backend;
 using UnityEngine.TestTools;
 
-namespace UnisaveFixture.EmailAuthentication
+namespace UnisaveFixture.Modules.EmailAuthentication
 {
     [TestFixture]
     public class EmailLoginTest : FullstackFixture
     {
         protected override string[] BackendFolders => new string[] {
             "Assets/Plugins/Unisave/Modules/EmailAuthentication/Backend",
-            "Assets/UnisaveFixture/EmailAuthentication/Backend"
+            "Assets/UnisaveFixture/Modules/EmailAuthentication/Backend"
         };
         
         [UnityTest]

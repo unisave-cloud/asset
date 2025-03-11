@@ -133,6 +133,8 @@ namespace Unisave.Facets
                 // that would break the business logic
                 if (arg is JsonObject)
                     scope = typeof(JsonObject);
+                else if (arg is JsonValue)
+                    scope = typeof(JsonValue);
                 
                 jsonArgs.Add(
                     Serializer.ToJson(
