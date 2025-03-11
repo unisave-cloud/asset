@@ -29,6 +29,7 @@ After cloning do:
 3. Install required Unity packages in `Window > Package Manager` in `Packages: Unity Registry`:
     - `TextMeshPro` (so that examples compile)
     - `Test Framework` (so that tests compile and run)
+    - `JetBrains Rider Editor` (so that csproj and sln files are generated and Rider works well)
     - If some package installation fails, just restart Unity and retry.
     - Restart Unity once all are installed, if errors don't disappear right away.
 5. Set up Unisave cloud connection (ideally to the minikube cluster) so that examples and unit test can be run.
@@ -39,7 +40,7 @@ Optional:
 1. Import Text Mesh Pro `Window > TextMeshPro > Import TMP Essential Resources` so that examples work.
 2. Enable `Heapstore` backend definition file to run its tests as well (this option is remembered in PlayerPrefs only).
 
-Once this is done, you can try running all the tests. Open `Window > General > Test Runner` and select the `Play Mode` tab. You should see all the tests. To try out the connection, run the `UnisaveFixture.ExampleFullstackTest.ItCallsFacetMethod` by double-cliking on it. Then double-click the root node to run all the tests.
+Once this is done, you can try running all the tests. Open `Window > General > Test Runner` and select the `Play Mode` tab. You should see all the tests. To try out the connection, run the `UnisaveFixture.ExampleFullstackTest.ItCallsFacetMethod` by double-clicking on it. Then double-click the root node to run all the tests.
 
 > **Note:** To kill running tests, click on the `[>]` play button.
 
