@@ -3,6 +3,7 @@ using System.Linq;
 using NUnit.Framework;
 using Unisave.Editor.BackendUploading;
 using Unisave.Editor.BackendUploading.Snapshotting;
+using Unisave.Facades;
 using Unisave.Foundation;
 using UnityEngine;
 using UnityEngine.TestTools;
@@ -68,6 +69,10 @@ namespace Unisave.Testing
             // restore the stashed preferences
             stashedPreferences.Save();
             UnisavePreferences.Resolve(bustCache: true);
+            
+            // clear the client application so that in subsequent requests,
+            // it will be re-created from these restored preferences
+            ClientFacade.SetApplication(null);
             
             // destroy the caller
             Object.DestroyImmediate(callerGameObject);

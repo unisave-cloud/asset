@@ -43,5 +43,3 @@ Optional:
 Once this is done, you can try running all the tests. Open `Window > General > Test Runner` and select the `Play Mode` tab. You should see all the tests. To try out the connection, run the `UnisaveFixture.ExampleFullstackTest.ItCallsFacetMethod` by double-clicking on it. Then double-click the root node to run all the tests.
 
 > **Note:** To kill running tests, click on the `[>]` play button.
-
-> **Note:** Email auth tests do some funky stuff with the backend folder, so run those separately and not as parts of one global run otherwise all the other tests will fail. See the backend hashes on the made facet calls.
