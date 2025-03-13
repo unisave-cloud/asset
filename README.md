@@ -13,6 +13,7 @@ If you just want to use Unisave, please refer to the online documentation on the
 
 ## Documentation
 
+- [Development setup](docs/development-setup.md)
 - [Folder structure](docs/folder-structure.md)
 - [Code architecture](docs/code-architecture.md)
 - [Unisave fixture test suite](docs/unisave-fixture-test-suite.md)
@@ -44,3 +45,8 @@ Optional:
 Once this is done, you can try running all the tests. Open `Window > General > Test Runner` and select the `Play Mode` tab. You should see all the tests. To try out the connection, run the `UnisaveFixture.ExampleFullstackTest.ItCallsFacetMethod` by double-clicking on it. Then double-click the root node to run all the tests.
 
 > **Note:** To kill running tests, click on the `[>]` play button.
+
+
+## Development
+
+See the [Development setup](docs/development-setup.md) documentation page.
