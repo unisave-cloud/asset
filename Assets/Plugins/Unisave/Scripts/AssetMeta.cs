@@ -8,7 +8,7 @@ namespace Unisave
         /// <summary>
         /// Version of the asset
         /// </summary>
-        public static readonly string Version = "0.14.0-dev";
+        public static readonly string Version = "0.14.0";
         
         /// <summary>
         /// UTM link tracking parameters when redirecting to the website
