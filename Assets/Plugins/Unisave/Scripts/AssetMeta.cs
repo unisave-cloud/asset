@@ -9,5 +9,11 @@ namespace Unisave
         /// Version of the asset
         /// </summary>
         public static readonly string Version = "0.14.0-dev";
+        
+        /// <summary>
+        /// UTM link tracking parameters when redirecting to the website
+        /// </summary>
+        public static readonly string LinkUtmParams
+            = "utm_source=unisave&utm_medium=unisave_asset";
     }
 }

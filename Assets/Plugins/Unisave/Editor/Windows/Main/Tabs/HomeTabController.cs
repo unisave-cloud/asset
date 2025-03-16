@@ -30,16 +30,22 @@ namespace Unisave.Editor.Windows.Main.Tabs
             // === Quick link buttons ===
             
             root.Q<Button>(name: "link-guides").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/guides");
+                Application.OpenURL(
+                    "https://unisave.cloud/guides?" + AssetMeta.LinkUtmParams
+                );
             };
             root.Q<Button>(name: "link-documentation").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/docs");
+                Application.OpenURL(
+                    "https://unisave.cloud/docs?" + AssetMeta.LinkUtmParams
+                );
             };
             root.Q<Button>(name: "link-discord").clicked += () => {
                 Application.OpenURL("https://discord.gg/XV696Tp");
             };
             root.Q<Button>(name: "link-pricing").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/pricing");
+                Application.OpenURL(
+                    "https://unisave.cloud/pricing?" + AssetMeta.LinkUtmParams
+                );
             };
             
             // === Checklist items ===
@@ -50,7 +56,9 @@ namespace Unisave.Editor.Windows.Main.Tabs
             // === Checklist buttons ===
             
             root.Q<Button>(name: "cb-register").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/register");
+                Application.OpenURL(
+                    "https://unisave.cloud/register?" + AssetMeta.LinkUtmParams
+                );
             };
             root.Q<Button>(name: "cb-connection-tab").clicked += () => {
                 UnisaveMainWindow.ShowTab(MainWindowTab.Connection);
@@ -62,22 +70,26 @@ namespace Unisave.Editor.Windows.Main.Tabs
             };
             root.Q<Button>(name: "cb-ex-email-auth").clicked += () => {
                 EditorSceneManager.OpenScene(
-                    "Assets/Plugins/Unisave/Examples/PlayerAuthentication/" +
-                    "PlayerAuthentication.unity"
+                    "Assets/Plugins/Unisave/Examples/EmailAuthentication/" +
+                    "EmailAuthentication.unity"
                 );
             };
             root.Q<Button>(name: "cb-storing-player-data").clicked += () => {
                 Application.OpenURL(
                     "https://unisave.cloud/guides/" +
-                    "how-to-store-player-data-online-with-unity"
+                    "how-to-store-player-data-online-with-unity?"
+                    + AssetMeta.LinkUtmParams
                 );
             };
             root.Q<Button>(name: "cb-sending-emails").clicked += () => {
-                Application.OpenURL("https://unisave.cloud/docs/mail");
+                Application.OpenURL(
+                    "https://unisave.cloud/docs/mail?" + AssetMeta.LinkUtmParams
+                );
             };
             root.Q<Button>(name: "cb-steam-microtransactions").clicked += () => {
                 Application.OpenURL(
-                    "https://unisave.cloud/docs/steam-microtransactions"
+                    "https://unisave.cloud/docs/steam-microtransactions?"
+                        + AssetMeta.LinkUtmParams
                 );
             };
             
