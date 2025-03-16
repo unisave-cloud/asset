@@ -10,8 +10,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: ef2675ea11414f439b3a17054ad49dc5, type: 3}
-  m_Name: ChatExampleBackend
+  m_Name: Heapstore
   m_EditorClassIdentifier: 
-  uploadBehaviour: check-scenes
-  scenesToCheck:
-  - {fileID: 102900000, guid: a081c9d5118f77a6787e1021987c8479, type: 3}
+  uploadBehaviour: check-preferences
+  scenesToCheck: []
+  unisavePreferencesKey: Unisave.Heapstore

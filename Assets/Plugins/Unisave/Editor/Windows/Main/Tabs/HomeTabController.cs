@@ -70,8 +70,8 @@ namespace Unisave.Editor.Windows.Main.Tabs
             };
             root.Q<Button>(name: "cb-ex-email-auth").clicked += () => {
                 EditorSceneManager.OpenScene(
-                    "Assets/Plugins/Unisave/Examples/EmailAuthentication/" +
-                    "EmailAuthentication.unity"
+                    "Assets/Plugins/Unisave/Examples/LoginViaEmail/" +
+                    "LoginViaEmail.unity"
                 );
             };
             root.Q<Button>(name: "cb-storing-player-data").clicked += () => {
