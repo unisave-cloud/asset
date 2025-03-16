@@ -19,6 +19,7 @@ namespace Unisave.Editor.Windows.Main.Tabs
         private readonly VisualElement root;
 
         private readonly Uploader uploader = Uploader.Instance;
+        private bool hasRegisteredEventListeners = false;
 
         private Toggle automaticUploadToggle;
         private Button manualUploadButton;
@@ -82,20 +83,36 @@ namespace Unisave.Editor.Windows.Main.Tabs
             root.Q<Button>(className: "add-backend-folder__button").clicked
                 += AddExistingBackendFolder;
             
-            BackendFolderDefinition.OnAnyChange += OnObserveExternalState;
-            uploader.OnStateChange += OnObserveExternalState;
+            // === Events ===
             
-            // === Other ===
+            RegisterEventListeners();
             
-            root.RegisterCallback<DetachFromPanelEvent>(e => {
-                OnDetachFromPanel();
-            });
+            root.RegisterCallback<AttachToPanelEvent>(
+                _ => RegisterEventListeners()
+            );
+            root.RegisterCallback<DetachFromPanelEvent>(
+                _ => RemoveEventListeners()
+            );
         }
 
-        private void OnDetachFromPanel()
+        private void RegisterEventListeners()
         {
+            if (hasRegisteredEventListeners)
+                return;
+            
+            BackendFolderDefinition.OnAnyChange += OnObserveExternalState;
+            uploader.OnStateChange += OnObserveExternalState;
+            hasRegisteredEventListeners = true;
+        }
+
+        private void RemoveEventListeners()
+        {
+            if (!hasRegisteredEventListeners)
+                return;
+            
             BackendFolderDefinition.OnAnyChange -= OnObserveExternalState;
             uploader.OnStateChange -= OnObserveExternalState;
+            hasRegisteredEventListeners = false;
         }
 
         // ReSharper disable Unity.PerformanceAnalysis
