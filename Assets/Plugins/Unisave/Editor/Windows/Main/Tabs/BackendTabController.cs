@@ -261,6 +261,10 @@ namespace Unisave.Editor.Windows.Main.Tabs
 		
         void RunManualCodeUpload()
         {
+            // in case there are unsaved changes to the state,
+            // save them now so that the uploader has access to them
+            OnWriteExternalState();
+            
             uploader.UploadBackend(
                 verbose: true,
                 blockThread: false

@@ -10,7 +10,7 @@ namespace Unisave.Editor.BackendUploading.Hooks
     {
         /// <summary>
         /// Called often, whenever the backend definition files structure
-        /// might have been a modified.
+        /// might have been modified.
         /// </summary>
         public static void OnBackendFolderStructureChange()
         {
