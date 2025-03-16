@@ -14,8 +14,21 @@ namespace Unisave.Editor.BackendUploading.Hooks
         /// </summary>
         public static void OnBackendFolderStructureChange()
         {
-            // perform the same backend upload checks as in assembly compilation
-            OnAssemblyCompilationFinished();
+            var uploader = Uploader.Instance;
+
+            if (!CanTriggerAutoUpload(uploader))
+                return;
+            
+            // if there already is a running upload, cancel it
+            // uploader.CancelRunningUpload();
+            // NOTE: first, the server has to recover from failed mid-way
+            // uploaded backends. Second, the cancellation has to be handled
+            // more gracefully than being killed by an exception (TaskCancelledEx).
+            
+            uploader.UploadBackend(
+                verbose: false,
+                blockThread: false // can run asynchronously
+            );
         }
         
         /// <summary>
@@ -27,26 +40,35 @@ namespace Unisave.Editor.BackendUploading.Hooks
         {
             var uploader = Uploader.Instance;
 
+            if (!CanTriggerAutoUpload(uploader))
+                return;
+            
+            uploader.UploadBackend(
+                verbose: false,
+                blockThread: true // MUST run synchronously
+                // otherwise the upload starts but then unity swaps out the
+                // compiled assembly and the upload never finishes
+            );
+        }
+
+        private static bool CanTriggerAutoUpload(Uploader uploader)
+        {
             // disabled automatic uploading -> do nothing
             if (!uploader.AutomaticUploadingEnabled)
-                return;
+                return false;
             
             // no cloud connection -> do nothing
             if (!uploader.IsCloudConnectionSetUp)
-                return;
+                return false;
             
             // recalculate hash and save it in the preferences file
             bool upload = uploader.RecalculateBackendHash();
             
             // if no upload needed, do nothing
             if (!upload)
-                return;
-            
-            // run the upload
-            uploader.UploadBackend(
-                verbose: false,
-                blockThread: true
-            );
+                return false;
+
+            return true;
         }
 
         /// <summary>
