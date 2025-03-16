@@ -16,13 +16,16 @@
 ## Deploying new version to GitHub (15 - 30 min)
 
 - Update the `Documentation.pdf` file in `Assets/Plugins/Unisave`.
-- Eemove the `-dev` suffix and commit the new version to github (or make a `-rc.1` release candidate)
+- Remove the `-dev` suffix and commit the new version to github (or make a `-rc.1` release candidate)
 - Close the Unity Editor
 - Create *export-copy* of the folder
-    - `bash scripts/prepare-export.sh`
+    - `~/unisave/asset$ bash scripts/prepare-export.sh`
+    - (otherwise UnisaveFixture gets included in the exported package)
 - Open `asset-for-export` in Unity Editor
 - Go to the `Assets/Plugins` folder, right-click the `Unisave` folder and choose `Export package...`
-- Select all files, export into downloads folder and name it `unisave-asset-1.2.3-alpha.unitypackage`
+- Select all files (include dependencies), export into downloads folder and name it `unisave-asset-1.2.3-alpha.unitypackage`
+- Import it into a blank project in the latest Unity and check the flow
+    - Go through the checklist in the unisave window
 - Create a github release page and attach the `.unitypackage` there
 
 

@@ -326,12 +326,9 @@ namespace Unisave.Foundation
 		}
 
 		/// <summary>
-		/// Saves preferences. Should only be called from inside the editor.
+		/// Saves preferences. Only works when called from the editor.
+		/// Does nothing in runtime.
 		/// </summary>
-		/// <param name="ensureInEditor">
-		/// When true, the method checks that it's only being executed
-		/// from the Unity editor and not the built game.
-		/// </param>
 		public void Save()
 		{
 			#if DEBUG_UNISAVE_PREFERENCES
@@ -368,13 +365,14 @@ namespace Unisave.Foundation
 				json.ToString(pretty: true),
 				Encoding.UTF8
 			);
+			
+			// trigger Unity to find out that the file has a different content,
+			// to make sure Unity plays nice with our direct file modification
+			// (not expensive, Unity calls this with each editor re-focus)
+			UnityEditor.AssetDatabase.Refresh();
 
 			if (wasCreated)
 			{
-				// make sure the file and folder show up
-				// in the Unity assets window and the metafile is created
-				UnityEditor.AssetDatabase.Refresh();
-				
 				Debug.Log(
 					"[Unisave] Unisave preferences file was " +
 					"created at " + PreferencesFilePath
