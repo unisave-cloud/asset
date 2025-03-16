@@ -10,5 +10,11 @@ rm -rf ./asset-for-export
 cp -r ./asset ./asset-for-export
 cd ./asset-for-export
 
+# remove resources
+rm -r ./Assets/Resources*
+
 # remove unisave fixture
 rm -r ./Assets/UnisaveFixture*
+
+# remove TextMesh Pro
+rm -r ./Assets/TextMesh Pro*
