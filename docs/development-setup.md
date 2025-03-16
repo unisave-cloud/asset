@@ -31,10 +31,11 @@
 
 ## Deploying further to the asset store
 
-- Install *Asset Store Publishing Tools* in the `asset-for-export` project (from "my assets")
-- Open menu `Asset Store Tools > Asset Store Uploader` and log in
+- Install *Asset Store Publishing Tools* in the `asset-for-export` project
+    - from `My Assets` package group
+- Open menu `Tools > Asset Store > Uploader` and log in
 - Open the asset in the publisher portal (https://publisher.unity.com/) and click the blue button `Create new draft to edit`
-- Eefresh the upload tools and select the draft
+- Refresh the upload tools and select the draft
 - Select "upload from pre-exported .unitypackage file" and select the file that was uploaded to github
 - Upload the package
 - Ignore the popup stating you need newer version of unity (yes for new uploads, not for updates)
