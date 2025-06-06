@@ -95,12 +95,13 @@ namespace Unisave.Facets
 		/// <summary>
 		/// The HTTP response was 200
 		/// </summary>
-		private void HandleSuccessfulRequest(
+		private async void HandleSuccessfulRequest(
 			Response response,
 			Promise<JsonValue> promise
 		)
 		{
-			JsonObject executionResult = response["executionResult"];
+			JsonObject jsonBody = await response.JsonAsync() ?? new JsonObject();
+			JsonObject executionResult = jsonBody["executionResult"];
 
 			JsonObject specialValues = executionResult["special"].AsJsonObject
 			                           ?? new JsonObject();
@@ -132,7 +133,7 @@ namespace Unisave.Facets
 					promise.Reject(
 						new UnisaveException(
 							"Server sent unknown response for facet call:\n"
-							+ response.Body()
+							+ await response.BodyAsync()
 						)
 					);
 					break;
@@ -142,14 +143,14 @@ namespace Unisave.Facets
 		/// <summary>
 		/// The HTTP response wasn't 200
 		/// </summary>
-		private void HandleFailedRequest(
+		private async void HandleFailedRequest(
 			Response response,
 			Promise<JsonValue> promise
 		)
 		{
 			var e = new HttpRequestException(
 				$"[Status {response.Status}] Facet call failed:\n" +
-				response.Body()
+				await response.BodyAsync()
 			);
 			
 			promise.Reject(e);
