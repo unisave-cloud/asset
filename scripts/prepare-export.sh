@@ -17,4 +17,4 @@ rm -rf ./Assets/Resources*
 rm -rf ./Assets/UnisaveFixture*
 
 # remove TextMesh Pro
-rm -rf ./Assets/TextMesh Pro*
+rm -rf "./Assets/TextMesh Pro*"
