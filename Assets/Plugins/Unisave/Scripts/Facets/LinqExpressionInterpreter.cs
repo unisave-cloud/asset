@@ -92,7 +92,7 @@ namespace Unisave.Facets
                 return node.Method.Invoke(null, new[] {operand});
             
             
-            // === Interpret upcasting and (un)boxing conversions ===
+            // === Interpret (up/down)casting and (un)boxing conversions ===
 
             if (node.NodeType == ExpressionType.Convert)
             {
@@ -113,6 +113,10 @@ namespace Unisave.Facets
                 // (do nothing and it will happen later, since I return object)
                 if (node.Operand.Type == typeof(object))
                     return operand;
+                
+                // pass any unmatched conversion onto the Convert class,
+                // which handles all numeric conversions
+                return Convert.ChangeType(operand, node.Type);
             }
             
             
@@ -124,6 +128,8 @@ namespace Unisave.Facets
             
             switch (node.NodeType)
             {
+                // this block has been partially replaced and fine-tuned
+                // by the casting and boxing if-block above
                 case ExpressionType.Convert:
                 case ExpressionType.ConvertChecked:
                     return Convert.ChangeType(operand, node.Type);

@@ -134,6 +134,35 @@ namespace UnisaveFixture.Tests.Unit
         }
 
         [Test]
+        public void CastingNumericTypes()
+        {
+            // up-casting a byte to int
+            byte myByte = 42;
+            Assert.AreEqual(
+                (int)myByte,
+                InterpretValue(() => (int)myByte)
+            );
+            
+            // down-casting an int to byte
+            Assert.AreEqual(
+                (byte)42,
+                InterpretValue(() => (byte)42)
+            );
+            
+            // int to double
+            Assert.AreEqual(
+                (double)42,
+                InterpretValue(() => (double)42)
+            );
+            
+            // double to int
+            Assert.AreEqual(
+                (int)42.0,
+                InterpretValue(() => (int)42.0)
+            );
+        }
+
+        [Test]
         public void BoxingValueTypes()
         {
             Assert.AreEqual(
